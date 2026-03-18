@@ -1,0 +1,114 @@
+---
+title: TAW Core Tools
+description: Overview of the developer tools TAW Core exposes for the TAW Theme, including CLI commands and runtime APIs used to build and optimize WordPress sites.
+---
+
+## What counts as a tool in TAW Core
+
+TAW Core tools are the developer-facing building blocks the theme uses: command-line utilities and runtime PHP APIs.
+
+These tools fall into two groups:
+
+- **CLI commands** — Symfony Console commands exposed through the `bin/taw` script in your theme. Use them to generate and manage blocks and other theme artifacts.
+- **Runtime APIs and helpers** — PHP classes, functions, and configuration points that run inside WordPress, such as theme boot configuration, performance tuning, block registration, and admin UI engines.
+
+<Callout kind="info">
+
+TAW Theme builds on top of these TAW Core primitives. When you configure the theme or call theme helpers, you are usually driving these lower-level tools under the hood.
+
+</Callout>
+
+## How TAW Core boots into the theme
+
+The theme template boots TAW Core via the `TAW\Core\Theme::boot()` entrypoint. You can then adjust performance behavior with `Theme::performance([...])`.
+
+This boot process wires TAW Core tools into WordPress so that CLI commands, block registration, metaboxes, and other helpers are available within your theme.
+
+<Columns cols={3}>
+
+<Card title="Theme boot and performance" href="/taw-core-theme" icon="rocket">
+
+See how `Theme::boot()` initializes TAW Core and how `Theme::performance([...])` controls caching, hooks, and other runtime behavior.
+
+</Card>
+
+</Columns>
+
+## Tool index
+
+Use these pages as the canonical reference for each TAW Core tool. Each one explains when to use it, how it plugs into the theme, and the key APIs or commands it provides.
+
+<Columns cols={3}>
+
+<Card title="Theme boot and performance" href="/taw-core-theme" icon="rocket">
+
+Configure how TAW Core starts up inside your WordPress theme and tune performance-sensitive behavior.
+
+</Card>
+
+<Card title="TAW CLI" href="/taw-core-cli" icon="terminal">
+
+Work with Symfony Console commands via `bin/taw`, including `make:block`, `export:block`, and `import:block`.
+
+</Card>
+
+<Card title="Blocks API" href="/taw-core-blocks" icon="code">
+
+Define, register, and render blocks using TAW Core's block abstraction instead of low-level WordPress APIs.
+
+</Card>
+
+<Card title="Metabox engine" href="/taw-core-metabox" icon="settings">
+
+Declare structured metaboxes in PHP and let TAW Core handle rendering, saving, and sanitization.
+
+</Card>
+
+<Card title="Options pages" href="/taw-core-options-pages" icon="settings">
+
+Create admin options pages backed by TAW Core schemas, so configuration stays consistent across your theme.
+
+</Card>
+
+<Card title="Vite and asset pipeline" href="/taw-core-assets-vite" icon="package">
+
+Integrate Vite-based builds and asset loading with TAW Core's helpers to manage scripts, styles, and cache busting.
+
+</Card>
+
+<Card title="Debugging utilities" href="/taw-core-debugging" icon="info">
+
+Use logging, dump helpers, and other diagnostics exposed by TAW Core to debug theme behavior safely in development.
+
+</Card>
+
+</Columns>
+
+## When to reach for each tool
+
+Choose tools based on the kind of change you are making:
+
+- **New or updated content blocks** — Use the **TAW CLI** (`make:block`) and the **Blocks API** for registration and rendering.
+- **Admin UX or content modeling** — Use the **Metabox engine** and **Options pages** to add structured configuration in the admin.
+- **Performance or infrastructure changes** — Adjust **Theme boot and performance** configuration and wire assets through the **Vite/asset pipeline**.
+- **Troubleshooting** — Turn on and use **Debugging utilities** to inspect what TAW Core is doing at runtime.
+
+## Next steps
+
+Move from this overview into hands-on usage:
+
+<Columns cols={2}>
+
+<Card title="Get started quickly" href="/quickstart" icon="zap">
+
+Spin up TAW Theme with TAW Core, run `bin/taw`, and wire your first blocks using the CLI and runtime helpers.
+
+</Card>
+
+<Card title="Learn the core concepts" href="/concepts" icon="book-open">
+
+Build a mental model of how TAW Theme, TAW Core tools, and WordPress fit together before you dive deeper.
+
+</Card>
+
+</Columns>

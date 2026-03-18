@@ -1,0 +1,242 @@
+---
+title: Theme boot and performance
+description: Initialize the TAW Core theme bootstrap, configure performance optimizations, and discover helper classes you will use in your templates.
+---
+
+## When and how to boot the theme
+
+Call `TAW\Core\Theme::boot()` once from your theme to wire up block loading, Vite assets, visual editor behavior, REST endpoints, and SVG support.
+
+`Theme::boot()` hooks into core WordPress actions:
+
+- On `after_setup_theme`, it:
+  - Calls `BlockLoader::loadAll()` to register all TAW Core blocks.
+  - Calls `ViteLoader::init()` to prepare your asset pipeline.
+
+- On `wp_enqueue_scripts`, it:
+  - Calls `BlockRegistry::enqueueQueuedAssets()` to enqueue CSS/JS requested by blocks during render.
+  - Calls `VisualEditor::init()` and instantiates:
+    - `VisualEditorEndpoint`
+    - `SearchEndpoints`
+  - Calls `Svg::register()` to enable safe SVG upload and sanitization.
+
+<Callout kind="info">
+
+`Theme::boot()` does not accept arguments and is designed to run exactly once per request. Call it from your theme bootstrap (for example, `functions.php`) before you add custom hooks that depend on blocks or Vite.
+
+</Callout>
+
+## Recommended bootstrap flow
+
+Set up your theme by booting TAW Core and then configuring performance. Use this flow in your `functions.php` (or equivalent) entry point.
+
+<Steps>
+  <Step title="Require the TAW Core autoloader" icon="terminal" titleType="p">
+
+    Make sure WordPress can load the `TAW\Core\Theme` class. In most setups you load this via Composer in your theme or a must-use plugin.
+
+    ```php
+    <?php
+    // functions.php
+
+    require __DIR__ . '/vendor/autoload.php';
+    ```
+
+  </Step>
+
+  <Step title="Boot the theme systems" icon="rocket" titleType="p">
+
+    Call `Theme::boot()` early so blocks, Vite, editor integration, REST endpoints, and SVG support are ready when WordPress runs its hooks.
+
+    ```php
+    <?php
+
+    use TAW\Core\Theme;
+
+    add_action('after_setup_theme', function () {
+        Theme::boot();
+    });
+    ```
+
+  </Step>
+
+  <Step title="Configure performance options" icon="settings" titleType="p">
+
+    Configure theme-level performance behavior through `Theme::performance(array $config)`. This passes your options through to the internal `Performance::configure()` layer.
+
+    ```php
+    <?php
+
+    use TAW\Core\Theme;
+
+    add_action('after_setup_theme', function () {
+        Theme::boot();
+
+        Theme::performance([
+            'remove_bloat'        => true,
+            'remove_emoji'        => true,
+            'remove_meta_tags'    => true,
+            'remove_oembed'       => true,
+            'preconnect_origins'  => [
+                'https://fonts.gstatic.com',
+                'https://cdn.taw-assets.com',
+            ],
+            'preload_fonts'       => [
+                'resources/fonts/inter-var.woff2',
+            ],
+            'preload_images'      => [
+                // [attachment_id, size]
+                [1234, 'hero-desktop'],
+            ],
+        ]);
+    });
+    ```
+
+  </Step>
+</Steps>
+
+### Minimal functions.php example
+
+For a clean theme that only uses the defaults and basic performance flags:
+
+```php
+<?php
+// functions.php
+
+use TAW\Core\Theme;
+
+add_action('after_setup_theme', function () {
+    Theme::boot();
+
+    Theme::performance([
+        'remove_bloat'     => true,
+        'remove_emoji'     => true,
+        'remove_meta_tags' => true,
+        'remove_oembed'    => true,
+    ]);
+});
+```
+
+You should now see your custom blocks available in the editor, Vite-powered assets loading on the front end, and unnecessary WordPress bloat removed from the page output.
+
+## Performance configuration reference
+
+`Theme::performance(array $config)` accepts a keyed array and forwards it to `Performance::configure()`. All keys are optional; omit a key to leave the existing behavior unchanged.
+
+Use these configuration options to strip unneeded WordPress features and add preload and preconnect hints.
+
+<Callout kind="tip">
+
+Start with only `remove_bloat`, `remove_emoji`, `remove_meta_tags`, and `remove_oembed` enabled. Add `preconnect_origins`, `preload_fonts`, and `preload_images` once you know which assets are critical for your theme.
+
+</Callout>
+
+### Boolean flags
+
+<ParamField body="remove_bloat" param-type="bool" required="false" show-location="false">
+
+Remove common WordPress front-end bloat such as unnecessary styles, scripts, and features that TAW Core does not rely on. Enable this to reduce page weight and HTTP requests.
+
+</ParamField>
+
+<ParamField body="remove_emoji" param-type="bool" required="false" show-location="false">
+
+Disable WordPress emoji detection scripts and related assets. Turn this on if you do not need WordPress emoji support and want to avoid extra requests.
+
+</ParamField>
+
+<ParamField body="remove_meta_tags" param-type="bool" required="false" show-location="false">
+
+Remove default WordPress meta tags from the document head, such as generator tags and other non-essential metadata.
+
+</ParamField>
+
+<ParamField body="remove_oembed" param-type="bool" required="false" show-location="false">
+
+Turn off WordPress oEmbed support and associated discovery links and scripts. Use this when you do not rely on automatic oEmbed handling for content.
+
+</ParamField>
+
+### Resource hints and preloads
+
+<ParamField body="preconnect_origins" param-type="string[]" required="false" show-location="false">
+
+List of origin URLs to preconnect to, such as `https://fonts.gstatic.com` or your asset CDN. The performance layer emits preconnect hints so the browser establishes connections earlier.
+
+</ParamField>
+
+<ParamField body="preload_fonts" param-type="string[]" required="false" show-location="false">
+
+Array of font paths that TAW Core resolves using `ViteLoader::assetUrl`. Paths are relative to your Vite asset root, for example `resources/fonts/inter-var.woff2`. The performance layer preloads these fonts as `font` resources.
+
+</ParamField>
+
+<ParamField body="preload_images" param-type="array[]" required="false" show-location="false">
+
+Array of two-element arrays describing images to preload, each in the form `[attachment_id, size]`. The performance layer resolves the image source for the given attachment and size and emits `<link rel="preload">` tags.
+
+</ParamField>
+
+## Template helpers you will use often
+
+Once the theme is booted and performance is configured, use helper classes from the `TAW\Helpers` namespace to keep your templates concise and consistent.
+
+<Callout kind="info">
+
+Each helper has its own dedicated documentation. Use this section as an orientation and then follow the links when you are ready to integrate them into templates and metabox UIs.
+
+</Callout>
+
+### TAW\Helpers\Editor
+
+`TAW\Helpers\Editor` provides helper methods to work with the visual editor:
+
+- Generate attribute arrays for block markup.
+- Normalize and render editor field values.
+- Integrate editor fields with your custom templates and metaboxes.
+
+Use this helper when you need a clean bridge between Gutenberg data structures and your PHP templates.
+
+### TAW\Helpers\Image
+
+`TAW\Helpers\Image` offers image-related helpers:
+
+- Render optimized `<img>` tags with size, srcset, and loading attributes.
+- Generate preload hints for above-the-fold images.
+- Work with WordPress attachment IDs rather than hard-coded URLs.
+
+Use this helper in hero sections, featured images, and any template that must load quickly on first paint.
+
+### TAW\Helpers\Svg
+
+`TAW\Helpers\Svg` works together with `Svg::register()` from the theme boot process to:
+
+- Allow safe SVG uploads and sanitize content.
+- Render SVGs inline in your templates.
+- Generate URLs to SVG assets managed by TAW Core.
+
+Use this helper when you want sharp icons and logos without relying on raster images.
+
+## What to read next
+
+Deepen your theme integration with these focused guides:
+
+<Columns cols={3}>
+  <Card title="Assets and Vite integration" href="/taw-core-assets-vite" icon="code" cta="Configure Vite assets">
+
+Learn how TAW Core uses Vite for script and style loading, and how to add your own entrypoints.
+
+  </Card>
+
+  <Card title="Blocks and block registry" href="/taw-core-blocks" icon="package" cta="Work with blocks">
+
+Explore how `BlockLoader` and `BlockRegistry` discover, register, and enqueue your custom blocks.
+
+  </Card>
+
+  <Card title="Metabox and editor tooling" href="/taw-core-metabox" icon="edit" cta="Build editor experiences">
+
+Connect `TAW\Helpers\Editor` with metaboxes and custom editor fields for richer authoring workflows.
+
+  </Card>
+</Columns>

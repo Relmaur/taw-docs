@@ -1,30 +1,31 @@
 ---
 title: TAW Theme Quickstart
-description: Spin up a new WordPress project with TAW Theme and TAW Core, including Composer install, Vite dev server, theme activation, and your first block.
+description: >-
+  Spin up a new WordPress project with TAW Theme and TAW Core, including
+  Composer install, Vite dev server, theme activation, and your first block.
 ---
-
 ## Overview
 
 Use this quickstart to create a new WordPress theme powered by TAW Theme and TAW Core, run the Vite dev server, and scaffold your first block.
 
-<Callout kind="info">
-
+<Callout kind="info" collapsed="false">
   TAW Theme uses TAW Core under the hood for the block system, MetaBlock, metabox engine, and Vite asset pipeline. When you boot the theme, you also boot TAW Core.
-
 </Callout>
 
 ## Prerequisites
 
-<Callout kind="alert">
-
+<Callout kind="alert" collapsed="false">
   Before you start, make sure your environment meets these requirements:
 
   - WordPress 6.0 or higher
-  - PHP 8.1 or higher
-  - Composer installed and available on your `PATH`
-  - Node.js 20 or higher
-  - npm (bundled with Node)
 
+  - PHP 8.1 or higher
+
+  - Composer installed and available on your `PATH`
+
+  - Node.js 20 or higher
+
+  - npm (bundled with Node)
 </Callout>
 
 ## Create and activate a TAW Theme project
@@ -33,27 +34,25 @@ Use this quickstart to create a new WordPress theme powered by TAW Theme and TAW
   <Step title="Create a new theme via Composer" icon="terminal" title-type="p">
     Run the Composer template to scaffold a fresh TAW Theme project inside your WordPress `wp-content/themes` directory.
 
-    <CodeGroup>
+    <CodeGroup show-lines="true" tabs={[]}>
+      ```bash
+      # From your WordPress root
+      cd wp-content/themes
 
-    ```bash
-    # From your WordPress root
-    cd wp-content/themes
+      # Scaffold a new TAW Theme project (replace acme-docs with your theme folder)
+      composer create-project taw/theme acme-docs
 
-    # Scaffold a new TAW Theme project (replace acme-docs with your theme folder)
-    composer create-project taw/theme acme-docs
+      cd acme-docs
 
-    cd acme-docs
+      # Install PHP dependencies for TAW Core, Vite integration, and block system
+      composer install
+      ```
 
-    # Install PHP dependencies for TAW Core, Vite integration, and block system
-    composer install
-    ```
-
-    ```bash
-    # If you already created the project, just install PHP deps
-    cd wp-content/themes/acme-docs
-    composer install
-    ```
-
+      ```bash
+      # If you already created the project, just install PHP deps
+      cd wp-content/themes/acme-docs
+      composer install
+      ```
     </CodeGroup>
 
     After this step, your theme folder contains TAW Theme, TAW Core, and the `Blocks` directory for your custom blocks.
@@ -77,8 +76,11 @@ Use this quickstart to create a new WordPress theme powered by TAW Theme and TAW
     Switch your site to use the new TAW Theme.
 
     - Log in to your WordPress admin.
+
     - Go to **Appearance → Themes**.
+
     - Find your new theme (for example, **Acme Docs**).
+
     - Click **Activate**.
 
     After activation, visit the frontend: you should see the TAW Theme layout rendered, backed by TAW Core.
@@ -105,7 +107,9 @@ Use the built-in TAW CLI to generate a new block and place it in the `Blocks` di
     After generation and with `npm run dev` still running:
 
     - Go to the WordPress block editor for a page or template.
+
     - Search for the **Hero** block in the block inserter.
+
     - Insert it and confirm that its markup and styles load correctly.
 
     If you see the block and edits update live when you save block files, your TAW Theme + TAW Core setup is working.
@@ -125,7 +129,7 @@ This runs the Vite production build and outputs optimized CSS and JS that WordPr
 
 ## Next steps
 
-<Columns cols={2}>
+<Columns cols="2">
   <Card title="Core Concepts" href="/concepts" icon="book-open" horizontal="false">
     Learn how TAW Theme and TAW Core work together, including block architecture, MetaBlock, and asset loading.
   </Card>
@@ -134,3 +138,4 @@ This runs the Vite production build and outputs optimized CSS and JS that WordPr
     Explore available documentation components to document your new TAW-powered theme.
   </Card>
 </Columns>
+

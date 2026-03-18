@@ -1,35 +1,34 @@
 ---
 title: TAW Theme introduction
-description: Learn how the TAW WordPress Framework combines TAW Theme and TAW Core into a modern, component-based workflow for custom theme development.
+description: >-
+  Learn how the TAW WordPress Framework combines TAW Theme and TAW Core into a
+  modern, component-based workflow for custom theme development.
 ---
-
 ## Start here (5–10 minutes)
 
 TAW is a modern, component-based WordPress theme framework built around PHP blocks, MetaBlocks, and a Vite/Tailwind asset pipeline.
 
-<Callout kind="info">
-
-TAW Theme is designed for WordPress and PHP developers who prefer code-first workflows, version control, and repeatable architecture over click-driven theme builders.
-
+<Callout kind="info" collapsed="false">
+  TAW Theme is designed for WordPress and PHP developers who prefer code-first workflows, version control, and repeatable architecture over click-driven theme builders.
 </Callout>
 
-<Callout kind="alert">
-
-This is an early draft of the TAW documentation. The framework is fully code-first: expect to work in PHP, Composer, and Node, with minimal WordPress admin configuration.
-
+<Callout kind="alert" collapsed="false">
+  This is an early draft of the TAW documentation. The framework is fully code-first: expect to work in PHP, Composer, and Node, with minimal WordPress admin configuration.
 </Callout>
 
 Use these pages to get oriented:
 
 - Start with [Quickstart](/quickstart) to install TAW Theme via Composer, wire up Vite, and see your first block render.
+
 - Read [Core Concepts](/concepts) for a deeper look at blocks, MetaBlocks, assets, and how TAW Theme and TAW Core interact.
+
 - Browse [Components](/components) when you want concrete examples of how we structure code, blocks, and documentation.
 
 ## What you get
 
 TAW Theme depends on the `taw/core` Composer package (TAW Core) for block discovery, the MetaBlock engine, Vite/Tailwind integration, and helper utilities.
 
-<Columns cols={3}>
+<Columns cols="3">
   <Card title="Component and block architecture" href="/concepts" icon="layers" horizontal="false">
     Organize your theme into PHP blocks under `Blocks/`, with automatic discovery and loading via TAW Core. Build UI blocks and MetaBlocks that stay close to your domain instead of scattered templates.
   </Card>
@@ -43,7 +42,7 @@ TAW Theme depends on the `taw/core` Composer package (TAW Core) for block discov
   </Card>
 </Columns>
 
-<Columns cols={3}>
+<Columns cols="3">
   <Card title="TAW Theme + TAW Core" href="/concepts" icon="code" horizontal="false">
     Bootstrap your theme with Composer, require `taw/core`, then call `TAW\Core\Theme::boot()` from `functions.php`. Let TAW Core handle block loading, REST helpers, and performance toggles.
   </Card>
@@ -63,27 +62,19 @@ Use this flow to go from a blank project to a running TAW Theme backed by TAW Co
 
 <Steps>
   <Step title="Install the theme and TAW Core" icon="download" title-type="p">
-
     Initialize a new WordPress theme with the TAW Theme template via Composer, run `composer install` so `taw/core` is available, then wire up `functions.php` to require the autoloader and call `TAW\Core\Theme::boot()`.
-
   </Step>
 
   <Step title="Set up Vite and Tailwind v4" icon="terminal" title-type="p">
-
     Run `npm install`, configure the provided Vite setup (including `@tailwindcss/vite`), and start the dev server with `npm run dev` to get hot module reloading and Tailwind utilities in both frontend and editor.
-
   </Step>
 
   <Step title="Create your first Block and MetaBlock" icon="edit" title-type="p">
-
     Use the TAW CLI (for example, `php bin/taw make:block ...`) to scaffold a new block under `Blocks/`, define a MetaBlock for structured content, and verify it appears in the editor with its own assets and metabox-backed fields.
-
   </Step>
 
   <Step title="Explore Core Concepts and patterns" icon="book-open" title-type="p">
-
     Once the first block works, read [Core Concepts](/concepts) to standardize how you structure `Blocks/`, design MetaBlocks, and configure options pages so future themes reuse the same patterns.
-
   </Step>
 </Steps>
 
@@ -91,7 +82,7 @@ Use this flow to go from a blank project to a running TAW Theme backed by TAW Co
 
 Use these pages as your path from evaluation to production-ready themes.
 
-<Columns cols={2}>
+<Columns cols="2">
   <Card title="Quickstart" href="/quickstart" icon="zap" horizontal="false">
     Follow a concrete, end-to-end setup: Composer install, Vite/Tailwind wiring, and your first block and MetaBlock running in the editor.
   </Card>
@@ -108,3 +99,4 @@ Use these pages as your path from evaluation to production-ready themes.
     Find FAQs, troubleshooting tips, and guides for working with this documentation site alongside your TAW codebase.
   </Card>
 </Columns>
+
