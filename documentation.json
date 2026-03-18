@@ -27,18 +27,24 @@
                 "title": "Quickstart",
                 "path": "quickstart",
                 "icon": "zap"
-              },
+              }
+            ]
+          },
+          {
+            "group": "TAW Framework",
+            "pages": [
               {
                 "title": "TAW Theme",
                 "path": "taw-core-theme",
                 "icon": "lucide-paint-roller"
               },
               {
-                "title": "TAW Framework",
+                "title": "TAW Core",
                 "path": "taw-framework",
                 "icon": "hammer"
               }
-            ]
+            ],
+            "icon": "lucide-hammer"
           }
         ]
       },
