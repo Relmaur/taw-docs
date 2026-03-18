@@ -1,0 +1,62 @@
+---
+title: Images
+description: Add screenshots and diagrams with accessible alt text.
+---
+
+## Images
+
+Use the `Image` component to add screenshots and diagrams with alt text. Always include descriptive alt text and explicit dimensions to avoid layout shift.
+
+## When to use
+
+Use the `Image` component when you need to:
+
+- Add product screenshots or UI examples.
+- Include diagrams or architecture overviews.
+- Illustrate step-by-step procedures.
+- Call out visual differences between states (for example, before vs. after).
+
+## When not to use
+
+Avoid using the `Image` component when:
+
+- A short text explanation or table would communicate the idea more clearly.
+- The image contains text that is not repeated elsewhere in the page.
+- The image is purely decorative and does not add meaning. In this case, keep `alt` empty (`""`) so screen readers can ignore it.
+
+## Example
+
+<Image
+  src="https://fdjsuzcsbmpqsraaooua.supabase.co/storage/v1/object/public/documentation-images/org-53a37986-2c9e-4094-b9e8-1e1ffae9e9ee/doc-b389b141-ae58-4fd5-91f9-6702fae9ac58/1758638266765-vc81ki2xs9-abstract-image.webp"
+  alt="Abstract geometric pattern with colorful shapes"
+  width="672"
+  height="343"
+/>
+
+## Alt text examples
+
+Write alt text that describes the content and purpose of the image, not just what it looks like.
+
+**Good alt text**
+
+- `alt="User dashboard showing project list with status badges and a New Project button"`
+
+Why it works:
+
+- Describes the key UI elements.
+- Focuses on what matters for the task (projects, status, action button).
+- Helps someone understand the interface without seeing it.
+
+**Bad alt text**
+
+- `alt="Screenshot"`
+
+Why it fails:
+
+- Gives no information about what the screenshot shows.
+- Does not help screen reader users.
+- Makes it harder to search or maintain images later.
+
+## Learn more
+
+Read the full Images guide at [https://documentation.ai/docs/components/images](https://documentation.ai/docs/components/images).

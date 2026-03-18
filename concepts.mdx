@@ -1,0 +1,54 @@
+---
+title: Core Concepts
+description: The basic building blocks of this starter kit.
+---
+
+## Overview
+
+<Callout kind="alert">
+This page is an example. Replace every concept with the real terms your product uses.
+</Callout>
+
+## The building blocks
+
+<Columns cols={2}>
+  <Card title="Pages" icon="file-text">
+    Every page is an `.mdx` file. Content lives in the repo and is safe to edit.
+  </Card>
+  <Card title="Navigation" icon="list">
+    Sidebar structure comes from `documentation.json`.
+  </Card>
+  <Card title="Components" icon="layout-grid">
+    Reusable blocks like Callouts, Steps, Tabs, and Cards keep pages consistent.
+  </Card>
+  <Card title="API Reference" icon="code">
+    If you use it, the API tab reads from `openapi.yaml`.
+  </Card>
+</Columns>
+
+## Navigation shape (sample)
+
+```json
+{
+  "tab": "Documentation",
+  "groups": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        { "title": "Introduction", "path": "introduction" }
+      ]
+    }
+  ]
+}
+```
+
+## How to adapt this page
+
+<Steps>
+  <Step title="Replace the terms" icon="edit">
+    Swap "Pages" and "Components" for your real domain language.
+  </Step>
+  <Step title="Add your concepts" icon="plus">
+    Create a section for the ideas your users must learn first.
+  </Step>
+</Steps>

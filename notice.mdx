@@ -1,0 +1,52 @@
+---
+title: Notice
+description: Clear guidance that this site is a starter template.
+---
+
+## This is a sample
+
+<Callout kind="alert" collapsed="false">
+This site ships with placeholder content. Review and replace it with your real documentation before sharing with customers.
+</Callout>
+
+## What is safe to change
+
+You can edit any page content, rename sections, and update navigation structure. If you do not need the API Reference or Help Center, you can also remove those tabs from `documentation.json`.
+
+<Columns cols="2">
+  <Card title="Page content" icon="file-text" horizontal="false">
+    Edit any `.mdx` file in this repo.
+  </Card>
+
+  <Card title="Navigation" icon="list" horizontal="false">
+    Update labels, order, and visible tabs in `documentation.json`.
+  </Card>
+
+  <Card title="API Reference" icon="code" horizontal="false">
+    Swap `openapi.yaml` with your own spec, or remove the API Reference tab from `documentation.json` if you do not need it.
+  </Card>
+
+  <Card title="Help Center" icon="help-circle" horizontal="false">
+    Replace FAQs, guides, and troubleshooting with your real support content, or remove the Help Center tab from `documentation.json` if it is not part of your docs.
+  </Card>
+</Columns>
+
+## Recommended first changes
+
+<Steps>
+  <Step title="Rename pages" icon="edit" title-type="p">
+    Update page titles and descriptions to match your product.
+  </Step>
+
+  <Step title="Replace sample links" icon="link" title-type="p">
+    Remove any placeholder URLs and add your own.
+  </Step>
+
+  <Step title="Remove unused tabs and sections" icon="settings" title-type="p">
+    Open `documentation.json` and remove entries for tabs or sections you do not plan to use, such as the API Reference or Help Center, without deleting any files.
+  </Step>
+
+  <Step title="Remove unused pages" icon="trash" title-type="p">
+    Delete any `.mdx` pages you do not plan to maintain so the sidebar only shows relevant content.
+  </Step>
+</Steps>

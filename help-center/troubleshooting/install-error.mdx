@@ -1,0 +1,26 @@
+---
+title: Page Missing in Sidebar
+description: Fix a page that does not appear in navigation.
+---
+## Symptoms
+
+- A new page file exists but does not show up in the sidebar.
+
+- Clicking a nav item shows a 404.
+
+## Fix
+
+<Steps>
+  <Step title="Confirm the file name" icon="file-text" title-type="p">
+    Ensure the file exists.
+  </Step>
+
+  <Step title="Update navigation" icon="settings" title-type="p">
+    Add or fix the matching `path` in `documentation.json` or from navigation menu.
+  </Step>
+
+  <Step title="Publish" icon="refresh-cw" title-type="p">
+    Publish so changes take effect.
+  </Step>
+</Steps>
+
