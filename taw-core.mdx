@@ -108,8 +108,38 @@ Each field below uses a `type` value that maps directly to the metabox renderer.
     Post selector field. Supports `post_type` (single or multiple types), `multiple` (boolean to allow multiple selections), and `max` (integer cap on the number of selected posts).
   </Expandable>
 
+  <Expandable title="Image" default-open="false">
+    WordPress media library picker. Stores an attachment ID as an integer. Retrieve as a URL with `Metabox::get_image_url($postId, 'field_id', 'size')` or use `$this->getImageUrl()` inside a `MetaBlock`.
+  </Expandable>
+
   <Expandable title="Repeater" default-open="false">
-    Add your content here...
+    Dynamic list of rows where each row contains the same set of sub-fields. Use a `fields` array inside the repeater to define the per-row schema — any field type is supported, including `image`, `color`, and `post_select`. Rows are drag-and-drop sortable and individually collapsible in the admin UI.
+
+    Accepts `min` (minimum required rows) and `max` (row cap, `0` = unlimited) options. Retrieve with `Metabox::get_repeater($postId, 'field_id')`, which returns an array of associative arrays — one per row.
+
+    ```php
+    [
+        'id'    => 'team_members',
+        'label' => 'Team Members',
+        'type'  => 'repeater',
+        'min'   => 1,
+        'max'   => 10,
+        'fields' => [
+            ['id' => 'name',  'label' => 'Name',  'type' => 'text',     'width' => '50'],
+            ['id' => 'role',  'label' => 'Role',  'type' => 'text',     'width' => '50'],
+            ['id' => 'photo', 'label' => 'Photo', 'type' => 'image'],
+            ['id' => 'bio',   'label' => 'Bio',   'type' => 'textarea'],
+        ],
+    ]
+    ```
+
+    ```php
+    $members = Metabox::get_repeater($postId, 'team_members');
+    foreach ($members as $member) {
+        echo esc_html($member['name'] ?? '');
+        echo esc_html($member['role'] ?? '');
+    }
+    ```
   </Expandable>
 </ExpandableGroup>
 
@@ -307,27 +337,42 @@ Forms and Mail in TAW Core give you a config-driven way to handle front-end form
 
 Use `TAW\Core\Form\Form` to define and render forms from configuration, with built-in validation, honeypot/CSRF patterns, and submission saving.
 
-A minimal pattern inside a template or controller looks like this:
+A complete contact form example:
 
 ```php
 use TAW\Core\Form\Form;
 
 $form = new Form([
-    'id' => 'contact',
-    'fields' => [
-        // Define your fields here using the Form configuration schema.
-    ],
+    'id'           => 'contact',
+    'submit_label' => 'Send Message',
+    'messages'     => ['success' => "Thanks! We'll be in touch."],
     'email' => [
-        // Configure email behavior for submissions here.
+        'to_self'   => ['subject' => 'New contact',      'template' => 'contact-self'],
+        'to_client' => ['subject' => 'Got your message', 'template' => 'contact-client'],
+    ],
+    'fields' => [
+        ['id' => 'name',    'label' => 'Name',    'type' => 'text',     'required' => true],
+        ['id' => 'email',   'label' => 'Email',   'type' => 'email',    'required' => true],
+        ['id' => 'message', 'label' => 'Message', 'type' => 'textarea', 'required' => true],
     ],
 ]);
 
-echo $form->render();
+$form->render();
 ```
 
-`Form` coordinates rendering, validation, and saving the submission to the `taw_submission` custom post type through the submissions handler.
+When both `email.to_self.template` and `email.to_client.template` are set, delivery uses `Mailer` + `MailTemplate`. Otherwise `Form` falls back to plain-text `wp_mail()`.
 
-`TAW\Core\Form\SubmissionsHandler` registers the `taw_submission` post type and optionally posts each submission to a configured webhook.
+**Supported form field types:** `text`, `email`, `textarea`, `select`, and any standard HTML input type (e.g. `tel`, `date`). Fields support `required`, `placeholder`, and `rows`.
+
+`Form` handles CSRF (nonces), honeypot spam protection, field validation, and PRG redirect after success automatically — no extra wiring needed.
+
+`TAW\Core\Form\SubmissionsHandler` registers the `taw_submission` custom post type and stores each successful submission in WP Admin. Activate it once in `functions.php`:
+
+```php
+new \TAW\Core\Form\SubmissionsHandler();
+```
+
+It optionally posts each submission to a webhook endpoint (n8n, Zapier, Make, etc.).
 
 <Callout kind="info" collapsed="false">
   Configure the webhook endpoint and HMAC secret under **Settings > Form Webhook** in the WordPress admin. TAW Core signs outbound submission payloads so your receiver can verify authenticity.
@@ -379,6 +424,120 @@ TAW Core adds admin screens to help you operate and test these modules without w
 - **Settings > Form Webhook** — configures the webhook URL and HMAC secret that `SubmissionsHandler` uses when posting saved submissions to an external endpoint.
 
 Use these screens to confirm templates render as expected and form submissions reach your downstream systems before wiring them into live flows.
+
+{/* MARK: OptionsPage */}
+
+## Options page
+
+`TAW\Core\OptionsPage` provides site-wide settings stored in `wp_options`, using the same field config format as metaboxes. Configure it in `inc/options.php`.
+
+```php
+new OptionsPage([
+    'id'         => 'taw_settings',
+    'title'      => 'TAW Settings',
+    'menu_title' => 'TAW Settings',
+    'capability' => 'manage_options',
+    'icon'       => 'dashicons-screenoptions',
+    'position'   => 2,
+    'fields'     => [
+        ['id' => 'company_name',  'label' => 'Company Name',  'type' => 'text', 'width' => '33.33'],
+        ['id' => 'company_phone', 'label' => 'Phone Number',  'type' => 'text', 'width' => '33.33'],
+        ['id' => 'company_email', 'label' => 'Email Address', 'type' => 'text', 'width' => '33.33'],
+        ['id' => 'footer_text',   'label' => 'Footer Text',   'type' => 'textarea'],
+        ['id' => 'logo',          'label' => 'Logo',          'type' => 'image'],
+    ],
+    'tabs' => [
+        ['label' => 'General', 'fields' => ['company_name', 'company_phone', 'company_email']],
+        ['label' => 'Footer',  'fields' => ['footer_text']],
+    ],
+]);
+```
+
+**Supported field types:** `text`, `textarea`, `wysiwyg`, `url`, `number`, `select`, `checkbox`, `color`, `image`. The same tabbed layout, validation, and `conditions` logic from metaboxes all apply.
+
+### Retrieval
+
+```php
+use TAW\Core\OptionsPage;
+
+$phone = OptionsPage::get('company_phone');
+$logo  = OptionsPage::get_image_url('logo', 'medium');
+```
+
+{/* MARK: Navigation Menus */}
+
+## Navigation menus
+
+`TAW\Core\Menu\Menu` wraps WordPress nav menus into a typed tree, giving you full control over markup without `wp_nav_menu()`.
+
+```php
+use TAW\Core\Menu\Menu;
+
+$menu = Menu::get('primary');
+if ($menu && $menu->hasItems()) {
+    foreach ($menu->items() as $item) {
+        echo '<a href="' . esc_url($item->url()) . '"';
+        if ($item->openInNewTab()) echo ' target="_blank" rel="noopener"';
+        echo '>' . esc_html($item->title()) . '</a>';
+
+        if ($item->hasChildren()) {
+            foreach ($item->children() as $child) {
+                // render child item
+            }
+        }
+    }
+}
+```
+
+### Menu API
+
+| Method                 | Returns      | Description                                   |
+| ---------------------- | ------------ | --------------------------------------------- |
+| `Menu::get($location)` | `?Menu`      | Load a menu by its registered location slug   |
+| `$menu->items()`       | `MenuItem[]` | Root-level items                              |
+| `$menu->hasItems()`    | `bool`       |                                               |
+| `$menu->name()`        | `string`     | The menu name set in WordPress admin          |
+
+### MenuItem API
+
+| Method               | Returns      | Description                                              |
+| -------------------- | ------------ | -------------------------------------------------------- |
+| `title()`            | `string`     | Menu item label                                          |
+| `url()`              | `string`     | Destination URL                                          |
+| `openInNewTab()`     | `bool`       | True when target is `_blank`                             |
+| `hasChildren()`      | `bool`       |                                                          |
+| `children()`         | `MenuItem[]` | Direct child items                                       |
+| `isActive()`         | `bool`       | Current page matches this item                           |
+| `isActiveParent()`   | `bool`       | A child of this item is the current page                 |
+| `isInActiveTrail()`  | `bool`       | This item or a descendant is the current page            |
+| `classes()`          | `string[]`   | Custom classes only (WP auto-classes filtered out)       |
+| `wpClasses()`        | `string[]`   | All classes including WP's auto-generated ones           |
+| `objectType()`       | `string`     | Object type (`'page'`, `'post'`, `'custom'`, etc.)       |
+| `objectId()`         | `int`        | The underlying post/term ID                              |
+| `description()`      | `string`     | Item description set in WordPress menu editor            |
+
+<Callout kind="info" collapsed="false">
+  Menus (`primary`, `footer`, etc.) are registered via `register_nav_menus()` in `functions.php`. Assign menus to locations in **WordPress Admin → Appearance → Menus**.
+</Callout>
+
+{/* MARK: REST API */}
+
+## REST API
+
+`TAW\Core\Rest\SearchEndpoints` registers a search endpoint that powers the `post_select` metabox field. It is registered automatically by `Theme::boot()`.
+
+**Endpoint:** `GET /wp-json/taw/v1/search-posts`
+
+Requires `edit_posts` capability (logged-in editors and above).
+
+| Parameter   | Default  | Description                                         |
+| ----------- | -------- | --------------------------------------------------- |
+| `s`         | `''`     | Search string — omit to return recent posts         |
+| `post_type` | `'post'` | Post type(s) — comma-separated for multiple         |
+| `per_page`  | `10`     | Results per page (1–50)                             |
+| `exclude`   | `''`     | Comma-separated post IDs to exclude                 |
+
+**Response fields per post:** `id`, `title`, `post_type`, `status`, `date`, `edit_url`, `permalink`, `thumbnail`
 
 {/* MARK: Tool Index */}
 

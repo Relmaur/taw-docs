@@ -349,6 +349,38 @@ echo Svg::inline(9012, [
 ]);
 ```
 
+## Navigation menu registration
+
+Menus are registered in `functions.php` via `register_nav_menus()`. Add or rename locations there directly, then assign menus to locations in **WordPress Admin → Appearance → Menus**.
+
+```php
+// functions.php
+register_nav_menus([
+    'primary' => __('Primary Navigation', 'taw'),
+    'footer'  => __('Footer Navigation', 'taw'),
+]);
+```
+
+To render menus in templates, use `TAW\Core\Menu\Menu::get($location)`. See the [Navigation menus reference](/taw-core#navigation-menus) in the TAW Core tools overview for the full `Menu` and `MenuItem` API.
+
+## Theme updater
+
+`ThemeUpdater` hooks into WordPress's update system to check a GitHub Releases URL for a newer version. When one is found, the standard **Update Available** notice appears in the admin.
+
+```php
+// functions.php
+new TAW\Core\ThemeUpdater([
+    'slug'       => 'taw-theme',
+    'github_url' => 'https://api.github.com/repos/your-username/taw-theme/releases/latest',
+]);
+```
+
+Updates are cached for 6 hours to avoid GitHub rate limits. The updater prefers a built ZIP asset attached to the release; it falls back to GitHub's auto-generated zipball if none is found.
+
+<Callout kind="info" collapsed="false">
+  Framework updates (changes to `taw/core` itself) are handled separately via `composer update taw/core` — no updater config needed.
+</Callout>
+
 ## What to read next
 
 Deepen your theme integration with these focused guides:
