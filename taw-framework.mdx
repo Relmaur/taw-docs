@@ -160,57 +160,55 @@ Use these common options alongside the type-specific options below.
 
 Each field below uses a `type` value that maps directly to the metabox renderer.
 
-<ParamField body="text" param-type="field type" required="false" deprecated="false">
-  Single-line text input. Combine with `placeholder` and `required`. Stores a string value.
-</ParamField>
+<ExpandableGroup>
+  <Expandable title="Text" default-open="false">
+    Single-line text input. Combine with `placeholder` and `required`. Stores a string value.
+  </Expandable>
 
-<ParamField body="url" param-type="field type" required="false" deprecated="false">
-  URL input with browser-level URL validation. Stores a string URL.
-</ParamField>
+  <Expandable title="Url" default-open="false">
+    URL input with browser-level URL validation. Stores a string URL.
+  </Expandable>
 
-<ParamField body="number" param-type="field type" required="false" deprecated="false">
-  Numeric input for integers or floats. Supports `min`, `max`, and `step` options to constrain the value and control the increment size.
-</ParamField>
+  <Expandable title="Number" default-open="false">
+    Numeric input for integers or floats. Supports `min`, `max`, and `step` options to constrain the value and control the increment size.
+  </Expandable>
 
-<ParamField body="textarea" param-type="field type" required="false" deprecated="false">
-  Multi-line plain text area. Use `rows` to control height and combine with `placeholder` and `description` when you expect longer content.
-</ParamField>
+  <Expandable title="Textarea" default-open="false">
+    Multi-line plain text area. Use `rows` to control height and combine with `placeholder` and `description` when you expect longer content.
+  </Expandable>
 
-<ParamField body="wysiwyg" param-type="field type" required="false" deprecated="false">
-  Rich text editor field. Accepts `rows`, `media_buttons` (boolean), and `teeny` (boolean) options to control editor size and whether media buttons or a simplified toolbar are shown.
-</ParamField>
+  <Expandable title="Wysiwyg" default-open="false">
+    Rich text editor field. Accepts `rows`, `media_buttons` (boolean), and `teeny` (boolean) options to control editor size and whether media buttons or a simplified toolbar are shown.
+  </Expandable>
 
-<ParamField body="select" param-type="field type" required="false" deprecated="false">
-  Dropdown select input. Provide an `options` map of `value => label` pairs; the field stores the selected option value as a string.
-</ParamField>
+  <Expandable title="Select" default-open="false">
+    Dropdown select input. Provide an `options` map of `value => label` pairs; the field stores the selected option value as a string.
+  </Expandable>
 
-<ParamField body="checkbox" param-type="field type" required="false" deprecated="false">
-  Single checkbox input for boolean-style flags. Stores string values `'1'` or `'0'` using a hidden input that defaults to `'0'`.
-</ParamField>
+  <Expandable title="Checkbox" default-open="false">
+    Single checkbox input for boolean-style flags. Stores string values `'1'` or `'0'` using a hidden input that defaults to `'0'`.
+  </Expandable>
 
-<ParamField body="color" param-type="field type" required="false" deprecated="false">
-  Color picker input. Accepts a `default` value (for example `#ffffff`) and stores the selected color string.
-</ParamField>
+  <Expandable title="Color" default-open="false">
+    Color picker input. Accepts a `default` value (for example `#ffffff`) and stores the selected color string.
+  </Expandable>
 
-<ParamField body="range" param-type="field type" required="false" deprecated="false">
-  Slider-style range input. Supports `min`, `max`, and `step` options, plus an optional `unit` string (for example `%`, `px`) for display alongside the numeric value.
-</ParamField>
+  <Expandable title="Range" default-open="false">
+    Slider-style range input. Supports `min`, `max`, and `step` options, plus an optional `unit` string (for example `%`, `px`) for display alongside the numeric value.
+  </Expandable>
 
-<ParamField body="image" param-type="field type" required="false" deprecated="false">
-  Image selector field that stores a single attachment ID. Typically rendered with a preview and remove/change controls.
-</ParamField>
+  <Expandable title="Group" default-open="false">
+    Nested group of sub-fields. Use a `fields` array inside the group to define child fields with their own `id`, `type`, and options. Useful for logically grouping related settings.
+  </Expandable>
 
-<ParamField body="group" param-type="field type" required="false" deprecated="false">
-  Nested group of sub-fields. Use a `fields` array inside the group to define child fields with their own `id`, `type`, and options. Useful for logically grouping related settings.
-</ParamField>
+  <Expandable title="Post Select" default-open="false">
+    Post selector field. Supports `post_type` (single or multiple types), `multiple` (boolean to allow multiple selections), and `max` (integer cap on the number of selected posts).
+  </Expandable>
 
-<ParamField body="post_select" param-type="field type" required="false" deprecated="false">
-  Post selector field. Supports `post_type` (single or multiple types), `multiple` (boolean to allow multiple selections), and `max` (integer cap on the number of selected posts).
-</ParamField>
-
-<ParamField body="repeater" param-type="field type" required="false" deprecated="false">
-  Repeatable set of sub-fields. Provide a `fields` array describing each item row, and configure `min`, `max`, and `button_label` to control the allowed number of items and the label of the "add item" button.
-</ParamField>
+  <Expandable title="Repeater" default-open="false">
+    Add your content here...
+  </Expandable>
+</ExpandableGroup>
 
 ## Tool index
 
