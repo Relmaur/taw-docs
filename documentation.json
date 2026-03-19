@@ -40,7 +40,7 @@
               },
               {
                 "title": "TAW Core",
-                "path": "taw-framework",
+                "path": "taw-core",
                 "icon": "hammer"
               }
             ],
