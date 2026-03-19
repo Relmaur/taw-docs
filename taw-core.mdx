@@ -113,100 +113,6 @@ Use these screens to confirm templates render as expected and form submissions r
 
 TAW Core metaboxes accept a `fields` configuration array, and each field defines a `type` that the `TAW\Core\Metabox\Metabox` engine knows how to render, validate, and save.
 
-A full metabox fields configuration looks like this:
-
-```php
-new Metabox([
-    'id'     => 'taw_hero',
-    'title'  => 'Hero Section',
-    'screen' => 'page',
-    'fields' => [
-        // Layout with widths
-        [
-            'id' => 'heading',     
-            'label' => 'Heading',     
-            'type' => 'text',     
-            'width' => '50', 
-            'required' => true
-        ],
-        [
-            'id' => 'subheading',  
-            'label' => 'Subheading',  
-            'type' => 'text',     
-            'width' => '50'
-        ],
-
-        // Rich text
-        [
-            'id' => 'body',        
-            'label' => 'Body',        
-            'type' => 'wysiwyg', 
-            'rows' => 6
-        ],
-
-        // Select with options
-        [
-            'id' => 'style',
-            'label' => 'Style',
-            'type' => 'select',
-            'options' => ['light' => 'Light', 'dark' => 'Dark']
-        ],
-
-        // Toggle
-        [
-            'id' => 'show_cta',    
-            'label' => 'Show CTA',    
-            'type' => 'checkbox'
-        ],
-
-        // Color picker
-        [
-            'id' => 'bg_color',    
-            'label' => 'Background',  
-            'type' => 'color', 
-            'default' => '#ffffff'
-        ],
-
-        // Range slider
-        [
-            'id' => 'min_height',
-            'label' => 'Min Height',
-            'type' => 'range',
-            'min' => 400,
-            'max' => 900,
-            'step' => 50,
-            'unit' => 'px',
-            'default' => 600
-        ],
-
-        // Image
-        [
-            'id' => 'image',       
-            'label' => 'Background Image', 
-            'type' => 'image'
-        ],
-
-        // Post selector (single)
-        [
-            'id' => 'featured_post', 
-            'label' => 'Featured Post', 
-            'type' => 'post_select', 
-            'post_type' => 'post'
-        ],
-
-        // Post selector (multi, with max)
-        [
-            'id' => 'related',
-            'label' => 'Related Posts',
-            'type' => 'post_select',
-            'post_type' => 'post',
-            'multiple' => true,
-            'max' => 3
-        ],
-    ],
-]);
-```
-
 <Callout kind="info" collapsed="false">
   The canonical implementation lives in the `TAW\Core\Metabox\Metabox` class (`src/Core/Metabox/Metabox.php`), which switches on the field `type` and handles rendering and saving.
 </Callout>
@@ -284,6 +190,138 @@ Each field below uses a `type` value that maps directly to the metabox renderer.
     Add your content here...
   </Expandable>
 </ExpandableGroup>
+
+A full metabox fields configuration looks like this:
+
+```php
+new Metabox([
+    'id'     => 'taw_hero',
+    'title'  => 'Hero Section',
+    'screen' => 'page',
+    'fields' => [
+        // Layout with widths
+        ['id' => 'heading',     'label' => 'Heading',     'type' => 'text',     'width' => '50', 'required' => true],
+        ['id' => 'subheading',  'label' => 'Subheading',  'type' => 'text',     'width' => '50'],
+
+        // Rich text
+        ['id' => 'body',        'label' => 'Body',        'type' => 'wysiwyg', 'rows' => 6],
+
+        // Select with options
+        ['id' => 'style',       'label' => 'Style',       'type' => 'select',
+         'options' => ['light' => 'Light', 'dark' => 'Dark']],
+
+        // Toggle
+        ['id' => 'show_cta',    'label' => 'Show CTA',    'type' => 'checkbox'],
+
+        // Color picker
+        ['id' => 'bg_color',    'label' => 'Background',  'type' => 'color', 'default' => '#ffffff'],
+
+        // Range slider
+        ['id' => 'min_height',  'label' => 'Min Height',  'type' => 'range',
+         'min' => 400, 'max' => 900, 'step' => 50, 'unit' => 'px', 'default' => 600],
+
+        // Image
+        ['id' => 'image',       'label' => 'Background Image', 'type' => 'image'],
+
+        // Post selector (single)
+        ['id' => 'featured_post', 'label' => 'Featured Post', 'type' => 'post_select', 'post_type' => 'post'],
+
+        // Post selector (multi, with max)
+        ['id' => 'related',     'label' => 'Related Posts', 'type' => 'post_select',
+         'post_type' => 'post', 'multiple' => true, 'max' => 3],
+    ],
+]);
+```
+
+### Conditional fields
+
+Fields can show or hide based on other field values. Conditions are evaluated live in the admin UI using Alpine.js, and also server-side during save.
+
+```php
+'fields' => [
+    ['id' => 'show_cta',   'label' => 'Show CTA',    'type' => 'checkbox'],
+    ['id' => 'cta_text',   'label' => 'CTA Text',    'type' => 'text',
+     'conditions' => [
+         ['field' => 'show_cta', 'operator' => '==', 'value' => '1'],
+     ]],
+    ['id' => 'cta_url',    'label' => 'CTA URL',     'type' => 'url',
+     'conditions' => [
+         ['field' => 'show_cta', 'operator' => '==', 'value' => '1'],
+     ]],
+],
+```
+
+**Supported operators:** `==`, `!=`, `contains`, `empty`, `!empty`
+
+<Callout kind="info" collapsed="false">
+  All conditions in the array use AND logic — every condition must pass for the field to show.
+</Callout>
+
+### Tabbed fields
+
+Group fields into tabs using the `tabs` key. Each tab references field IDs from the `fields` array.
+
+```php
+new Metabox([
+    'id'     => 'taw_hero',
+    'title'  => 'Hero Section',
+    'screen' => 'page',
+    'fields' => [
+        ['id' => 'heading',   'label' => 'Heading',   'type' => 'text'],
+        ['id' => 'image',     'label' => 'Image',     'type' => 'image'],
+        ['id' => 'bg_color',  'label' => 'Background','type' => 'color'],
+        ['id' => 'show_cta',  'label' => 'Show CTA',  'type' => 'checkbox'],
+        ['id' => 'cta_text',  'label' => 'CTA Text',  'type' => 'text'],
+    ],
+    'tabs' => [
+        ['label' => 'Content', 'fields' => ['heading', 'image']],
+        ['label' => 'Design',  'fields' => ['bg_color']],
+        ['label' => 'CTA',     'fields' => ['show_cta', 'cta_text']],
+    ],
+]);
+```
+
+### Other Metabox config options
+
+| Option     | Default      | Description                                                       |
+| ---------- | ------------ | ----------------------------------------------------------------- |
+| `screen`   | `'page'`     | Post type to attach to (e.g. `'post'`, `'page'`, custom type)    |
+| `context`  | `'normal'`   | Position: `'normal'`, `'side'`, `'advanced'`                     |
+| `priority` | `'high'`     | Order: `'high'`, `'default'`, `'low'`                            |
+| `prefix`   | `'_taw_'`    | Meta key prefix applied to all field IDs                         |
+| `icon`     | *(none)*     | SVG string — displayed as the metabox icon                        |
+| `show_on`  | *(none)*     | `callable(WP_Post): bool` — return `false` to hide the metabox   |
+
+### Metabox Retrieval API
+
+Use these static helpers inside `getData()` or anywhere in your templates.
+
+```php
+use TAW\Core\Metabox\Metabox;
+
+// Plain text / any scalar value
+$heading = Metabox::get($postId, 'hero_heading');
+
+// Checkbox → boolean (saves as '1'/'0', returns bool)
+$showCta = Metabox::get_bool($postId, 'show_cta');
+
+// Image attachment ID → URL
+$imageUrl = Metabox::get_image_url($postId, 'hero_image', 'large');
+
+// Color with fallback
+$bgColor = Metabox::get_color($postId, 'bg_color', '#ffffff');
+
+// post_select → array of post IDs (works for single and multi)
+$featuredId  = Metabox::get_posts($postId, 'featured_post')[0] ?? null;
+$relatedIds  = Metabox::get_posts($postId, 'related_posts');
+
+// repeater → array of rows, each an associative array
+$teamMembers = Metabox::get_repeater($postId, 'team_members');
+foreach ($teamMembers as $member) {
+    echo esc_html($member['name'] ?? '');
+    echo esc_html($member['role'] ?? '');
+}
+```
 
 ## Tool index
 
