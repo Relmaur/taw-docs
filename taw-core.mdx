@@ -67,173 +67,233 @@ Each field below uses a `type` value that maps directly to the metabox renderer.
   <Expandable title="Text" default-open="false">
     Single-line text input. Combine with `placeholder` and `required`. Stores a string value.
 
-    ```php
-    ['id' => 'heading', 'label' => 'Heading', 'type' => 'text', 'placeholder' => 'Enter heading...', 'required' => true]
-    ```
-
-    ```php
-    $heading = Metabox::get($postId, 'heading');
-    echo esc_html($heading);
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'heading', 'label' => 'Heading', 'type' => 'text', 'placeholder' => 'Enter heading...', 'required' => true]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $heading = Metabox::get($postId, 'heading');
+        echo esc_html($heading);
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Url" default-open="false">
     URL input with browser-level URL validation. Stores a string URL.
 
-    ```php
-    ['id' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'placeholder' => 'https://...']
-    ```
-
-    ```php
-    $url = Metabox::get($postId, 'cta_url');
-    echo '<a href="' . esc_url($url) . '">Learn more</a>';
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'placeholder' => 'https://...']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $url = Metabox::get($postId, 'cta_url');
+        echo '<a href="' . esc_url($url) . '">Learn more</a>';
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Number" default-open="false">
     Numeric input for integers or floats. Supports `min`, `max`, and `step` options to constrain the value and control the increment size.
 
-    ```php
-    ['id' => 'item_count', 'label' => 'Item Count', 'type' => 'number', 'min' => 1, 'max' => 100, 'step' => 1]
-    ```
-
-    ```php
-    $count = (int) Metabox::get($postId, 'item_count');
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'item_count', 'label' => 'Item Count', 'type' => 'number', 'min' => 1, 'max' => 100, 'step' => 1]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $count = (int) Metabox::get($postId, 'item_count');
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Textarea" default-open="false">
     Multi-line plain text area. Use `rows` to control height and combine with `placeholder` and `description` when you expect longer content.
 
-    ```php
-    ['id' => 'summary', 'label' => 'Summary', 'type' => 'textarea', 'rows' => 4, 'placeholder' => 'Enter summary...']
-    ```
-
-    ```php
-    $summary = Metabox::get($postId, 'summary');
-    echo esc_html($summary);
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'summary', 'label' => 'Summary', 'type' => 'textarea', 'rows' => 4, 'placeholder' => 'Enter summary...']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $summary = Metabox::get($postId, 'summary');
+        echo esc_html($summary);
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Wysiwyg" default-open="false">
     Rich text editor field. Accepts `rows`, `media_buttons` (boolean), and `teeny` (boolean) options to control editor size and whether media buttons or a simplified toolbar are shown.
 
-    ```php
-    ['id' => 'body', 'label' => 'Body', 'type' => 'wysiwyg', 'rows' => 8, 'media_buttons' => true]
-    ```
-
-    ```php
-    $body = Metabox::get($postId, 'body');
-    echo wp_kses_post($body);
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'body', 'label' => 'Body', 'type' => 'wysiwyg', 'rows' => 8, 'media_buttons' => true]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $body = Metabox::get($postId, 'body');
+        echo wp_kses_post($body);
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Select" default-open="false">
     Dropdown select input. Provide an `options` map of `value => label` pairs; the field stores the selected option value as a string.
 
-    ```php
-    ['id' => 'style', 'label' => 'Style', 'type' => 'select', 'options' => ['light' => 'Light', 'dark' => 'Dark']]
-    ```
-
-    ```php
-    $style = Metabox::get($postId, 'style'); // 'light' or 'dark'
-    echo '<section class="section--' . esc_attr($style) . '">';
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'style', 'label' => 'Style', 'type' => 'select', 'options' => ['light' => 'Light', 'dark' => 'Dark']]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $style = Metabox::get($postId, 'style'); // 'light' or 'dark'
+        echo '<section class="section--' . esc_attr($style) . '">';
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Checkbox" default-open="false">
     Single checkbox input for boolean-style flags. Stores string values `'1'` or `'0'` using a hidden input that defaults to `'0'`.
 
-    ```php
-    ['id' => 'show_cta', 'label' => 'Show CTA', 'type' => 'checkbox']
-    ```
-
-    ```php
-    $showCta = Metabox::get_bool($postId, 'show_cta');
-    if ($showCta) {
-        // render CTA
-    }
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'show_cta', 'label' => 'Show CTA', 'type' => 'checkbox']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $showCta = Metabox::get_bool($postId, 'show_cta');
+        if ($showCta) {
+            // render CTA
+        }
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Color" default-open="false">
     Color picker input. Accepts a `default` value (for example `#ffffff`) and stores the selected color string.
 
-    ```php
-    ['id' => 'bg_color', 'label' => 'Background', 'type' => 'color', 'default' => '#ffffff']
-    ```
-
-    ```php
-    $bgColor = Metabox::get_color($postId, 'bg_color', '#ffffff');
-    echo '<section style="background-color: ' . esc_attr($bgColor) . '">';
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'bg_color', 'label' => 'Background', 'type' => 'color', 'default' => '#ffffff']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $bgColor = Metabox::get_color($postId, 'bg_color', '#ffffff');
+        echo '<section style="background-color: ' . esc_attr($bgColor) . '">';
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Range" default-open="false">
     Slider-style range input. Supports `min`, `max`, and `step` options, plus an optional `unit` string (for example `%`, `px`) for display alongside the numeric value.
 
-    ```php
-    ['id' => 'min_height', 'label' => 'Min Height', 'type' => 'range', 'min' => 400, 'max' => 900, 'step' => 50, 'unit' => 'px', 'default' => 600]
-    ```
-
-    ```php
-    $minHeight = Metabox::get($postId, 'min_height') ?: '600';
-    echo '<section style="min-height: ' . esc_attr($minHeight) . 'px">';
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'min_height', 'label' => 'Min Height', 'type' => 'range', 'min' => 400, 'max' => 900, 'step' => 50, 'unit' => 'px', 'default' => 600]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $minHeight = Metabox::get($postId, 'min_height') ?: '600';
+        echo '<section style="min-height: ' . esc_attr($minHeight) . 'px">';
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Group" default-open="false">
     Nested group of sub-fields. Use a `fields` array inside the group to define child fields with their own `id`, `type`, and options. Unlike a repeater, there is always exactly one row. Sub-fields are stored as separate meta keys using the group `id` as a prefix.
 
-    ```php
-    [
-        'id'    => 'hero_cta',
-        'label' => 'CTA Button',
-        'type'  => 'group',
-        'fields' => [
-            ['id' => 'text', 'label' => 'Text', 'type' => 'text', 'width' => '50'],
-            ['id' => 'url',  'label' => 'URL',  'type' => 'url',  'width' => '50'],
-        ],
-    ]
-    ```
-
-    ```php
-    // Stored as _taw_hero_cta_text and _taw_hero_cta_url
-    $ctaText = Metabox::get($postId, 'hero_cta_text');
-    $ctaUrl  = Metabox::get($postId, 'hero_cta_url');
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        [
+            'id'    => 'hero_cta',
+            'label' => 'CTA Button',
+            'type'  => 'group',
+            'fields' => [
+                ['id' => 'text', 'label' => 'Text', 'type' => 'text', 'width' => '50'],
+                ['id' => 'url',  'label' => 'URL',  'type' => 'url',  'width' => '50'],
+            ],
+        ]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        // Stored as _taw_hero_cta_text and _taw_hero_cta_url
+        $ctaText = Metabox::get($postId, 'hero_cta_text');
+        $ctaUrl  = Metabox::get($postId, 'hero_cta_url');
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Post Select" default-open="false">
     Post selector field. Supports `post_type` (single or multiple types), `multiple` (boolean to allow multiple selections), and `max` (integer cap on the number of selected posts).
 
-    ```php
-    // Single post
-    ['id' => 'featured_post', 'label' => 'Featured Post', 'type' => 'post_select', 'post_type' => 'post']
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        // Single post
+        ['id' => 'featured_post', 'label' => 'Featured Post', 'type' => 'post_select', 'post_type' => 'post']
 
-    // Multiple posts with a cap
-    ['id' => 'related', 'label' => 'Related Posts', 'type' => 'post_select', 'post_type' => 'post', 'multiple' => true, 'max' => 3]
-    ```
-
-    ```php
-    $featuredId = Metabox::get_posts($postId, 'featured_post')[0] ?? null;
-    $relatedIds = Metabox::get_posts($postId, 'related'); // array of post IDs
-    ```
+        // Multiple posts with a cap
+        ['id' => 'related', 'label' => 'Related Posts', 'type' => 'post_select', 'post_type' => 'post', 'multiple' => true, 'max' => 3]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $featuredId = Metabox::get_posts($postId, 'featured_post')[0] ?? null;
+        $relatedIds = Metabox::get_posts($postId, 'related'); // array of post IDs
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Image" default-open="false">
     WordPress media library picker. Stores an attachment ID as an integer. Retrieve as a URL with `Metabox::get_image_url($postId, 'field_id', 'size')` or use `$this->getImageUrl()` inside a `MetaBlock`.
 
-    ```php
-    ['id' => 'hero_image', 'label' => 'Hero Image', 'type' => 'image']
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'hero_image', 'label' => 'Hero Image', 'type' => 'image']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $imageUrl = Metabox::get_image_url($postId, 'hero_image', 'large');
 
-    ```php
-    $imageUrl = Metabox::get_image_url($postId, 'hero_image', 'large');
-
-    // Inside a MetaBlock:
-    $imageUrl = $this->getImageUrl($postId, 'hero_image', 'large');
-    ```
+        // Inside a MetaBlock:
+        $imageUrl = $this->getImageUrl($postId, 'hero_image', 'large');
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 
   <Expandable title="Repeater" default-open="false">
@@ -241,29 +301,34 @@ Each field below uses a `type` value that maps directly to the metabox renderer.
 
     Accepts `min` (minimum required rows) and `max` (row cap, `0` = unlimited) options. Retrieve with `Metabox::get_repeater($postId, 'field_id')`, which returns an array of associative arrays — one per row.
 
-    ```php
-    [
-        'id'    => 'team_members',
-        'label' => 'Team Members',
-        'type'  => 'repeater',
-        'min'   => 1,
-        'max'   => 10,
-        'fields' => [
-            ['id' => 'name',  'label' => 'Name',  'type' => 'text',     'width' => '50'],
-            ['id' => 'role',  'label' => 'Role',  'type' => 'text',     'width' => '50'],
-            ['id' => 'photo', 'label' => 'Photo', 'type' => 'image'],
-            ['id' => 'bio',   'label' => 'Bio',   'type' => 'textarea'],
-        ],
-    ]
-    ```
-
-    ```php
-    $members = Metabox::get_repeater($postId, 'team_members');
-    foreach ($members as $member) {
-        echo esc_html($member['name'] ?? '');
-        echo esc_html($member['role'] ?? '');
-    }
-    ```
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        [
+            'id'    => 'team_members',
+            'label' => 'Team Members',
+            'type'  => 'repeater',
+            'min'   => 1,
+            'max'   => 10,
+            'fields' => [
+                ['id' => 'name',  'label' => 'Name',  'type' => 'text',     'width' => '50'],
+                ['id' => 'role',  'label' => 'Role',  'type' => 'text',     'width' => '50'],
+                ['id' => 'photo', 'label' => 'Photo', 'type' => 'image'],
+                ['id' => 'bio',   'label' => 'Bio',   'type' => 'textarea'],
+            ],
+        ]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $members = Metabox::get_repeater($postId, 'team_members');
+        foreach ($members as $member) {
+            echo esc_html($member['name'] ?? '');
+            echo esc_html($member['role'] ?? '');
+        }
+        ```
+      </Step>
+    </Steps>
   </Expandable>
 </ExpandableGroup>
 
