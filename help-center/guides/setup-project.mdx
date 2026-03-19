@@ -1,20 +1,214 @@
 ---
-title: Create Your First Doc Page
-description: A short guide to adding a new page to this starter kit.
+title: Setting up a new TAW project
+description: >-
+  A complete walkthrough for going from zero to a running TAW Theme with your
+  first block, from Composer install through to production build.
 ---
-## Overview
 
-Use this guide as a sample for your real setup instructions.
+## What you'll have at the end
 
-## Steps
+- A fresh TAW Theme installed in WordPress
+- Vite running with hot module reloading
+- A working MetaBlock with metabox fields
+- A production-ready build
 
-<Steps>
-  <Step title="Create a new file" icon="file-plus" title-type="p">
-    Add a page using + and start with a title and short description.
-  </Step>
+<Callout kind="info" collapsed="false">
+  This guide covers the same ground as the [Quickstart](/quickstart) but goes a level deeper on each step, explaining _why_ things work the way they do.
+</Callout>
 
-  <Step title="Write the first section" icon="edit" title-type="p">
-    Add a simple header and a few sentences users can scan quickly.
-  </Step>
-</Steps>
+---
 
+## 1. Create the theme
+
+TAW Theme is installed via `composer create-project`. The `--repository` flag tells Composer where to find the private package.
+
+```bash
+cd wp-content/themes
+
+composer create-project taw/theme my-theme \
+  --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-theme"}'
+
+cd my-theme
+```
+
+**What was created:**
+
+```
+my-theme/
+├── Blocks/            ← your blocks go here
+├── bin/taw            ← CLI entry point
+├── inc/
+│   └── options.php    ← theme options page config
+├── resources/
+│   ├── css/app.css    ← Tailwind v4 directives
+│   ├── scss/          ← global SCSS + critical CSS
+│   ├── fonts/         ← self-hosted WOFF2 files
+│   └── js/app.js      ← Alpine.js + global JS
+├── vendor/taw/core/   ← framework internals (managed by Composer)
+├── functions.php      ← boot TAW Core here
+├── vite.config.js
+├── composer.json
+└── package.json
+```
+
+---
+
+## 2. Install dependencies
+
+```bash
+composer install   # PHP deps — pulls taw/core and other packages
+npm install        # Frontend toolchain — Vite, Tailwind, Alpine
+```
+
+**Why two install steps?** PHP and JS have separate dependency graphs. Composer manages PHP classes. npm manages the build tool and frontend libraries. Both are required.
+
+---
+
+## 3. Start the dev server
+
+```bash
+npm run dev
+```
+
+Vite starts on `http://localhost:5173` and watches for changes. While the dev server is running:
+
+- Tailwind CSS classes update without a full reload.
+- Block `style.scss` changes reflect instantly.
+- `block.js` changes hot-reload.
+
+Leave this terminal open while you develop.
+
+---
+
+## 4. Activate the theme
+
+Go to **WordPress Admin → Appearance → Themes**, find your theme, and click **Activate**.
+
+Visit the frontend — you should see the TAW layout loading assets from the Vite dev server (check the browser network tab: scripts and styles come from `localhost:5173`).
+
+---
+
+## 5. Review `functions.php`
+
+Open `functions.php`. The generated file calls `Theme::boot()` and `Theme::performance([...])`. This is the only required bootstrap — TAW does the rest automatically.
+
+```php
+<?php
+use TAW\Core\Theme;
+
+add_action('after_setup_theme', function () {
+    Theme::boot();
+
+    Theme::performance([
+        'remove_bloat'     => true,
+        'remove_emoji'     => true,
+        'remove_meta_tags' => true,
+        'remove_oembed'    => true,
+    ]);
+});
+```
+
+`Theme::boot()` does three things on `after_setup_theme`:
+1. Calls `BlockLoader::loadAll()` — discovers every block in `Blocks/`.
+2. Calls `ViteLoader::init()` — prepares the asset pipeline.
+3. Calls `Svg::register()` — enables safe SVG uploads.
+
+---
+
+## 6. Scaffold your first block
+
+Use the CLI to generate the files:
+
+```bash
+php bin/taw make:block Hero --type=meta --with-style
+composer dump-autoload
+```
+
+<Callout kind="alert" collapsed="false">
+  Always run `composer dump-autoload` after adding a new block. Without it, PHP cannot find the new class and the block is silently skipped.
+</Callout>
+
+Open `Blocks/Hero/Hero.php` and add your fields:
+
+```php
+protected function registerMetaboxes(): void
+{
+    new Metabox([
+        'id'     => 'taw_hero',
+        'title'  => 'Hero Section',
+        'screen' => 'page',
+        'fields' => [
+            ['id' => 'heading', 'label' => 'Heading', 'type' => 'text',  'required' => true],
+            ['id' => 'image',   'label' => 'Image',   'type' => 'image'],
+        ],
+        'tabs' => [
+            ['label' => 'Content', 'fields' => ['heading']],
+            ['label' => 'Media',   'fields' => ['image']],
+        ],
+    ]);
+}
+
+protected function getData(int $postId): array
+{
+    return [
+        'heading'   => $this->getMeta($postId, 'heading'),
+        'image_url' => $this->getImageUrl($postId, 'image', 'large'),
+    ];
+}
+```
+
+Open `Blocks/Hero/index.php` and write the template:
+
+```php
+<?php if (empty($heading)) return; ?>
+
+<section class="hero">
+    <h1><?php echo esc_html($heading); ?></h1>
+    <?php if ($image_url): ?>
+        <img src="<?php echo esc_url($image_url); ?>" alt="">
+    <?php endif; ?>
+</section>
+```
+
+---
+
+## 7. Render the block
+
+In your WordPress template (e.g. `front-page.php`):
+
+```php
+<?php
+use TAW\Core\BlockRegistry;
+
+BlockRegistry::queue('hero');
+get_header();
+?>
+
+<?php BlockRegistry::render('hero'); ?>
+
+<?php get_footer(); ?>
+```
+
+Go to a page in the WordPress editor — the **Hero Section** metabox appears below the editor. Fill it in, publish, and visit the page.
+
+---
+
+## 8. Production build
+
+When you're ready to deploy:
+
+```bash
+npm run build
+```
+
+Vite outputs content-hashed files to `public/build/`. WordPress loads these when the dev server is not running. Critical CSS is inlined in `<head>`, the main CSS loads asynchronously, and JS loads as an ES module.
+
+---
+
+## What's next
+
+- **Add more blocks** — repeat the scaffold + dump-autoload cycle for each new section.
+- **Organise into groups** — `--group=sections` puts the block inside `Blocks/sections/Hero/`.
+- **Export and reuse blocks** — `php bin/taw export:block Hero` creates a ZIP you can import into any TAW project.
+- **Add site-wide options** — configure `inc/options.php` with an `OptionsPage` for settings like phone number, logo, and footer text.
+- **Add a contact form** — drop a `Form` config into any template for CSRF-protected, validated form handling.

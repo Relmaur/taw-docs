@@ -1,22 +1,118 @@
 ---
-title: Sample Changelog
-description: Sample release notes you can replace with your real updates.
+title: Changelog
+description: >-
+  Release history for TAW Theme and the taw/core framework package.
 ---
 
-## Sample updates
+<Update label="2026-03-19" description="Initial release" tags={["stable"]}>
 
-<Callout kind="alert">
-This changelog is example content. Replace every entry with your real releases.
-</Callout>
+## v1.0.0 — Initial release
 
-<Update label="2026-01-26" description="Sample Update" tags={["sample"]}>
-## What changed
-- Cleaned up placeholder copy across the starter kit.
-- Added clearer "sample" messaging to avoid confusion.
-</Update>
+TAW Theme and `taw/core` v1.0.0 are the first stable release of the framework. Everything below ships out of the box when you run `composer create-project taw/theme`.
 
-<Update label="2025-12-10" description="Sample Update" tags={["sample"]}>
-## What changed
-- Simplified the Quickstart steps.
-- Trimmed Help Center examples.
+### Block system
+
+- **Auto-discovery** — drop a class and a template inside `Blocks/` and TAW finds it automatically. No registration step, no `functions.php` edits required.
+- **MetaBlock** — page sections backed by metabox data. Extend `TAW\Core\MetaBlock`, define fields in `registerMetaboxes()`, return template vars from `getData()`.
+- **Block (UI Block)** — stateless components that receive props at render time. Extend `TAW\Core\Block` and define a `defaults()` array. Missing props always fall back safely.
+- **Block nesting** — UI Blocks compose naturally inside MetaBlock templates via `(new Button())->render([...])`.
+- **Subgroup organisation** — blocks can live in nested folders (`Blocks/sections/Hero/`) for large projects.
+- **`BlockRegistry::queue()` / `::render()`** — queue a block's assets before `get_header()`, render it anywhere in the template.
+
+### CLI scaffolding (`bin/taw`)
+
+Powered by Symfony Console, shipped inside `taw/core`.
+
+- `make:block Name --type=meta|ui` — scaffold a MetaBlock or UI Block with the correct class stub and template.
+- `--with-style` — include a `style.scss` wired into the Vite pipeline.
+- `--with-script` — include a `script.js` loaded as an ES module in the footer.
+- `--group=sections` — place the block inside a subgroup folder.
+- `--force` — overwrite an existing block.
+- `export:block Name` — export any block as a portable ZIP file.
+- `import:block path.zip` — import a block from a ZIP into the `Blocks/` directory.
+
+### Metabox engine
+
+Config-driven metaboxes with no plugin dependencies. All field types render, validate, sanitize, and save through `TAW\Core\Metabox\Metabox`.
+
+**Supported field types:** `text`, `textarea`, `wysiwyg`, `url`, `number`, `range`, `select`, `checkbox`, `color`, `image`, `group`, `repeater`, `post_select`
+
+- **Conditional logic** — show or hide fields based on other field values. Evaluated live in the admin with Alpine.js and server-side on save. Operators: `==`, `!=`, `contains`, `empty`, `!empty`.
+- **Tabbed layouts** — group fields into tabs using the `tabs` key; each tab references field IDs from the `fields` array.
+- **Responsive grid** — control field width with the `width` option (e.g. `'50'` for two-column).
+- **`show_on` callable** — conditionally hide an entire metabox per post.
+- **Retrieval helpers** — `Metabox::get()`, `::get_bool()`, `::get_image_url()`, `::get_color()`, `::get_posts()`, `::get_repeater()` cover every field type.
+
+### Options page
+
+- `TAW\Core\OptionsPage` — site-wide settings stored in `wp_options` using the same field config as metaboxes.
+- Supports tabbed layouts, validation, and all field types except `repeater` and `group`.
+- Retrieval via `OptionsPage::get()` and `OptionsPage::get_image_url()`.
+
+### Forms
+
+- `TAW\Core\Form\Form` — config-driven frontend forms with CSRF (nonces), honeypot spam protection, field validation, and PRG redirect after success.
+- Supports `text`, `email`, `textarea`, `select`, and any standard HTML input type.
+- Sends dual emails (to-self and to-client) via `Mailer` when templates are configured; falls back to plain-text `wp_mail()` otherwise.
+- `TAW\Core\Form\SubmissionsHandler` — stores successful submissions as a `taw_submission` CPT in WP Admin.
+- Optional webhook forwarding (n8n, Zapier, Make, etc.) with HMAC-signed payloads. Configure endpoint and secret under **Settings → Form Webhook**.
+
+### Transactional email
+
+- `TAW\Core\Mail\Mailer` — fluent wrapper around `wp_mail()` with a `to()`, `subject()`, `template()`, `setVariables()`, `send()` chain.
+- `TAW\Core\Mail\MailTemplate` — resolves templates from `mails/html/{name}.html` (production) or `mails/{name}.mjml` (dev, compiled via `spatie/mjml-php`). Uses `{{variable}}` placeholder syntax.
+- `TAW\Core\Mail\MailTester` — admin page under **Tools → Test Emails** for sending test emails against any compiled template without a real form submission.
+
+### Navigation menus
+
+- `TAW\Core\Menu\Menu` — typed wrapper around WordPress nav menus. Load by location slug with `Menu::get('primary')`.
+- `TAW\Core\Menu\MenuItem` — exposes `title()`, `url()`, `openInNewTab()`, `hasChildren()`, `children()`, `isActive()`, `isInActiveTrail()`, `classes()`, and more. WP auto-classes are filtered out by default.
+
+### Asset pipeline
+
+- **Per-block assets** — `style.scss` (or `style.css`) and `script.js` inside any block folder are auto-detected and auto-enqueued only on pages that use that block.
+- **Critical CSS** — `resources/scss/critical.scss` is compiled and inlined in `<head>` to eliminate a render-blocking network round-trip for above-fold styles.
+- **Async CSS** — `app.css` / `app.scss` are loaded non-render-blocking via `media="print"` + `onload` swap.
+- **ES module JS** — block scripts and the main `app.js` are loaded as `type="module"`.
+- **Content-hashed filenames** — all production assets are cache-busted automatically.
+- **`vite_asset_url($path)`** / **`vite_is_dev()`** — global helpers available anywhere in your templates.
+- **Tailwind CSS v4** via `@tailwindcss/vite`. Alpine.js v3 for interactivity.
+
+### Performance
+
+`Theme::performance([...])` (forwarded to `TAW\Core\Support\Performance`) supports:
+
+- `remove_bloat` — strips unnecessary WordPress front-end scripts, styles, and features.
+- `remove_emoji` — disables WordPress emoji detection scripts.
+- `remove_meta_tags` — removes default WordPress generator and discovery meta tags.
+- `remove_oembed` — disables oEmbed support and associated scripts.
+- `preconnect_origins` — emits `<link rel="preconnect">` hints for external origins.
+- `preload_fonts` — preloads self-hosted WOFF2 font files resolved via `ViteLoader`.
+- `preload_images` — emits `<link rel="preload">` for above-fold images by attachment ID and size.
+
+### Image helper
+
+- `TAW\Helpers\Image::render($id, $size, $alt, $options)` — generates `<img>` with correct `loading`, `fetchpriority`, `decoding`, `srcset`, and `sizes` attributes. Pass `['above_fold' => true]` for hero images.
+- `TAW\Helpers\Image::preload_tag($id, $size)` — generates a `<link rel="preload">` tag for your single most important image.
+
+### SVG support
+
+- `TAW\Helpers\Svg::register()` — enables sanitized SVG uploads in WordPress (called automatically by `Theme::boot()`).
+- `Svg::render($id, $alt, $options)` — renders a sanitized `<img>` tag.
+- `Svg::inline($id, $options)` — outputs inline SVG markup for CSS/animation targeting.
+- `Svg::url($id)` — returns the URL for a stored SVG attachment.
+
+### REST API
+
+- `GET /wp-json/taw/v1/search-posts` — powers the `post_select` metabox field. Supports `s`, `post_type`, `per_page`, and `exclude` parameters. Requires `edit_posts` capability.
+
+### Theme updater
+
+- `TAW\Core\Theme\ThemeUpdater` — hooks into the WordPress update system to check a GitHub Releases URL for new versions. Shows the standard **Update Available** notice in admin. Updates are cached for 6 hours.
+
+### Boot process
+
+- `TAW\Core\Theme::boot()` — single entrypoint that wires block loading, Vite assets, REST endpoints, and SVG support into WordPress hooks.
+- `TAW\Core\Theme::performance([...])` — configures performance behavior after boot.
+
 </Update>

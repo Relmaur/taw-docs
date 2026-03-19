@@ -1,20 +1,117 @@
 ---
-title: Where does this documentation come from?
-description: Clarify that this site is a sample starter kit.
+title: Getting started FAQ
+description: >-
+  Answers to the most common questions when setting up TAW Theme for the first time.
 ---
-## Short answer
 
-This is sample content bundled with the starter kit. It is not your product documentation yet.
+## Installation
 
-## What to do next
+**Do I need Gutenberg or the classic editor?**
 
-- Replace each page with your real information.
+Neither is required. TAW does not use Gutenberg blocks. Your blocks are plain PHP classes and templates — no block editor registration, no `block.json`. The classic editor works fine, and so does Gutenberg (it just won't have TAW blocks in the inserter, which is intentional).
 
-- Update navigation labels from dashboard editor or from `documentation.json`.
+**Do I need ACF or any other plugin?**
 
-- Remove sections you do not plan to maintain.
+No. TAW ships its own metabox engine (`TAW\Core\Metabox\Metabox`). Fields, validation, sanitization, and retrieval are all built in. No plugin dependencies for custom fields.
 
-<Callout kind="info" collapsed="false">
-  If you are unsure where a page comes from, look for its `.mdx` file in this repo and edit it directly.
-</Callout>
+**The `composer create-project` command fails. What's wrong?**
 
+TAW Theme is a private VCS package, so the `--repository` flag is required. Use this exact command:
+
+```bash
+composer create-project taw/theme my-theme \
+  --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-theme"}'
+```
+
+**Do I need to run `composer install` and `npm install` separately?**
+
+Yes. `composer install` pulls the PHP dependencies (including `taw/core`). `npm install` installs the frontend toolchain (Vite, Tailwind, Alpine.js). Both are required before you can run `npm run dev`.
+
+---
+
+## Blocks
+
+**What's the difference between a MetaBlock and a UI Block?**
+
+| | MetaBlock | UI Block |
+| --- | --- | --- |
+| Data source | Metaboxes → `post_meta` | Props passed at render time |
+| Admin UI | Metabox appears in page editor | None |
+| Rendered via | `BlockRegistry::render('id')` | `(new Button())->render([...])` |
+| Use case | Page sections (Hero, Stats, CTA) | Reusable components (Button, Card) |
+
+**Why isn't my new block appearing?**
+
+Two common causes:
+
+1. You forgot to run `composer dump-autoload`. This rebuilds Composer's PSR-4 classmap so PHP can find the new class.
+2. The folder name does not match the class name. TAW's auto-discovery requires them to match exactly (e.g. `Blocks/Hero/Hero.php` with `class Hero`).
+
+**Can I have blocks inside subfolders?**
+
+Yes. Use `--group=` when scaffolding:
+
+```bash
+php bin/taw make:block Hero --group=sections   # → Blocks/sections/Hero/
+php bin/taw make:block Badge --group=ui/cards  # → Blocks/ui/cards/Badge/
+```
+
+`BlockLoader::loadAll()` scans recursively to any depth.
+
+**Can I use a block on a post type other than `page`?**
+
+Yes. Set the `screen` option in your `Metabox` config:
+
+```php
+new Metabox([
+    'screen' => 'post', // or any registered post type slug
+    ...
+]);
+```
+
+---
+
+## Assets
+
+**Why aren't my block styles loading?**
+
+Make sure you called `BlockRegistry::queue('block-id')` **before** `get_header()` in your template. This schedules the block's assets for `<head>`. If you call only `render()` without queuing first, assets are enqueued as a fallback but land after `<head>` closes.
+
+**Can a block have both CSS and JS?**
+
+Yes. Place `style.scss` (or `style.css`) and `script.js` in the block folder. Both are auto-detected. SCSS takes priority over CSS when both exist. JS is loaded in the footer as `type="module"`.
+
+**How do I reference a font or other asset from a template?**
+
+Use the global `vite_asset_url()` helper:
+
+```php
+$fontUrl = vite_asset_url('resources/fonts/Inter-Regular.woff2');
+```
+
+This returns the correct URL whether the Vite dev server is running or not.
+
+---
+
+## Updates
+
+**How do I update the framework?**
+
+```bash
+composer update taw/core
+```
+
+`taw/core` is versioned independently of your theme. You can update it across all your TAW projects without touching blocks or templates.
+
+**Does TAW have auto-updates in WordPress admin?**
+
+Yes, if you configure `ThemeUpdater` in `functions.php`:
+
+```php
+new TAW\Core\ThemeUpdater([
+    'slug'       => 'my-theme',
+    'github_url' => 'https://api.github.com/repos/your-username/my-theme/releases/latest',
+]);
+```
+
+When a new GitHub release is found, the standard **Update Available** notice appears in the WordPress admin.

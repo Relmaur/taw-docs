@@ -1,33 +1,85 @@
 ---
-title: Help Center (Sample)
+title: Help Center
+description: >-
+  Answers to common questions, troubleshooting guides, and how-tos for building
+  with TAW Theme and taw/core.
 ---
 
-<Callout kind="alert">
-This Help Center is sample content. Replace the cards and contact details with your real support paths.
-</Callout>
+Find what you need below, or browse the sections directly.
 
 <Columns cols={2}>
-  <Card title="FAQs" icon="help-circle" href="/help-center/faq/getting-started" horizontal>
-    Starter answers you can rewrite.
+  <Card title="FAQ" icon="help-circle" href="/help-center/faq/getting-started" horizontal>
+    Quick answers to the most common questions about TAW.
   </Card>
   <Card title="Troubleshooting" icon="alert-triangle" href="/help-center/troubleshooting/install-error" horizontal>
-    Common issues and fixes.
+    Diagnose and fix the most common setup and runtime issues.
   </Card>
   <Card title="Guides" icon="book-open" href="/help-center/guides/setup-project" horizontal>
-    How-to guides for setup and onboarding.
+    Step-by-step walkthroughs for common tasks.
   </Card>
   <Card title="Changelog" icon="clock" href="/changelog" horizontal>
-    Track updates after you go live.
+    See what changed in each release of TAW Theme and taw/core.
   </Card>
 </Columns>
 
-## Contact Support
+---
+
+## Frequently asked questions
+
+**Does TAW use Gutenberg blocks or ACF?**
+No. TAW has its own block system (PHP classes + templates) and its own metabox engine. No Gutenberg block registration, no ACF, no plugin dependencies.
+
+**What's the difference between a MetaBlock and a UI Block?**
+MetaBlocks own their data through metaboxes — editors fill in content in the WordPress admin and the block renders it automatically. UI Blocks are stateless components that receive props at render time and have no admin UI of their own. See [Quickstart](/quickstart#add-a-second-block-type-ui-block) for examples of both.
+
+**Why do I need `composer dump-autoload` after creating a block?**
+TAW uses PSR-4 autoloading via Composer. When you add a new PHP class file (including a new block), Composer's classmap needs to be rebuilt so WordPress can find it. The CLI reminder is there for a reason — don't skip it.
+
+**How do I update the framework across all my sites?**
+Run `composer update taw/core` inside any TAW Theme project. The `taw/core` package is versioned independently of the theme, so you can update the framework without touching your blocks or templates.
+
+**Can I use TAW on an existing WordPress site?**
+Yes. TAW Theme is a standard WordPress theme. Activate it like any other theme and your existing content (posts, pages, menus) stays intact. You build new page sections as blocks without migrating existing content.
+
+**Can blocks be nested?**
+Yes. UI Blocks compose naturally inside MetaBlock templates — just instantiate and render them inline. See the [Quickstart](/quickstart) for an example with a `Button` block inside a `Hero` template.
+
+---
+
+## Common issues
+
+<Callout kind="info" collapsed="false">
+  For anything not listed here, open an issue on [GitHub](https://github.com/Relmaur/taw-core/issues).
+</Callout>
+
+**Block not showing up in the editor / metabox not appearing**
+Run `composer dump-autoload`. Without it, Composer cannot find the new class and the block is silently skipped.
+
+**Block styles or scripts not loading on the frontend**
+Make sure you called `BlockRegistry::queue('block-id')` before `get_header()` in your template. If you forgot, `render()` will enqueue as a fallback but the assets land after `<head>` closes.
+
+**Vite assets not loading / dev server not connecting**
+Confirm `npm run dev` is running and that your `vite.config.js` points to the correct WordPress URL. The Vite bridge in `taw/core` reads the dev server manifest at runtime — if the manifest is missing, it falls back to the production build.
+
+**`composer create-project` fails**
+The `--repository` flag is required since TAW Theme is a private VCS package. Use the exact command from the [Quickstart](/quickstart):
+```bash
+composer create-project taw/theme my-theme \
+  --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-theme"}'
+```
+
+**Emails are not being delivered**
+`Mailer` uses `wp_mail()` under the hood. Make sure your WordPress site is configured with a working mail provider (SMTP plugin or transactional service). Use **Tools → Test Emails** to test templates without a real form submission.
+
+---
+
+## Get help
 
 <Columns cols={2}>
-  <Card title="Email Support" icon="mail" href="mailto:support@yourcompany.com">
-    Replace with your support email.
+  <Card title="GitHub Issues" icon="github" href="https://github.com/Relmaur/taw-core/issues" target="_blank">
+    Report bugs or request features on the taw/core repository.
   </Card>
-  <Card title="Community" icon="users" href="https://community.yourcompany.com" target="_blank">
-    Link to your community space.
+  <Card title="GitHub Discussions" icon="users" href="https://github.com/Relmaur/taw-core/discussions" target="_blank">
+    Ask questions and share what you've built with TAW.
   </Card>
 </Columns>

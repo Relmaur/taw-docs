@@ -1,26 +1,171 @@
 ---
-title: Page Missing in Sidebar
-description: Fix a page that does not appear in navigation.
+title: Common errors and fixes
+description: >-
+  Diagnose and fix the most common issues when installing and running TAW Theme.
 ---
-## Symptoms
 
-- A new page file exists but does not show up in the sidebar.
+## Block not auto-discovered
 
-- Clicking a nav item shows a 404.
+**Symptom:** A block class exists in `Blocks/` but the metabox never appears in the page editor, or `BlockRegistry::render('id')` renders nothing.
 
-## Fix
+**Cause:** Composer's PSR-4 classmap is stale.
 
 <Steps>
-  <Step title="Confirm the file name" icon="file-text" title-type="p">
-    Ensure the file exists.
+  <Step title="Run dump-autoload" icon="terminal" title-type="p">
+    ```bash
+    composer dump-autoload
+    ```
+
+    This must be run every time you add a new block class. TAW's block loader relies on Composer's autoloader to find class files.
   </Step>
 
-  <Step title="Update navigation" icon="settings" title-type="p">
-    Add or fix the matching `path` in `documentation.json` or from navigation menu.
+  <Step title="Verify the folder and class names match" icon="check-circle" title-type="p">
+    The folder name, file name, and class name must all match exactly:
+
+    ```
+    Blocks/Hero/Hero.php   → class Hero extends MetaBlock
+    ```
+
+    A mismatch causes the loader to skip the block silently.
   </Step>
 
-  <Step title="Publish" icon="refresh-cw" title-type="p">
-    Publish so changes take effect.
+  <Step title="Check the namespace" icon="code" title-type="p">
+    The namespace must follow the PSR-4 mapping in `composer.json`. For a block at `Blocks/Hero/Hero.php` the namespace should be:
+
+    ```php
+    namespace TAW\Blocks\Hero;
+    ```
   </Step>
 </Steps>
 
+---
+
+## Block assets not loading
+
+**Symptom:** The block renders HTML correctly but its CSS or JS is missing on the frontend.
+
+<Steps>
+  <Step title="Check that you called queue() before get_header()" icon="code" title-type="p">
+    Assets must be queued before `wp_head()` fires. The correct pattern:
+
+    ```php
+    <?php
+    use TAW\Core\BlockRegistry;
+
+    BlockRegistry::queue('hero'); // ← before get_header()
+    get_header();
+    ?>
+
+    <?php BlockRegistry::render('hero'); ?>
+    ```
+
+    If you only call `render()` without `queue()`, TAW prints an inline `<link>` as a fallback but it lands after `<head>` closes, which can cause a flash of unstyled content.
+  </Step>
+
+  <Step title="Confirm the asset files exist" icon="file-text" title-type="p">
+    TAW looks for `style.scss`, `style.css`, and `script.js` inside the block folder. If none exist, nothing is enqueued — that's expected.
+
+    ```
+    Blocks/Hero/
+    ├── Hero.php
+    ├── index.php
+    ├── style.scss   ← must exist for CSS to load
+    └── script.js    ← must exist for JS to load
+    ```
+  </Step>
+
+  <Step title="Check that the Vite build is up to date" icon="zap" title-type="p">
+    In development, run `npm run dev`. In production, run `npm run build` and confirm files exist in `public/build/`.
+  </Step>
+</Steps>
+
+---
+
+## Vite dev server not connecting
+
+**Symptom:** The frontend loads but assets come from the production build (or fail to load entirely) even though `npm run dev` is running.
+
+<Steps>
+  <Step title="Confirm the dev server started on the right port" icon="terminal" title-type="p">
+    Vite defaults to port 5173. If something else is using that port, Vite picks the next available one. Check the terminal output:
+
+    ```
+    VITE v7.x.x  ready in Xms
+    ➜  Local:   http://localhost:5173/
+    ```
+
+    If the port changed, update `vite.config.js` or stop the conflicting process.
+  </Step>
+
+  <Step title="Check the server URL in vite.config.js" icon="settings" title-type="p">
+    The `server.origin` in `vite.config.js` must match the URL Vite is actually listening on. The TAW Vite bridge reads this to proxy asset URLs from WordPress.
+  </Step>
+</Steps>
+
+---
+
+## `composer create-project` fails
+
+**Symptom:** Composer exits with a "could not find a matching version" or "package not found" error.
+
+**Cause:** The `--repository` flag is missing. TAW Theme is a private VCS package — Composer needs to be told where to find it.
+
+<Steps>
+  <Step title="Use the full command with the repository flag" icon="terminal" title-type="p">
+    ```bash
+    composer create-project taw/theme my-theme \
+      --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-theme"}'
+    ```
+  </Step>
+</Steps>
+
+---
+
+## Emails not being delivered
+
+**Symptom:** Form submissions save to WP Admin as `taw_submission` entries, but no email is sent.
+
+<Steps>
+  <Step title="Confirm WordPress can send mail" icon="mail" title-type="p">
+    `Mailer` uses `wp_mail()`. If WordPress itself cannot send email, neither can TAW. Install an SMTP plugin (e.g. WP Mail SMTP) and configure a real mail provider.
+  </Step>
+
+  <Step title="Test with MailTester" icon="play" title-type="p">
+    Go to **Tools → Test Emails** in the WordPress admin. Select a template and send a test without needing a real form submission.
+  </Step>
+
+  <Step title="Check template names match compiled files" icon="file-text" title-type="p">
+    `Mailer` looks for templates in `mails/html/{name}.html`. If only an `.mjml` source exists and it hasn't been compiled, the mailer falls back to plain text. Run the MJML compiler or place the compiled HTML in `mails/html/`.
+  </Step>
+</Steps>
+
+---
+
+## Metabox not appearing on a post
+
+**Symptom:** The metabox is registered but doesn't show up in the editor for a specific post type or post.
+
+<Steps>
+  <Step title="Check the screen option" icon="settings" title-type="p">
+    The `screen` key in your `Metabox` config must match the post type:
+
+    ```php
+    new Metabox([
+        'screen' => 'post', // 'page', 'post', or a custom post type slug
+        ...
+    ]);
+    ```
+  </Step>
+
+  <Step title="Check the show_on callable" icon="code" title-type="p">
+    If you added a `show_on` callable, make sure it returns `true` for the post you're editing:
+
+    ```php
+    'show_on' => fn(WP_Post $post): bool => $post->ID !== 123,
+    ```
+  </Step>
+
+  <Step title="Check WordPress screen options" icon="monitor" title-type="p">
+    In the page/post editor, click **Screen Options** (top-right) and make sure the metabox is checked. WordPress lets editors hide individual metaboxes per user.
+  </Step>
+</Steps>
