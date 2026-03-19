@@ -200,35 +200,87 @@ new Metabox([
     'screen' => 'page',
     'fields' => [
         // Layout with widths
-        ['id' => 'heading',     'label' => 'Heading',     'type' => 'text',     'width' => '50', 'required' => true],
-        ['id' => 'subheading',  'label' => 'Subheading',  'type' => 'text',     'width' => '50'],
+        [
+            'id' => 'heading',     
+            'label' => 'Heading',     
+            'type' => 'text',     
+            'width' => '50', 
+            'required' => true
+        ],
+        [
+            'id' => 'subheading',  
+            'label' => 'Subheading',  
+            'type' => 'text',     
+            'width' => '50'
+        ],
 
         // Rich text
-        ['id' => 'body',        'label' => 'Body',        'type' => 'wysiwyg', 'rows' => 6],
+        [
+            'id' => 'body',        
+            'label' => 'Body',        
+            'type' => 'wysiwyg', 
+            'rows' => 6
+        ],
 
         // Select with options
-        ['id' => 'style',       'label' => 'Style',       'type' => 'select',
-         'options' => ['light' => 'Light', 'dark' => 'Dark']],
+        [
+            'id' => 'style',
+            'label' => 'Style',
+            'type' => 'select',
+            'options' => ['light' => 'Light', 'dark' => 'Dark']
+        ],
 
         // Toggle
-        ['id' => 'show_cta',    'label' => 'Show CTA',    'type' => 'checkbox'],
+        [
+            'id' => 'show_cta',    
+            'label' => 'Show CTA',    
+            'type' => 'checkbox'
+        ],
 
         // Color picker
-        ['id' => 'bg_color',    'label' => 'Background',  'type' => 'color', 'default' => '#ffffff'],
+        [
+            'id' => 'bg_color',    
+            'label' => 'Background',  
+            'type' => 'color', 
+            'default' => '#ffffff'
+        ],
 
         // Range slider
-        ['id' => 'min_height',  'label' => 'Min Height',  'type' => 'range',
-         'min' => 400, 'max' => 900, 'step' => 50, 'unit' => 'px', 'default' => 600],
+        [
+            'id' => 'min_height',
+            'label' => 'Min Height',
+            'type' => 'range',
+            'min' => 400,
+            'max' => 900,
+            'step' => 50,
+            'unit' => 'px',
+            'default' => 600
+        ],
 
         // Image
-        ['id' => 'image',       'label' => 'Background Image', 'type' => 'image'],
+        [
+            'id' => 'image',       
+            'label' => 'Background Image', 
+            'type' => 'image'
+        ],
 
         // Post selector (single)
-        ['id' => 'featured_post', 'label' => 'Featured Post', 'type' => 'post_select', 'post_type' => 'post'],
+        [
+            'id' => 'featured_post', 
+            'label' => 'Featured Post', 
+            'type' => 'post_select', 
+            'post_type' => 'post'
+        ],
 
         // Post selector (multi, with max)
-        ['id' => 'related',     'label' => 'Related Posts', 'type' => 'post_select',
-         'post_type' => 'post', 'multiple' => true, 'max' => 3],
+        [
+            'id' => 'related',
+            'label' => 'Related Posts',
+            'type' => 'post_select',
+            'post_type' => 'post',
+            'multiple' => true,
+            'max' => 3
+        ],
     ],
 ]);
 ```
@@ -283,14 +335,14 @@ new Metabox([
 
 ### Other Metabox config options
 
-| Option     | Default      | Description                                                       |
-| ---------- | ------------ | ----------------------------------------------------------------- |
-| `screen`   | `'page'`     | Post type to attach to (e.g. `'post'`, `'page'`, custom type)    |
-| `context`  | `'normal'`   | Position: `'normal'`, `'side'`, `'advanced'`                     |
-| `priority` | `'high'`     | Order: `'high'`, `'default'`, `'low'`                            |
-| `prefix`   | `'_taw_'`    | Meta key prefix applied to all field IDs                         |
-| `icon`     | *(none)*     | SVG string — displayed as the metabox icon                        |
-| `show_on`  | *(none)*     | `callable(WP_Post): bool` — return `false` to hide the metabox   |
+| Option     | Default    | Description                                                    |
+| ---------- | ---------- | -------------------------------------------------------------- |
+| `screen`   | `'page'`   | Post type to attach to (e.g. `'post'`, `'page'`, custom type)  |
+| `context`  | `'normal'` | Position: `'normal'`, `'side'`, `'advanced'`                   |
+| `priority` | `'high'`   | Order: `'high'`, `'default'`, `'low'`                          |
+| `prefix`   | `'_taw_'`  | Meta key prefix applied to all field IDs                       |
+| `icon`     | *(none)*   | SVG string — displayed as the metabox icon                     |
+| `show_on`  | *(none)*   | `callable(WP_Post): bool` — return `false` to hide the metabox |
 
 ### Metabox Retrieval API
 
