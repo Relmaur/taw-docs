@@ -55,10 +55,9 @@ Set up your theme by booting TAW Core and then configuring performance. Use this
     <?php
 
     use TAW\Core\Theme;
+    
+    Theme::boot();
 
-    add_action('after_setup_theme', function () {
-        Theme::boot();
-    });
     ```
   </Step>
 
@@ -70,27 +69,25 @@ Set up your theme by booting TAW Core and then configuring performance. Use this
 
     use TAW\Core\Theme;
 
-    add_action('after_setup_theme', function () {
-        Theme::boot();
+    Theme::boot();
 
-        Theme::performance([
-            'remove_bloat'        => true,
-            'remove_emoji'        => true,
-            'remove_meta_tags'    => true,
-            'remove_oembed'       => true,
-            'preconnect_origins'  => [
-                'https://fonts.gstatic.com',
-                'https://cdn.taw-assets.com',
-            ],
-            'preload_fonts'       => [
-                'resources/fonts/inter-var.woff2',
-            ],
-            'preload_images'      => [
-                // [attachment_id, size]
-                [1234, 'hero-desktop'],
-            ],
-        ]);
-    });
+    Theme::performance([
+        'remove_bloat'        => true,
+        'remove_emoji'        => true,
+        'remove_meta_tags'    => true,
+        'remove_oembed'       => true,
+        'preconnect_origins'  => [
+            'https://fonts.gstatic.com',
+            'https://cdn.taw-assets.com',
+        ],
+        'preload_fonts'       => [
+            'resources/fonts/inter-var.woff2',
+        ],
+        'preload_images'      => [
+            // [attachment_id, size]
+            [1234, 'hero-desktop'],
+        ],
+    ]);
     ```
   </Step>
 </Steps>
@@ -105,16 +102,14 @@ For a clean theme that only uses the defaults and basic performance flags:
 
 use TAW\Core\Theme;
 
-add_action('after_setup_theme', function () {
-    Theme::boot();
+Theme::boot();
 
-    Theme::performance([
-        'remove_bloat'     => true,
-        'remove_emoji'     => true,
-        'remove_meta_tags' => true,
-        'remove_oembed'    => true,
-    ]);
-});
+Theme::performance([
+    'remove_bloat'     => true,
+    'remove_emoji'     => true,
+    'remove_meta_tags' => true,
+    'remove_oembed'    => true,
+]);
 ```
 
 You should now see your custom blocks available in the editor, Vite-powered assets loading on the front end, and unnecessary WordPress bloat removed from the page output.
