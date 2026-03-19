@@ -35,7 +35,7 @@
             "pages": [
               {
                 "title": "TAW Theme",
-                "path": "taw-core-theme",
+                "path": "taw-theme",
                 "icon": "lucide-paint-roller"
               },
               {
