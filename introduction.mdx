@@ -1,102 +1,179 @@
 ---
-title: TAW Framework introduction
+title: Introduction
 description: >-
-  Learn how the TAW WordPress Framework combines TAW Theme and TAW Core into a
-  modern, component-based workflow for custom theme development.
+  TAW is a modern WordPress theme framework built around PHP blocks, a config-driven
+  metabox engine, and a Vite/Tailwind asset pipeline — no Gutenberg, no ACF, no bloat.
 ---
-## Start here (5–10 minutes)
 
-TAW is a modern, component-based WordPress framework built around PHP blocks, MetaBlocks, and a Vite/Tailwind asset pipeline.
+## What is TAW?
+
+TAW (**T**ailwind + **A**lpine + **W**ordPress) is a component-based WordPress theme framework. Every section of a page — hero, stats, testimonials — is a self-contained **block** that owns its data, markup, styles, and scripts.
 
 <Callout kind="info" collapsed="false">
-  TAW Theme is designed for WordPress and PHP developers who prefer code-first workflows, version control, and repeatable architecture over click-driven theme builders.
+  TAW is built for PHP and WordPress developers who prefer code-first workflows. You work in PHP classes, Composer, and Vite — not theme builders or click-driven admin panels.
 </Callout>
 
-<Callout kind="alert" collapsed="false">
-  This is an early draft of the TAW documentation. The framework is fully code-first: expect to work in PHP, Composer, and Node, with minimal WordPress admin configuration.
-</Callout>
+The framework ships as two pieces:
 
-Use these pages to get oriented:
+- **TAW Theme** — the starter theme you install per project. Holds your blocks, templates, and `functions.php`.
+- **`taw/core`** — a versioned Composer package with all the framework internals: block system, metabox engine, CLI, forms, mail, and helpers. Update it across all your projects with a single `composer update taw/core`.
 
-- Start with [Quickstart](/quickstart) to install TAW Theme via Composer, wire up Vite, and see your first block render.
+---
 
-- Read [Core Concepts](/concepts) for a deeper look at blocks, MetaBlocks, assets, and how TAW Theme and TAW Core interact.
+## Why TAW?
 
-- Browse [Components](/components) when you want concrete examples of how we structure code, blocks, and documentation.
+**No Gutenberg. No ACF. No plugin dependencies.**
 
-## What you get
-
-TAW Theme depends on the `taw/core` Composer package (TAW Core) for block discovery, the MetaBlock engine, Vite/Tailwind integration, and helper utilities.
+TAW is its own stack. The metabox engine, form system, image helpers, and SVG support are all built in. Your theme stays lean and dependency-free.
 
 <Columns cols="3">
-  <Card title="Component and block architecture" href="/concepts" icon="layers" horizontal="false">
-    Organize your theme into PHP blocks under `Blocks/`, with automatic discovery and loading via TAW Core. Build UI blocks and MetaBlocks that stay close to your domain instead of scattered templates.
+  <Card title="Zero-config blocks" href="/quickstart" icon="layers" horizontal="false">
+    Create a folder, drop in a class and a template — it's live. No registration, no `functions.php` edits, no build step required for new blocks.
   </Card>
 
-  <Card title="MetaBlocks and config-driven data" href="/concepts" icon="database" horizontal="false">
-    Define MetaBlocks backed by a metabox engine using `post_meta` and options pages. Describe fields and layouts in PHP config so metaboxes and settings screens are reproducible and versioned.
+  <Card title="CLI scaffolding" href="/quickstart" icon="terminal" horizontal="false">
+    `php bin/taw make:block Hero --type=meta --with-style` creates the folder, class, template, and stylesheet in one command. Export and import blocks between projects as portable ZIPs.
   </Card>
 
-  <Card title="Modern asset pipeline" href="/quickstart" icon="terminal" horizontal="false">
-    Use Vite for bundling with HMR in development and Tailwind CSS v4 via `@tailwindcss/vite`. Scope assets per block, keep CSS close to components, and load everything through TAW Core’s asset helpers.
+  <Card title="Scoped asset loading" href="/taw-core" icon="zap" horizontal="false">
+    Each block ships its own CSS and JS. Assets are only enqueued on pages that actually use that block. Your homepage doesn't load your blog's scripts.
   </Card>
 </Columns>
 
 <Columns cols="3">
-  <Card title="TAW Theme + TAW Core" href="/concepts" icon="code" horizontal="false">
-    Bootstrap your theme with Composer, require `taw/core`, then call `TAW\Core\Theme::boot()` from `functions.php`. Let TAW Core handle block loading, REST helpers, and performance toggles.
+  <Card title="Rich metabox engine" href="/taw-core" icon="database" horizontal="false">
+    `text`, `textarea`, `wysiwyg`, `image`, `url`, `number`, `range`, `select`, `checkbox`, `color`, `group`, `repeater`, `post_select` — with conditional logic, tabbed layouts, and responsive grid placement. No plugin required.
   </Card>
 
-  <Card title="Per-block assets and editor tooling" href="/components" icon="monitor" horizontal="false">
-    Attach JS/CSS to individual blocks and leverage editor-specific tooling so the visual editor reflects your frontend accurately without manual script registration.
+  <Card title="Built-in form system" href="/taw-core" icon="edit" horizontal="false">
+    `Form` handles CSRF, honeypot spam protection, field validation, PRG redirect, and email delivery. Drop it into any template with a config array.
   </Card>
 
-  <Card title="Performance and helpers" href="/concepts" icon="settings" horizontal="false">
-    Use `Theme::performance([...])` options and built-in helpers to keep your theme fast and consistent across projects, without re-implementing the same boilerplate every time.
+  <Card title="Transactional email" href="/taw-core" icon="mail" horizontal="false">
+    `Mailer` wraps `wp_mail()` with a fluent API and MJML/HTML template support. Write templates once, compile to HTML, deploy. Includes a `MailTester` admin page.
   </Card>
 </Columns>
 
-## Make your first TAW theme
+<Columns cols="3">
+  <Card title="Theme-level options" href="/taw-core" icon="settings" horizontal="false">
+    `OptionsPage` brings the same config-driven field experience to site-wide settings stored in `wp_options` — tabbed UI, validation, and a clean retrieval API included.
+  </Card>
 
-Use this flow to go from a blank project to a running TAW Theme backed by TAW Core.
+  <Card title="Navigation menus" href="/taw-core" icon="menu" horizontal="false">
+    `Menu::get()` wraps WordPress nav menus into a typed tree, giving you full control over markup without `wp_nav_menu()`.
+  </Card>
+
+  <Card title="Modern frontend" href="/taw-theme" icon="monitor" horizontal="false">
+    Tailwind v4 for utility CSS, Alpine.js for interactivity, Vite for instant HMR — all wired into WordPress through a lightweight bridge. No React, no REST API overhead.
+  </Card>
+</Columns>
+
+---
+
+## Two types of blocks
+
+TAW has two block types. Pick the one that fits your use case.
+
+| | MetaBlock | Block (UI) |
+| --- | --- | --- |
+| **Purpose** | Page sections that own their data | Reusable UI components |
+| **Data source** | Metaboxes → `post_meta` | Props passed at render time |
+| **Rendered via** | `BlockRegistry::render('id')` | `(new Button())->render([...])` |
+| **Examples** | Hero, Stats, Testimonials, CTA | Button, Card, Badge |
+
+**MetaBlocks** register their own metabox and pull data from `post_meta`. Editors fill in content through the WordPress admin UI and the block renders it automatically.
+
+**UI Blocks** are stateless components — they receive props and render markup. Use them to build design-system primitives that MetaBlocks compose together.
+
+---
+
+## Tech stack
+
+| Technology | Role |
+| --- | --- |
+| Tailwind CSS v4 | Utility-first CSS via the official Vite plugin |
+| Alpine.js v3 | Lightweight reactivity for interactive components |
+| Vite v7 | Build tool with instant HMR in development |
+| SCSS | Optional custom styles — global and per-block |
+| PHP 8.1+ | PSR-4 autoloading via Composer |
+| `taw/core` | Versioned Composer package with all framework internals |
+
+---
+
+## Get started
 
 <Steps>
-  <Step title="Install the theme and TAW Core" icon="download" title-type="p">
-    Initialize a new WordPress theme with the TAW Theme template via Composer, run `composer install` so `taw/core` is available, then wire up `functions.php` to require the autoloader and call `TAW\Core\Theme::boot()`.
+  <Step title="Install the theme" icon="download" title-type="p">
+    Scaffold a new TAW Theme project inside your WordPress `wp-content/themes` directory using Composer, then install PHP and JS dependencies.
+
+    ```bash
+    cd wp-content/themes
+
+    composer create-project taw/theme my-theme \
+      --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-theme"}'
+
+    cd my-theme
+    composer install
+    npm install
+    ```
   </Step>
 
-  <Step title="Set up Vite and Tailwind v4" icon="terminal" title-type="p">
-    Run `npm install`, configure the provided Vite setup (including `@tailwindcss/vite`), and start the dev server with `npm run dev` to get hot module reloading and Tailwind utilities in both frontend and editor.
+  <Step title="Start the dev server" icon="zap" title-type="p">
+    Start Vite for hot module reloading during development, then activate the theme in **WordPress Admin → Appearance → Themes**.
+
+    ```bash
+    npm run dev
+    ```
   </Step>
 
-  <Step title="Create your first Block and MetaBlock" icon="edit" title-type="p">
-    Use the TAW CLI (for example, `php bin/taw make:block ...`) to scaffold a new block under `Blocks/`, define a MetaBlock for structured content, and verify it appears in the editor with its own assets and metabox-backed fields.
+  <Step title="Scaffold your first block" icon="terminal" title-type="p">
+    Use the TAW CLI to create a MetaBlock with styles in one command.
+
+    ```bash
+    php bin/taw make:block Hero --type=meta --with-style
+    composer dump-autoload
+    ```
   </Step>
 
-  <Step title="Explore Core Concepts and patterns" icon="book-open" title-type="p">
-    Once the first block works, read [Core Concepts](/concepts) to standardize how you structure `Blocks/`, design MetaBlocks, and configure options pages so future themes reuse the same patterns.
+  <Step title="Render it in a template" icon="play" title-type="p">
+    Queue the block's assets and render it from your WordPress template.
+
+    ```php
+    <?php
+    // front-page.php
+    use TAW\Core\BlockRegistry;
+
+    BlockRegistry::queue('hero');
+    get_header();
+    ?>
+
+    <?php BlockRegistry::render('hero'); ?>
+
+    <?php get_footer(); ?>
+    ```
   </Step>
 </Steps>
 
-## Continue through the docs
+See the [Quickstart](/quickstart) for the full walkthrough, including how to define metabox fields and wire up a complete block.
 
-Use these pages as your path from evaluation to production-ready themes.
+---
+
+## Continue through the docs
 
 <Columns cols="2">
   <Card title="Quickstart" href="/quickstart" icon="zap" horizontal="false">
-    Follow a concrete, end-to-end setup: Composer install, Vite/Tailwind wiring, and your first block and MetaBlock running in the editor.
+    End-to-end setup: install, first block, metabox fields, and template rendering.
   </Card>
 
-  <Card title="Core Concepts" href="/concepts" icon="layers" horizontal="false">
-    Understand how TAW Theme, TAW Core, blocks, MetaBlocks, assets, and performance options fit together into a repeatable architecture.
+  <Card title="Core Concepts" href="/concepts" icon="book-open" horizontal="false">
+    Understand how blocks, MetaBlocks, assets, and the boot process fit together.
   </Card>
 
-  <Card title="Components" href="/components" icon="code" horizontal="false">
-    See how we structure documentation and examples using Cards, Callouts, Steps, Tabs, and more as you document your own TAW-based projects.
+  <Card title="TAW Core tools" href="/taw-core" icon="settings" horizontal="false">
+    Metabox engine, forms, mail, options pages, navigation menus, and the REST API.
   </Card>
 
-  <Card title="Help Center" href="/help-center" icon="help-circle" horizontal="false">
-    Find FAQs, troubleshooting tips, and guides for working with this documentation site alongside your TAW codebase.
+  <Card title="Theme boot and performance" href="/taw-theme" icon="rocket" horizontal="false">
+    `Theme::boot()`, performance flags, Vite helpers, Image, and SVG utilities.
   </Card>
 </Columns>
-

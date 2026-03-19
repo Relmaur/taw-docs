@@ -1,141 +1,328 @@
 ---
-title: TAW Theme Quickstart
+title: Quickstart
 description: >-
-  Spin up a new WordPress project with TAW Theme and TAW Core, including
-  Composer install, Vite dev server, theme activation, and your first block.
+  Install TAW Theme, start the Vite dev server, scaffold your first MetaBlock,
+  and render it on a page — in under 10 minutes.
 ---
-## Overview
 
-Use this quickstart to create a new WordPress theme powered by TAW Theme and TAW Core, run the Vite dev server, and scaffold your first block.
+## Before you start
 
-<Callout kind="info" collapsed="false">
-  TAW Theme uses TAW Core under the hood for the block system, MetaBlock, metabox engine, and Vite asset pipeline. When you boot the theme, you also boot TAW Core.
-</Callout>
-
-## Prerequisites
+Make sure your environment meets these requirements:
 
 <Callout kind="alert" collapsed="false">
-  Before you start, make sure your environment meets these requirements:
-
-  - WordPress 6.0 or higher
-
-  - PHP 8.1 or higher
-
-  - Composer installed and available on your `PATH`
-
-  - Node.js 20 or higher
-
-  - npm (bundled with Node)
+  - **WordPress** 6.0+
+  - **PHP** 8.1+
+  - **Composer** 2.0+
+  - **Node.js** 20.19+
+  - **npm** 8+
 </Callout>
 
-## Create and activate a TAW Theme project
+<Callout kind="info" collapsed="false">
+  TAW does not use Gutenberg blocks or ACF. Blocks are plain PHP classes and templates — no block editor registration needed.
+</Callout>
+
+---
+
+## Step 1 — Install the theme
 
 <Steps>
-  <Step title="Create a new theme via Composer" icon="terminal" title-type="p">
-    Run the Composer template to scaffold a fresh TAW Theme project inside your WordPress `wp-content/themes` directory.
-
-    <CodeGroup show-lines="true" tabs={[]}>
-      ```bash
-      # From your WordPress root
-      cd wp-content/themes
-
-      # Scaffold a new TAW Theme project (replace acme-docs with your theme folder)
-      composer create-project taw/theme acme-docs
-
-      cd acme-docs
-
-      # Install PHP dependencies for TAW Core, Vite integration, and block system
-      composer install
-      ```
-
-      ```bash
-      # If you already created the project, just install PHP deps
-      cd wp-content/themes/acme-docs
-      composer install
-      ```
-    </CodeGroup>
-
-    After this step, your theme folder contains TAW Theme, TAW Core, and the `Blocks` directory for your custom blocks.
-  </Step>
-
-  <Step title="Install JS dependencies and start Vite dev server" icon="zap" title-type="p">
-    Install the Node dependencies and start the Vite dev server for hot module reloading during development.
+  <Step title="Scaffold a new TAW Theme project" icon="terminal" title-type="p">
+    Run this from your WordPress `wp-content/themes` directory. Replace `my-theme` with your desired folder name.
 
     ```bash
-    # Still inside your theme directory
-    npm install
+    cd wp-content/themes
 
-    # Start Vite with HMR for Tailwind v4 and your block assets
+    composer create-project taw/theme my-theme \
+      --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-theme"}'
+    ```
+
+    This creates the theme folder with the correct structure and pulls in the `taw/core` framework package.
+  </Step>
+
+  <Step title="Install PHP and JS dependencies" icon="download" title-type="p">
+    ```bash
+    cd my-theme
+
+    composer install   # PHP deps — pulls taw/core
+    npm install        # Frontend dependencies
+    ```
+  </Step>
+
+  <Step title="Start the Vite dev server" icon="zap" title-type="p">
+    ```bash
     npm run dev
     ```
 
-    When this succeeds, your terminal shows Vite listening on a localhost port, and WordPress pages using the theme will load assets from the dev server.
+    Vite starts on port 5173 with hot module reloading. Leave this running while you develop — CSS and JS changes reflect instantly in the browser without a full reload.
   </Step>
 
-  <Step title="Activate the theme in WordPress admin" icon="monitor" title-type="p">
-    Switch your site to use the new TAW Theme.
-
+  <Step title="Activate the theme in WordPress" icon="monitor" title-type="p">
     - Log in to your WordPress admin.
-
     - Go to **Appearance → Themes**.
+    - Find your new theme and click **Activate**.
 
-    - Find your new theme (for example, **Acme Docs**).
-
-    - Click **Activate**.
-
-    After activation, visit the frontend: you should see the TAW Theme layout rendered, backed by TAW Core.
+    Visit the frontend — you should see the TAW Theme layout rendered with Vite-powered assets.
   </Step>
 </Steps>
 
-## Scaffold your first block
+---
 
-Use the built-in TAW CLI to generate a new block and place it in the `Blocks` directory.
+## Step 2 — Create your first block
+
+TAW has two block types. For this quickstart we'll build a **MetaBlock** — a page section backed by metabox fields in the WordPress admin.
 
 <Steps>
-  <Step title="Generate a block with the TAW CLI" icon="code" title-type="p">
-    Run the block generator from your theme root.
+  <Step title="Scaffold the block with the CLI" icon="terminal" title-type="p">
+    Run the block generator from your theme root:
 
     ```bash
-    # From your TAW Theme directory
     php bin/taw make:block Hero --type=meta --with-style
+    composer dump-autoload
     ```
 
-    This command creates a new `Hero` block inside `Blocks/`, including PHP, meta configuration, and style scaffolding wired into the Vite pipeline.
+    This creates `Blocks/Hero/` with three files:
+
+    ```
+    Blocks/Hero/
+    ├── Hero.php       ← the block class
+    ├── index.php      ← the template
+    └── style.scss     ← per-block styles (auto-enqueued)
+    ```
+
+    <Callout kind="info" collapsed="false">
+      `composer dump-autoload` is required after adding any new block class so Composer's PSR-4 classmap picks it up.
+    </Callout>
   </Step>
 
-  <Step title="Verify the block in WordPress" icon="check-circle" title-type="p">
-    After generation and with `npm run dev` still running:
+  <Step title="Define your metabox fields" icon="edit" title-type="p">
+    Open `Blocks/Hero/Hero.php`. The CLI generates a skeleton — fill in your fields inside `registerMetaboxes()` and return the data you need in `getData()`.
 
-    - Go to the WordPress block editor for a page or template.
+    ```php
+    <?php
+    // Blocks/Hero/Hero.php
 
-    - Search for the **Hero** block in the block inserter.
+    namespace TAW\Blocks\Hero;
 
-    - Insert it and confirm that its markup and styles load correctly.
+    use TAW\Core\MetaBlock;
+    use TAW\Core\Metabox\Metabox;
 
-    If you see the block and edits update live when you save block files, your TAW Theme + TAW Core setup is working.
+    class Hero extends MetaBlock
+    {
+        protected string $id = 'hero';
+
+        protected function registerMetaboxes(): void
+        {
+            new Metabox([
+                'id'     => 'taw_hero',
+                'title'  => 'Hero Section',
+                'screen' => 'page',
+                'fields' => [
+                    ['id' => 'hero_heading',  'label' => 'Heading',  'type' => 'text',  'required' => true],
+                    ['id' => 'hero_subtext',  'label' => 'Subtext',  'type' => 'textarea'],
+                    ['id' => 'hero_image',    'label' => 'Image',    'type' => 'image'],
+                ],
+            ]);
+        }
+
+        protected function getData(int $postId): array
+        {
+            return [
+                'heading'   => $this->getMeta($postId, 'hero_heading'),
+                'subtext'   => $this->getMeta($postId, 'hero_subtext'),
+                'image_url' => $this->getImageUrl($postId, 'hero_image', 'large'),
+            ];
+        }
+    }
+    ```
+
+    TAW discovers the metabox automatically — it appears in the WordPress page editor as soon as the class is loaded.
+  </Step>
+
+  <Step title="Write the template" icon="code" title-type="p">
+    Open `Blocks/Hero/index.php`. The variables returned by `getData()` are extracted into the template scope automatically.
+
+    ```php
+    <?php
+    // Blocks/Hero/index.php
+
+    if (empty($heading)) return;
+    ?>
+
+    <section class="hero">
+        <h1><?php echo esc_html($heading); ?></h1>
+
+        <?php if ($subtext): ?>
+            <p><?php echo esc_html($subtext); ?></p>
+        <?php endif; ?>
+
+        <?php if ($image_url): ?>
+            <img src="<?php echo esc_url($image_url); ?>" alt="">
+        <?php endif; ?>
+    </section>
+    ```
   </Step>
 </Steps>
 
-## Optional: production build
+---
 
-Use a production build when you deploy or want to test optimized assets.
+## Step 3 — Render the block on a page
+
+TAW blocks are not Gutenberg blocks. You queue and render them from your PHP templates.
+
+<Steps>
+  <Step title="Queue and render in a WordPress template" icon="play" title-type="p">
+    Open (or create) `front-page.php` in your theme root. Queue the block's assets before `get_header()`, then render it where it should appear in the page.
+
+    ```php
+    <?php
+    // front-page.php
+
+    use TAW\Core\BlockRegistry;
+
+    BlockRegistry::queue('hero');  // schedules CSS/JS for <head>
+    get_header();
+    ?>
+
+    <?php BlockRegistry::render('hero'); ?>
+
+    <?php get_footer(); ?>
+    ```
+
+    TAW automatically passes the current post ID to `getData()` and extracts the result into the template.
+  </Step>
+
+  <Step title="Fill in content in the WordPress admin" icon="edit" title-type="p">
+    - Open a page in the WordPress editor.
+    - Scroll down — your **Hero Section** metabox appears below the editor.
+    - Fill in the Heading, Subtext, and Image fields.
+    - Publish and visit the page.
+
+    You should see your Hero block rendered with the content you entered.
+  </Step>
+</Steps>
+
+---
+
+## What you just built
+
+Here's what happened under the hood:
+
+- `BlockLoader::loadAll()` (called by `Theme::boot()`) discovered `Blocks/Hero/Hero.php` automatically — no registration required.
+- `Metabox` rendered the admin UI and saved field values to `post_meta`.
+- `BlockRegistry::queue('hero')` scheduled `style.scss` for `<head>` — only on pages that use this block.
+- `BlockRegistry::render('hero')` called `getData()`, extracted the result, and loaded `index.php`.
+
+---
+
+## Add a second block type: UI Block
+
+UI Blocks are stateless components that receive props at render time — no metaboxes, no post_meta.
 
 ```bash
-# From your TAW Theme directory
+php bin/taw make:block Button --type=ui --with-style
+composer dump-autoload
+```
+
+```php
+// Blocks/Button/Button.php
+namespace TAW\Blocks\Button;
+
+use TAW\Core\Block;
+
+class Button extends Block
+{
+    protected string $id = 'button';
+
+    protected function defaults(): array
+    {
+        return [
+            'text'  => '',
+            'url'   => '#',
+            'style' => 'primary',
+        ];
+    }
+}
+```
+
+Use it inside any template or MetaBlock template:
+
+```php
+<?php (new \TAW\Blocks\Button\Button())->render([
+    'text' => 'Get Started',
+    'url'  => '/contact',
+]); ?>
+```
+
+Props are merged over the `defaults()` array — missing props always have safe fallbacks.
+
+---
+
+## Multi-block pages
+
+Queue multiple blocks at once, then render each where it belongs:
+
+```php
+<?php
+// front-page.php
+use TAW\Core\BlockRegistry;
+
+BlockRegistry::queue('hero', 'features', 'stats', 'testimonials', 'cta');
+get_header();
+?>
+
+<?php BlockRegistry::render('hero'); ?>
+<?php BlockRegistry::render('features'); ?>
+<?php BlockRegistry::render('stats'); ?>
+<?php BlockRegistry::render('testimonials'); ?>
+<?php BlockRegistry::render('cta'); ?>
+
+<?php get_footer(); ?>
+```
+
+---
+
+## Production build
+
+When you're ready to deploy:
+
+```bash
 npm run build
 ```
 
-This runs the Vite production build and outputs optimized CSS and JS that WordPress will load when the dev server is not running.
+Vite outputs content-hashed CSS and JS to `public/build/`. WordPress loads these automatically when the dev server is not running.
+
+---
+
+## Useful CLI commands
+
+| Command | What it does |
+| --- | --- |
+| `php bin/taw make:block Name --type=meta` | Scaffold a MetaBlock |
+| `php bin/taw make:block Name --type=ui` | Scaffold a UI Block |
+| `php bin/taw make:block Name --group=sections` | Scaffold inside `Blocks/sections/Name/` |
+| `php bin/taw make:block Name --with-style --with-script` | Include `style.scss` and `script.js` |
+| `php bin/taw export:block Hero` | Export a block as a portable ZIP |
+| `php bin/taw import:block path/to/Hero.zip` | Import a block from a ZIP |
+| `composer dump-autoload` | Rebuild classmap after adding new block classes |
+
+---
 
 ## Next steps
 
 <Columns cols="2">
   <Card title="Core Concepts" href="/concepts" icon="book-open" horizontal="false">
-    Learn how TAW Theme and TAW Core work together, including block architecture, MetaBlock, and asset loading.
+    Understand how blocks, MetaBlocks, assets, and the boot process fit together.
   </Card>
 
-  <Card title="Components" href="/components" icon="code" horizontal="false">
-    Explore available documentation components to document your new TAW-powered theme.
+  <Card title="TAW Core tools" href="/taw-core" icon="settings" horizontal="false">
+    Metabox engine, forms, mail, options pages, navigation menus, SVG, and the REST API.
+  </Card>
+
+  <Card title="Theme boot and performance" href="/taw-theme" icon="rocket" horizontal="false">
+    `Theme::boot()`, performance flags, Vite helpers, and image optimization.
+  </Card>
+
+  <Card title="Help Center" href="/help-center" icon="help-circle" horizontal="false">
+    FAQs and troubleshooting for common setup issues.
   </Card>
 </Columns>
-
