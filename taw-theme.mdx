@@ -358,6 +358,53 @@ register_nav_menus([
 
 To render menus in templates, use `TAW\Core\Menu\Menu::get($location)`. See the [Navigation menus reference](/taw-core#navigation-menus) in the TAW Core tools overview for the full `Menu` and `MenuItem` API.
 
+## Boilerplate blocks
+
+TAW Theme ships with ready-to-use blocks you can drop in immediately or treat as reference implementations when building your own.
+
+### Menu — site header with live search
+
+`Blocks/Menu/` is a two-row site header with a keyboard-accessible Alpine.js live-search overlay. It extends `TAW\Core\Block` (UI Block) and renders itself with no metabox configuration required.
+
+```php
+// header.php
+use TAW\Blocks\Menu\Menu;
+
+(new Menu())->render();
+```
+
+**What it includes:**
+
+- **Top row** — custom logo (or site name fallback), optional company address pulled from `OptionsPage`, and a search trigger button.
+- **Bottom row** — `primary` nav menu with hover dropdowns for items that have children, plus optional company email and phone from `OptionsPage`.
+- **Search overlay** — debounced live fetch against `GET /wp-json/wp/v2/search`, a results list, empty state, loading spinner, Escape-to-close, and body scroll lock.
+
+The block reads company contact details (`company_address`, `company_email`, `company_phone`) directly from your `OptionsPage` settings, so those fields must be configured under **TAW Settings** in the admin for them to appear.
+
+#### Restrict search to specific post types
+
+Edit the `subtype` param in `Blocks/Menu/script.js`:
+
+```js
+const params = new URLSearchParams({
+    search: query,
+    type: 'post',
+    subtype: 'post,page', // ← adjust as needed
+    per_page: 8,
+});
+```
+
+#### Translate overlay labels
+
+Edit the strings directly in `Blocks/Menu/index.php`:
+
+- `What are you looking for?` — the overlay heading
+- `Search posts and pages…` — the input placeholder
+
+<Callout kind="info" collapsed="false">
+  The Menu block pulls `primary` navigation from the location registered in `functions.php` via `register_nav_menus()`. Make sure a menu is assigned to the `primary` location in **WordPress Admin → Appearance → Menus** before rendering.
+</Callout>
+
 ## Theme updater
 
 `ThemeUpdater` hooks into WordPress's update system to check a GitHub Releases URL for a newer version. When one is found, the standard **Update Available** notice appears in the admin.
