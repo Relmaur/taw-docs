@@ -1,0 +1,234 @@
+---
+title: Blocks and block registry
+description: >-
+  How BlockLoader discovers blocks automatically, how BlockRegistry queues and
+  renders them, and the difference between MetaBlocks and UI Blocks.
+---
+
+## Two types of blocks
+
+TAW has two block base classes, each suited to a different job:
+
+| | MetaBlock | Block (UI Block) |
+| --- | --- | --- |
+| **Purpose** | Page sections that own their data | Reusable UI components |
+| **Data source** | Metaboxes → `post_meta` | Props passed at render time |
+| **Rendered via** | `BlockRegistry::render('id')` | `(new Button())->render([...])` |
+| **Examples** | Hero, Stats, Testimonials, CTA | Button, Card, Badge |
+
+## Auto-discovery
+
+`BlockLoader::loadAll()` (called by `Theme::boot()`) scans the `Blocks/` directory recursively at any nesting depth and loads every block class it finds. There is no registration step — create a folder with a matching class and it's live.
+
+The only rule: **the folder name must match the class name.**
+
+```
+Blocks/
+├── Hero/
+│   └── Hero.php      ← class Hero extends MetaBlock ✓
+└── ui/
+    └── Button/
+        └── Button.php  ← class Button extends Block ✓
+```
+
+After adding a new block class, run `composer dump-autoload` to rebuild the PSR-4 classmap.
+
+## Creating a MetaBlock
+
+MetaBlocks extend `TAW\Core\MetaBlock`. They register metaboxes for content authoring and expose that content through `getData()`.
+
+```php
+// Blocks/Hero/Hero.php
+namespace TAW\Blocks\Hero;
+
+use TAW\Core\MetaBlock;
+use TAW\Core\Metabox\Metabox;
+
+class Hero extends MetaBlock
+{
+    protected string $id = 'hero';
+
+    protected function registerMetaboxes(): void
+    {
+        new Metabox([
+            'id'     => 'taw_hero',
+            'title'  => 'Hero Section',
+            'screen' => 'page',
+            'fields' => [
+                ['id' => 'hero_heading', 'label' => 'Heading', 'type' => 'text'],
+                ['id' => 'hero_image',   'label' => 'Image',   'type' => 'image'],
+            ],
+        ]);
+    }
+
+    protected function getData(int $postId): array
+    {
+        return [
+            'heading'   => $this->getMeta($postId, 'hero_heading'),
+            'image_url' => $this->getImageUrl($postId, 'hero_image', 'large'),
+        ];
+    }
+}
+```
+
+The template receives the `getData()` return value via `extract()` — every key becomes a local variable.
+
+```php
+<!-- Blocks/Hero/index.php -->
+<?php if (empty($heading)) return; ?>
+
+<section class="hero">
+    <h1><?php echo esc_html($heading); ?></h1>
+    <?php if ($image_url): ?>
+        <img src="<?php echo esc_url($image_url); ?>" alt="">
+    <?php endif; ?>
+</section>
+```
+
+## Creating a UI Block
+
+UI Blocks extend `TAW\Core\Block`. Instead of metaboxes they define a `defaults()` method. Props passed to `render()` are merged over these defaults, so missing props always have safe fallbacks.
+
+```php
+// Blocks/Button/Button.php
+namespace TAW\Blocks\Button;
+
+use TAW\Core\Block;
+
+class Button extends Block
+{
+    protected string $id = 'button';
+
+    protected function defaults(): array
+    {
+        return [
+            'text'  => '',
+            'url'   => '#',
+            'style' => 'primary',
+        ];
+    }
+}
+```
+
+```php
+<!-- Blocks/Button/index.php -->
+<a href="<?php echo esc_url($url); ?>" class="btn btn--<?php echo esc_attr($style); ?>">
+    <?php echo esc_html($text); ?>
+</a>
+```
+
+## Rendering blocks on a page
+
+### Queue and render (MetaBlocks)
+
+Use `BlockRegistry::queue()` before `get_header()` to register block assets in `<head>`, then call `BlockRegistry::render()` where you want each block to appear.
+
+```php
+<?php
+// front-page.php
+use TAW\Core\BlockRegistry;
+
+BlockRegistry::queue('hero', 'features', 'stats', 'testimonials', 'cta');
+get_header();
+?>
+
+<?php BlockRegistry::render('hero'); ?>
+<?php BlockRegistry::render('features'); ?>
+<?php BlockRegistry::render('stats'); ?>
+<?php BlockRegistry::render('testimonials'); ?>
+<?php BlockRegistry::render('cta'); ?>
+
+<?php get_footer(); ?>
+```
+
+### Render for a specific post ID
+
+```php
+// Render a block for an explicit post — useful outside The Loop
+BlockRegistry::render('hero', $post_id);
+```
+
+### Render a UI Block directly
+
+```php
+(new \TAW\Blocks\Button\Button())->render([
+    'text'  => 'Get Started',
+    'url'   => '/contact',
+    'style' => 'secondary',
+]);
+```
+
+## Nesting blocks
+
+UI Blocks compose naturally inside MetaBlock templates:
+
+```php
+<!-- Blocks/Hero/index.php -->
+<section class="hero">
+    <h1><?php echo esc_html($heading); ?></h1>
+
+    <?php (new \TAW\Blocks\Button\Button())->render([
+        'text' => 'Get Started',
+        'url'  => '/contact',
+    ]); ?>
+</section>
+```
+
+## Scaffolding blocks with the CLI
+
+The fastest way to create a block is the `make:block` command:
+
+```bash
+php bin/taw make:block Hero --type=meta --with-style
+php bin/taw make:block Button --type=ui --with-style --with-script
+
+# Inside a subgroup (great for organisation)
+php bin/taw make:block Hero --group=sections      # → Blocks/sections/Hero/
+php bin/taw make:block Badge --group=ui/cards     # → Blocks/ui/cards/Badge/
+
+composer dump-autoload
+```
+
+| Flag | Description |
+| ---- | ----------- |
+| `--type=meta` | Scaffold a MetaBlock |
+| `--type=ui` | Scaffold a UI Block |
+| `--group=name` | Place the block inside a subdirectory |
+| `--with-style` | Include `style.scss` |
+| `--with-script` | Include `script.js` |
+| `--force` | Overwrite an existing block |
+
+## Exporting and importing blocks
+
+Blocks can be exported as portable ZIPs and imported into any TAW Theme project.
+
+```bash
+# Export
+php bin/taw export:block Hero
+php bin/taw export:block sections/Hero -o ./exports
+
+# Import
+php bin/taw import:block path/to/Hero.zip
+php bin/taw import:block path/to/Hero.zip --group=sections --force
+```
+
+## MetaBlock convenience helpers
+
+Inside `getData()` you can use these wrappers instead of calling `Metabox::get*` directly:
+
+```php
+protected function getData(int $postId): array
+{
+    return [
+        'heading'   => $this->getMeta($postId, 'hero_heading'),
+        'image_url' => $this->getImageUrl($postId, 'hero_image', 'large'),
+        'show_cta'  => $this->getMeta($postId, 'show_cta') === '1',
+    ];
+}
+```
+
+Both delegate to the same `Metabox::get*` methods — use whichever reads more clearly.
+
+<Callout kind="info" collapsed="false">
+  Block assets (`style.scss`, `script.js`) are auto-detected per block. They are only enqueued on pages that use that block. See [Assets and Vite integration](/taw-core-assets-vite) for details on how asset loading works.
+</Callout>

@@ -1,0 +1,342 @@
+---
+title: Metabox and editor tooling
+description: >-
+  Declare structured metaboxes in PHP, use the full field-type library, wire
+  conditional logic, and retrieve saved values in your templates.
+---
+
+## What metaboxes are in TAW
+
+TAW Core's metabox engine (`TAW\Core\Metabox\Metabox`) lets you declare custom admin fields in pure PHP — no plugin required. It handles rendering in the WordPress editor, validation and sanitization on save, and retrieval helpers for templates.
+
+You attach a metabox to a block by calling `new Metabox([...])` inside `registerMetaboxes()` on any `MetaBlock`.
+
+## Minimal example
+
+```php
+use TAW\Core\Metabox\Metabox;
+
+new Metabox([
+    'id'     => 'taw_hero',
+    'title'  => 'Hero Section',
+    'screen' => 'page',
+    'fields' => [
+        ['id' => 'heading', 'label' => 'Heading', 'type' => 'text', 'required' => true],
+        ['id' => 'image',   'label' => 'Image',   'type' => 'image'],
+    ],
+]);
+```
+
+## Common field options
+
+All field types share a base set of options:
+
+| Option | Type | Description |
+| ------ | ---- | ----------- |
+| `id` | `string` | Unique field key (without prefix) |
+| `label` | `string` | Label shown above the field |
+| `type` | `string` | Field type (see below) |
+| `description` | `string` | Help text shown below the field |
+| `placeholder` | `string` | Input placeholder text |
+| `default` | `mixed` | Default value |
+| `required` | `bool` | Mark field as required — validation runs on save |
+| `width` | `string` | Column width as a percentage, e.g. `'50'`, `'33.33'`. Default `'100'` |
+| `conditions` | `array` | Conditional logic — show/hide based on other field values |
+
+## Field types
+
+<ExpandableGroup>
+  <Expandable title="text" default-open="false">
+    Single-line text input.
+
+    ```php
+    ['id' => 'heading', 'label' => 'Heading', 'type' => 'text', 'placeholder' => 'Enter heading…', 'required' => true]
+    ```
+
+    ```php
+    $heading = Metabox::get($postId, 'heading');
+    echo esc_html($heading);
+    ```
+  </Expandable>
+
+  <Expandable title="textarea" default-open="false">
+    Multi-line plain text. Accepts `rows` (default `4`) and `placeholder`.
+
+    ```php
+    ['id' => 'summary', 'label' => 'Summary', 'type' => 'textarea', 'rows' => 4]
+    ```
+
+    ```php
+    $summary = Metabox::get($postId, 'summary');
+    echo esc_html($summary);
+    ```
+  </Expandable>
+
+  <Expandable title="wysiwyg" default-open="false">
+    WordPress TinyMCE rich-text editor. Accepts `rows` (default `8`), `media_buttons` (bool), and `teeny` (bool).
+
+    ```php
+    ['id' => 'body', 'label' => 'Body', 'type' => 'wysiwyg', 'rows' => 8, 'media_buttons' => true]
+    ```
+
+    ```php
+    $body = Metabox::get($postId, 'body');
+    echo wp_kses_post($body);
+    ```
+  </Expandable>
+
+  <Expandable title="url" default-open="false">
+    URL input with browser-level validation.
+
+    ```php
+    ['id' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url', 'placeholder' => 'https://…']
+    ```
+
+    ```php
+    $url = Metabox::get($postId, 'cta_url');
+    echo '<a href="' . esc_url($url) . '">Learn more</a>';
+    ```
+  </Expandable>
+
+  <Expandable title="number" default-open="false">
+    Numeric input. Accepts `min`, `max`, and `step`.
+
+    ```php
+    ['id' => 'item_count', 'label' => 'Count', 'type' => 'number', 'min' => 1, 'max' => 100, 'step' => 1]
+    ```
+
+    ```php
+    $count = (int) Metabox::get($postId, 'item_count');
+    ```
+  </Expandable>
+
+  <Expandable title="range" default-open="false">
+    Slider with live value display. Accepts `min`, `max`, `step`, and `unit` (e.g. `'px'`).
+
+    ```php
+    ['id' => 'min_height', 'label' => 'Min Height', 'type' => 'range', 'min' => 400, 'max' => 900, 'step' => 50, 'unit' => 'px', 'default' => 600]
+    ```
+
+    ```php
+    $height = Metabox::get($postId, 'min_height') ?: '600';
+    echo '<section style="min-height: ' . esc_attr($height) . 'px">';
+    ```
+  </Expandable>
+
+  <Expandable title="select" default-open="false">
+    Dropdown list. Provide an `options` map of `value => label` pairs.
+
+    ```php
+    ['id' => 'style', 'label' => 'Style', 'type' => 'select', 'options' => ['light' => 'Light', 'dark' => 'Dark']]
+    ```
+
+    ```php
+    $style = Metabox::get($postId, 'style');
+    echo '<section class="section--' . esc_attr($style) . '">';
+    ```
+  </Expandable>
+
+  <Expandable title="checkbox" default-open="false">
+    Toggle switch. Stores `'1'` or `'0'`. Use `Metabox::get_bool()` to retrieve as a boolean.
+
+    ```php
+    ['id' => 'show_cta', 'label' => 'Show CTA', 'type' => 'checkbox']
+    ```
+
+    ```php
+    $showCta = Metabox::get_bool($postId, 'show_cta');
+    if ($showCta) { /* render CTA */ }
+    ```
+  </Expandable>
+
+  <Expandable title="color" default-open="false">
+    WordPress color picker (hex). Accepts a `default` value.
+
+    ```php
+    ['id' => 'bg_color', 'label' => 'Background', 'type' => 'color', 'default' => '#ffffff']
+    ```
+
+    ```php
+    $bgColor = Metabox::get_color($postId, 'bg_color', '#ffffff');
+    echo '<section style="background-color: ' . esc_attr($bgColor) . '">';
+    ```
+  </Expandable>
+
+  <Expandable title="image" default-open="false">
+    WordPress media library picker. Stores an attachment ID. Retrieve as a URL with `get_image_url()`.
+
+    ```php
+    ['id' => 'hero_image', 'label' => 'Hero Image', 'type' => 'image']
+    ```
+
+    ```php
+    $imageUrl = Metabox::get_image_url($postId, 'hero_image', 'large');
+    // Inside a MetaBlock:
+    $imageUrl = $this->getImageUrl($postId, 'hero_image', 'large');
+    ```
+  </Expandable>
+
+  <Expandable title="group" default-open="false">
+    Nested group of sub-fields under a shared key prefix. Unlike a repeater, there is always exactly one row. Sub-fields are stored as separate meta keys using the group `id` as a prefix.
+
+    ```php
+    [
+        'id'    => 'hero_cta',
+        'label' => 'CTA Button',
+        'type'  => 'group',
+        'fields' => [
+            ['id' => 'text', 'label' => 'Text', 'type' => 'text', 'width' => '50'],
+            ['id' => 'url',  'label' => 'URL',  'type' => 'url',  'width' => '50'],
+        ],
+    ]
+    ```
+
+    ```php
+    // Stored as _taw_hero_cta_text and _taw_hero_cta_url
+    $ctaText = Metabox::get($postId, 'hero_cta_text');
+    $ctaUrl  = Metabox::get($postId, 'hero_cta_url');
+    ```
+  </Expandable>
+
+  <Expandable title="repeater" default-open="false">
+    Dynamic sortable list of rows. Each row has the same set of sub-fields. Accepts `min` and `max` (0 = unlimited). Rows are drag-and-drop sortable and individually collapsible in the admin.
+
+    ```php
+    [
+        'id'    => 'team_members',
+        'label' => 'Team Members',
+        'type'  => 'repeater',
+        'min'   => 1,
+        'max'   => 10,
+        'fields' => [
+            ['id' => 'name',  'label' => 'Name',  'type' => 'text',     'width' => '50'],
+            ['id' => 'role',  'label' => 'Role',  'type' => 'text',     'width' => '50'],
+            ['id' => 'photo', 'label' => 'Photo', 'type' => 'image'],
+            ['id' => 'bio',   'label' => 'Bio',   'type' => 'textarea'],
+        ],
+    ]
+    ```
+
+    ```php
+    $members = Metabox::get_repeater($postId, 'team_members');
+    foreach ($members as $member) {
+        echo esc_html($member['name'] ?? '');
+        echo esc_html($member['role'] ?? '');
+    }
+    ```
+  </Expandable>
+
+  <Expandable title="post_select" default-open="false">
+    Searchable post picker. Accepts `post_type`, `multiple` (bool), and `max`.
+
+    ```php
+    // Single post
+    ['id' => 'featured_post', 'label' => 'Featured Post', 'type' => 'post_select', 'post_type' => 'post']
+
+    // Multiple with cap
+    ['id' => 'related', 'label' => 'Related Posts', 'type' => 'post_select', 'post_type' => 'post', 'multiple' => true, 'max' => 3]
+    ```
+
+    ```php
+    $featuredId = Metabox::get_posts($postId, 'featured_post')[0] ?? null;
+    $relatedIds = Metabox::get_posts($postId, 'related'); // array of IDs
+    ```
+  </Expandable>
+</ExpandableGroup>
+
+## Conditional fields
+
+Fields can show or hide based on other field values. Conditions are evaluated live in the admin using Alpine.js, and also server-side on save. All conditions in the array use AND logic.
+
+```php
+'fields' => [
+    ['id' => 'show_cta', 'label' => 'Show CTA', 'type' => 'checkbox'],
+    ['id' => 'cta_text', 'label' => 'CTA Text', 'type' => 'text',
+     'conditions' => [
+         ['field' => 'show_cta', 'operator' => '==', 'value' => '1'],
+     ]],
+    ['id' => 'cta_url', 'label' => 'CTA URL', 'type' => 'url',
+     'conditions' => [
+         ['field' => 'show_cta', 'operator' => '==', 'value' => '1'],
+     ]],
+],
+```
+
+**Supported operators:** `==`, `!=`, `contains`, `empty`, `!empty`
+
+## Tabbed metaboxes
+
+Use the `tabs` key to group fields into tabs. Each tab references field IDs from the `fields` array.
+
+```php
+new Metabox([
+    'id'     => 'taw_hero',
+    'title'  => 'Hero Section',
+    'screen' => 'page',
+    'fields' => [
+        ['id' => 'heading',  'label' => 'Heading',    'type' => 'text'],
+        ['id' => 'image',    'label' => 'Image',      'type' => 'image'],
+        ['id' => 'bg_color', 'label' => 'Background', 'type' => 'color'],
+        ['id' => 'show_cta', 'label' => 'Show CTA',   'type' => 'checkbox'],
+        ['id' => 'cta_text', 'label' => 'CTA Text',   'type' => 'text'],
+    ],
+    'tabs' => [
+        ['label' => 'Content', 'fields' => ['heading', 'image']],
+        ['label' => 'Design',  'fields' => ['bg_color']],
+        ['label' => 'CTA',     'fields' => ['show_cta', 'cta_text']],
+    ],
+]);
+```
+
+## Metabox config options
+
+| Option | Default | Description |
+| ------ | ------- | ----------- |
+| `screen` | `'page'` | Post type to attach to (e.g. `'post'`, `'page'`, custom type) |
+| `context` | `'normal'` | Position: `'normal'`, `'side'`, `'advanced'` |
+| `priority` | `'high'` | Order: `'high'`, `'default'`, `'low'` |
+| `prefix` | `'_taw_'` | Meta key prefix applied to all field IDs |
+| `icon` | *(none)* | SVG string — displayed as the metabox icon |
+| `show_on` | *(none)* | `callable(WP_Post): bool` — return `false` to hide the metabox |
+
+## Retrieval API
+
+Use these static helpers inside `getData()` or anywhere in your templates:
+
+```php
+use TAW\Core\Metabox\Metabox;
+
+// Plain text / any scalar value
+$heading = Metabox::get($postId, 'hero_heading');
+
+// Checkbox → boolean
+$showCta = Metabox::get_bool($postId, 'show_cta');
+
+// Image attachment ID → URL
+$imageUrl = Metabox::get_image_url($postId, 'hero_image', 'large');
+
+// Color with fallback
+$bgColor = Metabox::get_color($postId, 'bg_color', '#ffffff');
+
+// post_select → array of post IDs
+$featuredId = Metabox::get_posts($postId, 'featured_post')[0] ?? null;
+$relatedIds = Metabox::get_posts($postId, 'related_posts');
+
+// repeater → array of row arrays
+$members = Metabox::get_repeater($postId, 'team_members');
+foreach ($members as $member) {
+    echo esc_html($member['name'] ?? '');
+}
+```
+
+Inside a `MetaBlock`, the convenience wrappers delegate to the same methods:
+
+```php
+protected function getData(int $postId): array
+{
+    return [
+        'heading'   => $this->getMeta($postId, 'hero_heading'),
+        'image_url' => $this->getImageUrl($postId, 'hero_image', 'large'),
+    ];
+}
+```

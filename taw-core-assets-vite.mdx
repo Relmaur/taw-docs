@@ -1,0 +1,108 @@
+---
+title: Assets and Vite integration
+description: >-
+  How TAW Core uses Vite for script and style loading, how critical CSS is
+  inlined, and how to reference hashed assets anywhere in your templates.
+---
+
+## How the asset pipeline works
+
+TAW Theme uses [Vite](https://vitejs.dev/) as its build tool. During development, Vite serves assets via a local dev server with instant HMR. For production, it compiles and content-hashes every file into `public/build/`.
+
+TAW Core bridges Vite and WordPress through a lightweight loader (`vite-loader.php`) that is autoloaded by Composer. You do not need to wire anything up manually — `Theme::boot()` handles it.
+
+## Entry points
+
+| File | Role |
+| ---- | ---- |
+| `resources/js/app.js` | Main JS entry — imports `app.css` and `app.scss` |
+| `resources/css/app.css` | Tailwind v4 directives (imported by `app.js`, not a Vite entry itself) |
+| `resources/scss/app.scss` | Global custom SCSS — `@use 'fonts'` lives here |
+| `resources/scss/critical.scss` | Above-the-fold CSS — inlined in `<head>` as a `<style>` tag |
+| `resources/scss/_fonts.scss` | `@font-face` declarations — never add these to `critical.scss` |
+| `resources/fonts/` | Self-hosted WOFF2 font files |
+
+<Callout kind="warning" collapsed="false">
+  Never add `@font-face` rules to `critical.scss`. Font declarations belong in `_fonts.scss`, which is imported by `app.scss`. Including them in the critical path inlines large base64 data into every page's `<head>`.
+</Callout>
+
+## How production assets are loaded
+
+TAW Core's asset strategy is designed to avoid render-blocking resources:
+
+- **`critical.scss`** is compiled and inlined as a `<style>` tag directly in `<head>`. This eliminates a network round-trip for above-the-fold styles.
+- **`app.css` / `app.scss`** are loaded asynchronously via `media="print"` + `onload` swap — non-render-blocking.
+- **JS** is loaded as an ES module (`type="module"`).
+- All filenames are **content-hashed** for cache-busting — no version query strings needed.
+
+## Helper functions
+
+`vite-loader.php` (autoloaded from `taw/core`) exposes two global functions you can call anywhere in your templates.
+
+<ParamField body="vite_asset_url($path)" param-type="string" required="true" deprecated="false">
+  Resolve a theme asset path to its URL — returns the content-hashed production URL or the Vite dev server URL during development.
+
+  ```php
+  <?php
+
+  // Resolve a self-hosted font file for a preload hint
+  $fontUrl = vite_asset_url('resources/fonts/Inter-Regular.woff2');
+
+  echo '<link rel="preload" href="' . esc_url($fontUrl) . '" as="font" type="font/woff2" crossorigin>';
+  ```
+</ParamField>
+
+<ParamField body="vite_is_dev()" param-type="bool" required="false" deprecated="false">
+  Returns `true` when the Vite dev server is running. Use this for dev-only logic such as disabling caches or injecting debug markup.
+
+  ```php
+  <?php
+
+  if (vite_is_dev()) {
+      // dev-only logic
+  }
+  ```
+</ParamField>
+
+## Per-block assets
+
+Each block can ship its own `style.scss` (or `style.css`) and `script.js`. Both files are auto-detected and auto-enqueued — no registration needed.
+
+```
+Blocks/Hero/
+├── Hero.php
+├── index.php
+├── style.scss   ← per-block CSS (SCSS takes priority over CSS when both exist)
+└── script.js    ← per-block JS (loaded in footer, type="module")
+```
+
+Assets are only enqueued on pages that actually use the block. Your homepage does not load your blog's scripts.
+
+### Queueing assets before `wp_head`
+
+Call `BlockRegistry::queue('id')` before `get_header()` to schedule the block's assets in `<head>`. If you forget, `BlockRegistry::render()` enqueues assets as a fallback — they land after `wp_head`, but a `<link>` is printed inline.
+
+```php
+<?php
+// front-page.php
+use TAW\Core\BlockRegistry;
+
+BlockRegistry::queue('hero', 'features', 'stats');
+get_header();
+?>
+```
+
+## Vite configuration
+
+Vite is configured in `vite.config.js` at the theme root. The default config handles Tailwind v4 via the official Vite plugin, SCSS compilation, and the `public/build/` output directory. Edit this file to add new entry points or adjust build targets.
+
+## Commands
+
+| Command | Description |
+| ------- | ----------- |
+| `npm run dev` | Start Vite dev server (port 5173) with HMR |
+| `npm run build` | Production build → `public/build/` with hashed filenames |
+
+<Callout kind="info" collapsed="false">
+  `public/build/` is gitignored. Build artifacts are generated at deploy time — never commit them.
+</Callout>
