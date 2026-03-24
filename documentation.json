@@ -42,6 +42,21 @@
                 "title": "TAW Core",
                 "path": "taw-core",
                 "icon": "hammer"
+              },
+              {
+                "title": "Blocks and block registry",
+                "path": "taw-core-blocks",
+                "icon": "package"
+              },
+              {
+                "title": "Assets and Vite integration",
+                "path": "taw-core-assets-vite",
+                "icon": "code"
+              },
+              {
+                "title": "Metabox and editor tooling",
+                "path": "taw-core-metabox",
+                "icon": "edit"
               }
             ],
             "icon": "lucide-hammer"
