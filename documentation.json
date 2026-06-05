@@ -108,6 +108,28 @@
         ]
       },
       {
+        "tab": "Tutorials",
+        "icon": "graduation-cap",
+        "groups": [
+          {
+            "group": "Tutorials",
+            "icon": "book-open",
+            "pages": [
+              {
+                "title": "Build your first MetaBlock",
+                "path": "tutorials/first-metablock",
+                "icon": "package"
+              },
+              {
+                "title": "Contact form with MJML email",
+                "path": "tutorials/contact-form-mjml",
+                "icon": "mail"
+              }
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Changelog",
         "icon": "clock",
         "pages": [

@@ -1,0 +1,323 @@
+---
+title: Contact form with MJML email notifications
+description: >-
+  Build a contact form using TAW's Forms API, write branded email templates in
+  MJML, and deliver notifications to the site admin and the submitter automatically.
+---
+
+By the end of this tutorial you will have:
+
+- A `ContactBlock` that registers and displays a contact form using `Form::register()` / `Form::display()`
+- Two MJML email templates — one for the site admin (`contact-self`) and one for the submitter (`contact-client`)
+- A working end-to-end flow: form submission → AJAX validation → dual email delivery → submission saved in WP Admin
+
+---
+
+## What you need
+
+- A working TAW Theme install with `taw/core` via Composer
+- Node.js available (for compiling MJML to HTML before deploy)
+- The `spatie/mjml-php` package — already a dev dependency in `taw/core`, so MJML files compile automatically in development
+
+---
+
+## Step 1 — Scaffold the block
+
+Use the CLI to generate a `ContactBlock` with a style sheet:
+
+```bash
+php bin/taw make:block ContactBlock --type=ui --with-style
+composer dump-autoload
+```
+
+This creates `Blocks/ContactBlock/` with:
+
+```
+Blocks/ContactBlock/
+├── ContactBlock.php
+├── index.php
+└── style.scss
+```
+
+---
+
+## Step 2 — Register the form in `boot()`
+
+Forms **must** be registered on every request — not just when the template renders — because the AJAX handler needs to exist for `admin-ajax.php`. The right place is the static `boot()` method, wrapped in `add_action('init', ...)`.
+
+Open `Blocks/ContactBlock/ContactBlock.php` and replace its contents:
+
+```php
+<?php
+// Blocks/ContactBlock/ContactBlock.php
+
+namespace TAW\Blocks\ContactBlock;
+
+use TAW\Core\Block\Block;
+use TAW\Core\Form\Form;
+
+class ContactBlock extends Block
+{
+    protected string $id = 'contact-block';
+
+    public static function boot(): void
+    {
+        add_action('init', static function () {
+            Form::register([
+                'id'           => 'contact',
+                'submit_label' => 'Send Message',
+                'messages'     => [
+                    'success' => "Thanks! We'll be back to you shortly.",
+                ],
+                'email' => [
+                    'to_self' => [
+                        'subject'  => 'New contact form submission',
+                        'template' => 'contact-self',   // → mails/html/contact-self.html
+                    ],
+                    'to_client' => [
+                        'subject'  => "We got your message!",
+                        'template' => 'contact-client', // → mails/html/contact-client.html
+                    ],
+                ],
+                'fields' => [
+                    ['id' => 'name',    'label' => 'Your Name',    'type' => 'text',     'required' => true,  'width' => 50],
+                    ['id' => 'email',   'label' => 'Email Address', 'type' => 'email',    'required' => true,  'width' => 50],
+                    ['id' => 'subject', 'label' => 'Subject',       'type' => 'text',     'required' => false, 'width' => 100],
+                    ['id' => 'message', 'label' => 'Message',       'type' => 'textarea', 'required' => true],
+                ],
+            ]);
+        });
+    }
+
+    protected function defaultData(): array
+    {
+        return [];
+    }
+}
+```
+
+<Callout kind="info" collapsed="false">
+  The `to_client` email is only sent when the submitted form data contains an `email` field. TAW automatically uses it as the recipient address — no extra config needed.
+</Callout>
+
+---
+
+## Step 3 — Render the form in the template
+
+Open `Blocks/ContactBlock/index.php`:
+
+```php
+<?php
+// Blocks/ContactBlock/index.php
+
+use TAW\Core\Form\Form;
+?>
+
+<section class="contact-section">
+    <div class="contact-section__inner">
+        <h2 class="contact-section__title">Get in touch</h2>
+        <p class="contact-section__lead">Fill in the form and we'll get back to you within 24 hours.</p>
+
+        <?php Form::display('contact'); ?>
+    </div>
+</section>
+```
+
+---
+
+## Step 4 — Write the MJML templates
+
+MJML templates live inside your theme's `mails/` folder. Create it if it doesn't exist:
+
+```bash
+mkdir -p mails mails/html
+```
+
+### Admin notification template (`contact-self`)
+
+```bash
+touch mails/contact-self.mjml
+```
+
+```xml
+<!-- mails/contact-self.mjml -->
+<mjml>
+  <mj-head>
+    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" />
+    <mj-attributes>
+      <mj-all font-family="Inter, sans-serif" />
+      <mj-text font-size="15px" line-height="1.6" color="#1a1a1a" />
+    </mj-attributes>
+  </mj-head>
+
+  <mj-body background-color="#f4f4f5">
+
+    <!-- Header -->
+    <mj-section background-color="#111827" padding="24px 32px">
+      <mj-column>
+        <mj-text color="#ffffff" font-size="20px" font-weight="600">
+          New Contact Form Submission
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Body -->
+    <mj-section background-color="#ffffff" padding="32px" border-radius="0 0 8px 8px">
+      <mj-column>
+        <mj-text>You have received a new message through the contact form:</mj-text>
+
+        <mj-divider border-color="#e5e7eb" border-width="1px" padding="16px 0" />
+
+        <mj-text><strong>Name:</strong> {{name}}</mj-text>
+        <mj-text><strong>Email:</strong> {{email}}</mj-text>
+        <mj-text><strong>Subject:</strong> {{subject}}</mj-text>
+
+        <mj-divider border-color="#e5e7eb" border-width="1px" padding="16px 0" />
+
+        <mj-text><strong>Message:</strong></mj-text>
+        <mj-text color="#374151">{{message}}</mj-text>
+
+        <mj-button background-color="#f97316" color="#ffffff" href="mailto:{{email}}">
+          Reply to {{name}}
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section padding="16px">
+      <mj-column>
+        <mj-text font-size="12px" color="#9ca3af" align="center">
+          This message was sent via the contact form on your website.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+  </mj-body>
+</mjml>
+```
+
+### Submitter confirmation template (`contact-client`)
+
+```bash
+touch mails/contact-client.mjml
+```
+
+```xml
+<!-- mails/contact-client.mjml -->
+<mjml>
+  <mj-head>
+    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" />
+    <mj-attributes>
+      <mj-all font-family="Inter, sans-serif" />
+      <mj-text font-size="15px" line-height="1.6" color="#1a1a1a" />
+    </mj-attributes>
+  </mj-head>
+
+  <mj-body background-color="#f4f4f5">
+
+    <!-- Header -->
+    <mj-section background-color="#111827" padding="24px 32px">
+      <mj-column>
+        <mj-text color="#ffffff" font-size="20px" font-weight="600">
+          We got your message, {{name}}!
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Body -->
+    <mj-section background-color="#ffffff" padding="32px" border-radius="0 0 8px 8px">
+      <mj-column>
+        <mj-text>
+          Thanks for reaching out. We've received your message and will get
+          back to you at <strong>{{email}}</strong> within 24 hours.
+        </mj-text>
+
+        <mj-divider border-color="#e5e7eb" border-width="1px" padding="16px 0" />
+
+        <mj-text color="#6b7280" font-size="13px">Here's a copy of what you sent:</mj-text>
+        <mj-text color="#374151" font-style="italic">"{{message}}"</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section padding="16px">
+      <mj-column>
+        <mj-text font-size="12px" color="#9ca3af" align="center">
+          You're receiving this because you submitted a contact form on our website.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+  </mj-body>
+</mjml>
+```
+
+---
+
+## Step 5 — Compile MJML to HTML for production
+
+In development, `spatie/mjml-php` compiles MJML files at runtime — no extra step needed. Before deploying to production, compile each template to `mails/html/`:
+
+```bash
+# Using the MJML CLI (npm install -g mjml)
+mjml mails/contact-self.mjml   -o mails/html/contact-self.html
+mjml mails/contact-client.mjml -o mails/html/contact-client.html
+```
+
+<Callout kind="warning" collapsed="false">
+  Always commit the compiled `mails/html/*.html` files to your repository. In production, TAW's `Mailer` reads from `mails/html/` — it does **not** compile MJML at runtime.
+</Callout>
+
+---
+
+## Step 6 — Use the block in a page template
+
+In any page template, queue and render the block:
+
+```php
+<?php
+// contact.php
+use TAW\Core\Block\BlockRegistry;
+
+BlockRegistry::queue('contact-block');
+get_header();
+?>
+
+<?php BlockRegistry::render('contact-block'); ?>
+
+<?php get_footer(); ?>
+```
+
+---
+
+## Step 7 — Test email delivery
+
+Register `MailTester` in `functions.php` to get an admin page for sending test emails against your templates without needing a real form submission:
+
+```php
+// functions.php
+(new \TAW\Core\Mail\MailTester())->register();
+```
+
+Go to **WP Admin → Tools → Test Emails**, select `contact-self` or `contact-client`, fill in the test variables, and send. Verify your layout and delivery before going live.
+
+---
+
+## How it all fits together
+
+```
+User submits form
+       ↓
+AJAX → admin-ajax.php
+       ↓
+TAW validates fields (server-side)
+       ↓
+Submission saved as taw_submission CPT
+       ↓
+Mailer sends contact-self.html  → site admin
+Mailer sends contact-client.html → submitter (using the 'email' field value)
+       ↓
+Success message shown inline — no page reload
+```
+
+All steps — CSRF protection, honeypot filtering, field sanitization, and email delivery — are handled automatically by TAW. Your job is just the config and the templates.

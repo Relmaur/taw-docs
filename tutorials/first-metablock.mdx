@@ -1,0 +1,297 @@
+---
+title: Build your first MetaBlock
+description: >-
+  Go from zero to a fully working page section: scaffold a MetaBlock with the
+  CLI, register metabox fields, return template variables, and render it on a page.
+---
+
+This tutorial walks you through building a **Hero** section — the most common first block on any site. By the end you'll understand the full MetaBlock lifecycle and be ready to build any block in TAW.
+
+---
+
+## What is a MetaBlock?
+
+A MetaBlock is a page section that owns its own data. Editors fill in the fields in the WordPress admin; the block reads those values and renders them. There is no Gutenberg, no ACF, no external plugin — just a PHP class, a template, and a convention.
+
+```
+Editors fill fields in WP Admin
+         ↓
+  MetaBlock::getData()   reads post meta
+         ↓
+  index.php template     receives variables via extract()
+         ↓
+  Browser                renders the section
+```
+
+---
+
+## Step 1 — Scaffold the block
+
+The `make:block` CLI command creates the folder, class, template, and stylesheet in one shot:
+
+```bash
+php bin/taw make:block Hero --type=meta --with-style
+composer dump-autoload
+```
+
+Your `Blocks/` directory now contains:
+
+```
+Blocks/Hero/
+├── Hero.php       ← the MetaBlock class
+├── index.php      ← the template
+└── style.scss     ← per-block styles (only loaded on pages that use this block)
+```
+
+---
+
+## Step 2 — Define the metabox fields
+
+Open `Blocks/Hero/Hero.php`. The scaffolded class has a stub `registerMetaboxes()` — replace it with real fields:
+
+```php
+<?php
+// Blocks/Hero/Hero.php
+
+namespace TAW\Blocks\Hero;
+
+use TAW\Core\Block\MetaBlock;
+use TAW\Core\Metabox\Metabox;
+
+class Hero extends MetaBlock
+{
+    protected string $id = 'hero';
+
+    protected function registerMetaboxes(): void
+    {
+        new Metabox([
+            'id'      => 'taw_hero',
+            'title'   => 'Hero Section',
+            'screens' => ['page'],   // show on all pages; pass a slug or template name to restrict
+            'fields'  => [
+                ['id' => 'heading',  'label' => 'Heading',          'type' => 'text',     'required' => true, 'width' => '60'],
+                ['id' => 'tagline',  'label' => 'Tagline',          'type' => 'text',                         'width' => '40'],
+                ['id' => 'content',  'label' => 'Body text',        'type' => 'wysiwyg',  'rows' => 5],
+                ['id' => 'image',    'label' => 'Background image', 'type' => 'image'],
+                ['id' => 'bg_color', 'label' => 'Background color', 'type' => 'color',    'default' => '#111827'],
+                ['id' => 'cta_text', 'label' => 'CTA label',        'type' => 'text',     'width' => '50'],
+                ['id' => 'cta_url',  'label' => 'CTA URL',          'type' => 'url',      'width' => '50'],
+            ],
+            'tabs' => [
+                ['label' => 'Content', 'fields' => ['heading', 'tagline', 'content', 'cta_text', 'cta_url']],
+                ['label' => 'Design',  'fields' => ['image', 'bg_color']],
+            ],
+        ]);
+    }
+
+    protected function getData(int|false $postId): array
+    {
+        return [
+            'heading'  => $this->getMeta($postId, 'heading'),
+            'tagline'  => $this->getMeta($postId, 'tagline'),
+            'content'  => $this->getMeta($postId, 'content'),
+            'image_url'=> $this->getImageUrl($postId, 'image', 'full'),
+            'bg_color' => \TAW\Core\Metabox\Metabox::get_color($postId, 'bg_color', '#111827'),
+            'cta_text' => $this->getMeta($postId, 'cta_text'),
+            'cta_url'  => $this->getMeta($postId, 'cta_url'),
+        ];
+    }
+}
+```
+
+**What's happening here:**
+
+- `registerMetaboxes()` is called at the WordPress `init` action (translations are safe). It creates the admin UI for this block.
+- `getData(int|false $postId)` is called at render time. It reads post meta and returns an associative array — every key becomes a local variable in the template. Passing `int|false` handles 404 pages safely.
+- `$this->getMeta()` and `$this->getImageUrl()` are convenience wrappers around `Metabox::get()` and `Metabox::get_image_url()`.
+
+---
+
+## Step 3 — Write the template
+
+Open `Blocks/Hero/index.php`. Every key returned by `getData()` is available as a plain variable:
+
+```php
+<?php
+// Blocks/Hero/index.php
+
+// Bail early if there is nothing to render
+if (empty($heading)) return;
+?>
+
+<section
+    class="hero"
+    style="background-color: <?php echo esc_attr($bg_color); ?>;"
+>
+    <?php if ($image_url): ?>
+        <div
+            class="hero__bg"
+            style="background-image: url('<?php echo esc_url($image_url); ?>');"
+            aria-hidden="true"
+        ></div>
+    <?php endif; ?>
+
+    <div class="hero__inner">
+
+        <?php if ($tagline): ?>
+            <p class="hero__tagline"><?php echo esc_html($tagline); ?></p>
+        <?php endif; ?>
+
+        <h1 class="hero__heading"><?php echo esc_html($heading); ?></h1>
+
+        <?php if ($content): ?>
+            <div class="hero__content">
+                <?php echo wp_kses_post($content); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($cta_text && $cta_url): ?>
+            <a class="hero__cta btn btn--primary" href="<?php echo esc_url($cta_url); ?>">
+                <?php echo esc_html($cta_text); ?>
+            </a>
+        <?php endif; ?>
+
+    </div>
+</section>
+```
+
+<Callout kind="tip" collapsed="false">
+  Always guard against empty values. A page that hasn't had any fields filled in yet should render nothing — not a broken section. The `if (empty($heading)) return;` at the top is the TAW convention for this.
+</Callout>
+
+---
+
+## Step 4 — Add some styles
+
+Open `Blocks/Hero/style.scss`. This file is automatically enqueued — as a compiled `<link>` tag — only on pages that render this block:
+
+```scss
+// Blocks/Hero/style.scss
+
+.hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 560px;
+    overflow: hidden;
+    padding: 80px 24px;
+
+    &__bg {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        opacity: 0.35;
+    }
+
+    &__inner {
+        position: relative;
+        max-width: 760px;
+        margin: 0 auto;
+        text-align: center;
+        color: #fff;
+    }
+
+    &__tagline {
+        font-size: 0.875rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        opacity: 0.7;
+        margin-bottom: 12px;
+    }
+
+    &__heading {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: 24px;
+    }
+
+    &__content {
+        font-size: 1.125rem;
+        opacity: 0.85;
+        margin-bottom: 32px;
+    }
+
+    &__cta {
+        display: inline-block;
+        padding: 14px 32px;
+        background: #f97316;
+        color: #fff;
+        border-radius: 6px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: opacity 150ms ease;
+
+        &:hover { opacity: 0.85; }
+    }
+}
+```
+
+---
+
+## Step 5 — Use the block in a page template
+
+Queue and render the block in your page template. Always call `queue()` **before** `get_header()` so the block's CSS lands in `<head>`:
+
+```php
+<?php
+// front-page.php
+
+use TAW\Core\Block\BlockRegistry;
+
+BlockRegistry::queue('hero');
+get_header();
+?>
+
+<?php BlockRegistry::render('hero'); ?>
+
+<?php get_footer(); ?>
+```
+
+For a multi-section homepage, queue everything up front:
+
+```php
+<?php
+use TAW\Core\Block\BlockRegistry;
+
+BlockRegistry::queue('hero', 'features', 'stats', 'testimonials', 'cta');
+get_header();
+?>
+
+<?php BlockRegistry::render('hero'); ?>
+<?php BlockRegistry::render('features'); ?>
+<?php BlockRegistry::render('stats'); ?>
+<?php BlockRegistry::render('testimonials'); ?>
+<?php BlockRegistry::render('cta'); ?>
+
+<?php get_footer(); ?>
+```
+
+---
+
+## Step 6 — Fill in the content in WP Admin
+
+Go to **WP Admin → Pages** and open (or create) a page. Scroll down past the content editor — you'll see the **Hero Section** metabox with two tabs: **Content** and **Design**. Fill in the fields, publish, and visit the front end.
+
+<Callout kind="info" collapsed="false">
+  The metabox only appears on pages because we passed `'screens' => ['page']`. To show it on posts too, add `'post'` to that array. To restrict to a specific page template, pass the template filename (e.g. `'front-page.php'`).
+</Callout>
+
+---
+
+## What to build next
+
+Now that you have the pattern, every new block follows the same three steps:
+
+1. `php bin/taw make:block Name --type=meta`
+2. Fill in `registerMetaboxes()` and `getData()`
+3. Write `index.php`
+
+Some directions from here:
+
+- **Repeater fields** — use `'type' => 'repeater'` with a `fields` array to build lists of team members, features, testimonials, etc. Retrieve with `Metabox::get_repeater()`.
+- **Nesting UI Blocks** — call `(new \TAW\Blocks\Button\Button())->render([...])` inside any MetaBlock template to compose reusable components.
+- **Block groups** — organize blocks into subfolders with `--group=sections` to keep large projects tidy.
+- **Block variations** — pass a `variations` array to the constructor to register multiple layout variants from a single class.
