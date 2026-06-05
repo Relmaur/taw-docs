@@ -489,23 +489,23 @@ new Metabox([
         ['id' => 'cta_text',  'label' => 'CTA Text',  'type' => 'text'],
     ],
     'tabs' => [
-        ['label' => 'Content', 'fields' => ['heading', 'image']],
-        ['label' => 'Design',  'fields' => ['bg_color']],
-        ['label' => 'CTA',     'fields' => ['show_cta', 'cta_text']],
+        ['id' => 'content', 'label' => 'Content', 'fields' => ['heading', 'image']],
+        ['id' => 'design',  'label' => 'Design',  'fields' => ['bg_color']],
+        ['id' => 'cta',     'label' => 'CTA',     'fields' => ['show_cta', 'cta_text']],
     ],
 ]);
 ```
 
 ### Other Metabox config options
 
-| Option     | Default    | Description                                                    |
-| ---------- | ---------- | -------------------------------------------------------------- |
-| `screen`   | `'page'`   | Post type to attach to (e.g. `'post'`, `'page'`, custom type)  |
-| `context`  | `'normal'` | Position: `'normal'`, `'side'`, `'advanced'`                   |
-| `priority` | `'high'`   | Order: `'high'`, `'default'`, `'low'`                          |
-| `prefix`   | `'_taw_'`  | Meta key prefix applied to all field IDs                       |
-| `icon`     | *(none)*   | SVG string — displayed as the metabox icon                     |
-| `show_on`  | *(none)*   | `callable(WP_Post): bool` — return `false` to hide the metabox |
+| Option     | Default    | Description                                                                    |
+| ---------- | ---------- | ------------------------------------------------------------------------------ |
+| `screens`  | `['page']` | Post types, page slugs, or page template filenames to attach to — accepts an array |
+| `context`  | `'normal'` | Position: `'normal'`, `'side'`, `'advanced'`                                   |
+| `priority` | `'high'`   | Order: `'high'`, `'default'`, `'low'`                                          |
+| `prefix`   | `'_taw_'`  | Meta key prefix applied to all field IDs                                       |
+| `icon`     | *(none)*   | SVG string — displayed as the metabox icon                                     |
+| `show_on`  | *(none)*   | `callable(WP_Post): bool` — return `false` to hide the metabox                 |
 
 ### Metabox Retrieval API
 

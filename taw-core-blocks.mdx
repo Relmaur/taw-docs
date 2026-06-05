@@ -229,36 +229,22 @@ php bin/taw import:block path/to/Hero.zip --group=sections --force
 
 ## Block variations
 
-MetaBlock supports registering multiple WordPress block variations from a single block class. Pass a `variations` array to the constructor to declare style or layout alternatives that editors can choose in the block editor.
+MetaBlock supports registering multiple WordPress block variations from a single block class. Override the static `variations()` method to return an array of string suffixes — each suffix becomes a registered variation with its own asset handles. The empty string `''` designates the default variation.
 
 ```php
 class Hero extends MetaBlock
 {
     protected string $id = 'hero';
 
-    protected function __construct()
+    public static function variations(): array
     {
-        parent::__construct([
-            'variations' => [
-                [
-                    'name'        => 'hero-centered',
-                    'title'       => 'Centered Hero',
-                    'description' => 'Text and image centered',
-                    'isDefault'   => true,
-                ],
-                [
-                    'name'  => 'hero-split',
-                    'title' => 'Split Hero',
-                    'description' => 'Text left, image right',
-                ],
-            ],
-        ]);
+        return ['', 'footer', 'landing']; // '' = default variation
     }
     // ...
 }
 ```
 
-Asset IDs (CSS/JS handles) are automatically namespaced per variation so each can enqueue its own styles without collision.
+Each variation shares the same metabox registration and template, but is registered as a separate block with its own enqueued assets. Asset IDs (CSS/JS handles) are automatically namespaced per variation so each can enqueue its own styles without collision.
 
 ## MetaBlock convenience helpers
 

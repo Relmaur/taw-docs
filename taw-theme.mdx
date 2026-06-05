@@ -112,6 +112,23 @@ Theme::performance([
 ]);
 ```
 
+<Callout kind="tip" collapsed="false">
+  You can pass a `performance` key directly to `Theme::boot()` as a shorthand instead of calling `Theme::performance()` separately:
+
+  ```php
+  Theme::boot([
+      'performance' => [
+          'remove_bloat'     => true,
+          'remove_emoji'     => true,
+          'remove_meta_tags' => true,
+          'remove_oembed'    => true,
+      ],
+  ]);
+  ```
+
+  Both approaches are equivalent. Use whichever fits your `functions.php` layout.
+</Callout>
+
 You should now see your custom blocks available in the editor, Vite-powered assets loading on the front end, and unnecessary WordPress bloat removed from the page output.
 
 ## Performance configuration reference

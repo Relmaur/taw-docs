@@ -60,6 +60,12 @@ ViteLoader::enqueueAsset('my-block', 'resources/js/my-block.js');
 // Override the main entry point — call BEFORE Theme::boot()
 ViteLoader::init('src/main.ts');
 Theme::boot();
+
+// Inline critical CSS directly into <head>
+ViteLoader::inlineCriticalCss('resources/scss/critical.scss');
+
+// Add modulepreload hints for JS chunks
+ViteLoader::preloadAssets(['resources/js/chunks/vendor.js']);
 ```
 
 <Callout kind="alert" collapsed="false">

@@ -4,6 +4,25 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-06-05" description="taw/core v1.16" tags={["stable"]}>
+
+## taw/core v1.16 — June 2026
+
+### Block system
+
+- **`MetaBlock::variations()` static method** — block variations are now declared by overriding `public static function variations(): array` and returning an array of string suffixes (`''` = default variation). The previous constructor-based `parent::__construct(['variations' => [...]])` approach is replaced.
+
+### Asset pipeline
+
+- **`ViteLoader::inlineCriticalCss(string $path)`** — inline critical CSS directly into `<head>` from any path relative to the Vite asset root. Use this to manage critical CSS loading from code rather than relying solely on the automatic `critical.scss` detection.
+- **`ViteLoader::preloadAssets(array $paths)`** — add `modulepreload` hints for JS chunks to improve first-load parse performance.
+
+### Theme boot
+
+- **`Theme::boot()` accepts optional config array** — pass `['performance' => [...]]` directly to `Theme::boot()` as a shorthand for calling `Theme::performance([...])` as a separate step. Both patterns remain supported.
+
+</Update>
+
 <Update label="2026-06-05" description="taw/core v1.15 · TAW Theme update" tags={["stable"]}>
 
 ## taw/core v1.15 · TAW Theme — June 2026
