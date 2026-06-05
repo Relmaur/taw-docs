@@ -786,18 +786,55 @@ if ($menu && $menu->hasItems()) {
 
 `TAW\Core\Rest\SearchEndpoints` registers a search endpoint that powers the `post_select` metabox field. It is registered automatically by `Theme::boot()`.
 
-**Endpoint:** `GET /wp-json/taw/v1/search-posts`
+<Request tabs="Example request">
+  ```bash
+  GET /wp-json/taw/v1/search-posts?s=hero&post_type=page&per_page=5
+  Authorization: Cookie (requires edit_posts capability)
+  ```
+</Request>
 
-Requires `edit_posts` capability (logged-in editors and above).
+<Response tabs="200 OK,401 Unauthorized">
+  ```json
+  [
+    {
+      "id": 42,
+      "title": "Home",
+      "post_type": "page",
+      "status": "publish",
+      "date": "2025-01-15T10:30:00",
+      "edit_url": "https://example.com/wp-admin/post.php?post=42&action=edit",
+      "permalink": "https://example.com/",
+      "thumbnail": "https://example.com/wp-content/uploads/hero.jpg"
+    }
+  ]
+  ```
 
-| Parameter   | Default  | Description                                         |
-| ----------- | -------- | --------------------------------------------------- |
-| `s`         | `''`     | Search string — omit to return recent posts         |
-| `post_type` | `'post'` | Post type(s) — comma-separated for multiple. Pass `page` to search pages; the endpoint handles the special WordPress case automatically. |
-| `per_page`  | `10`     | Results per page (1–50)                             |
-| `exclude`   | `''`     | Comma-separated post IDs to exclude                 |
+  ```json
+  {
+    "code": "rest_forbidden",
+    "message": "Sorry, you are not allowed to do that.",
+    "status": 401
+  }
+  ```
+</Response>
 
-**Response fields per post:** `id`, `title`, `post_type`, `status`, `date`, `edit_url`, `permalink`, `thumbnail`
+### Query parameters
+
+<ParamField query="s" param-type="string" required="false" deprecated="false">
+  Search string. Omit to return the most recent posts.
+</ParamField>
+
+<ParamField query="post_type" param-type="string" required="false" deprecated="false">
+  Post type(s) to search — comma-separated for multiple (e.g. `post,page`). Defaults to `post`. Passing `page` is handled correctly even though WordPress treats it as a special case internally.
+</ParamField>
+
+<ParamField query="per_page" param-type="integer" required="false" deprecated="false">
+  Results per page. Accepts `1`–`50`. Defaults to `10`.
+</ParamField>
+
+<ParamField query="exclude" param-type="string" required="false" deprecated="false">
+  Comma-separated post IDs to exclude from results.
+</ParamField>
 
 {/* MARK: Mail */}
 
@@ -828,7 +865,7 @@ if (! $sent) {
 }
 ```
 
-<Callout kind="info" collapsed="false">
+<Callout kind="tip" collapsed="false">
   `Mailer` uses the underlying `wp_mail()` transport. Make sure your WordPress site is configured with a working mail provider (SMTP or transactional service) so test and production emails are delivered reliably.
 </Callout>
 

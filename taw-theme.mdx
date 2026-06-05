@@ -28,7 +28,7 @@ Call `TAW\Core\Theme::boot()` once from your theme to wire up block loading, Vit
   `Theme::boot()` does not accept arguments and is designed to run exactly once per request. Call it from your theme bootstrap (for example, `functions.php`) before you add custom hooks that depend on blocks or Vite.
 </Callout>
 
-<Callout kind="warning" collapsed="false">
+<Callout kind="alert" collapsed="false">
   The Visual Editor (`TAW\Core\VisualEditor`) is under active development and is **not ready for production use**.
 </Callout>
 
@@ -156,7 +156,7 @@ Use these configuration options to strip unneeded WordPress features and add pre
   Array of two-element arrays describing images to preload, each in the form `[attachment_id, size]`. The performance layer resolves the image source for the given attachment and size and emits `<link rel="preload">` tags. Use this only for above-the-fold images that affect first paint; it supersedes older single-image approaches such as `preload_hero_image`.
 </ParamField>
 
-<Callout kind="info" collapsed="false">
+<Callout kind="tip" collapsed="false">
   Keep `preload_images` scoped to a small set of critical hero or navigation images. Over-preloading below-the-fold images can delay more important resources.
 </Callout>
 
@@ -201,7 +201,7 @@ Once the theme is booted and performance is configured, use helper classes from 
   ```
 </ParamField>
 
-<Callout kind="warning" collapsed="false">
+<Callout kind="alert" collapsed="false">
   The legacy procedural functions `vite_asset_url()` and `vite_is_dev()` are no longer in the Composer `files` autoload and are not available globally. Use `ViteLoader::assetUrl()` and `ViteLoader::isDevServerRunning()` instead.
 </Callout>
 

@@ -22,11 +22,11 @@ TAW Core bridges Vite and WordPress through `TAW\Support\ViteLoader`, a PSR-4 au
 | `resources/scss/_fonts.scss` | `@font-face` declarations — never add these to `critical.scss` |
 | `resources/fonts/` | Self-hosted WOFF2 font files |
 
-<Callout kind="warning" collapsed="false">
+<Callout kind="alert" collapsed="false">
   Never add `@font-face` rules to `critical.scss`. Font declarations belong in `_fonts.scss`, which is imported by `app.scss`. Including them in the critical path inlines large base64 data into every page's `<head>`.
 </Callout>
 
-<Callout kind="info" collapsed="false">
+<Callout kind="tip" collapsed="false">
   Third-party CSS that is needed globally (e.g. PhotoSwipe) should be imported in `resources/css/app.css`, not inside JavaScript files. This keeps it as a genuine stylesheet in both dev and production — no HMR injection conflicts, no edge cases when multiple entry points import the same file.
 </Callout>
 
@@ -62,7 +62,7 @@ ViteLoader::init('src/main.ts');
 Theme::boot();
 ```
 
-<Callout kind="warning" collapsed="false">
+<Callout kind="alert" collapsed="false">
   The legacy procedural functions `vite_asset_url()` and `vite_is_dev()` are no longer in the Composer `files` autoload and will **not** be available globally. Use `ViteLoader::assetUrl()` and `ViteLoader::isDevServerRunning()` instead.
 </Callout>
 

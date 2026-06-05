@@ -9,7 +9,7 @@ description: >-
 
 TAW (**T**ailwind + **A**lpine + **W**ordPress) is a component-based WordPress theme framework. Every section of a page — hero, stats, testimonials — is a self-contained **block** that owns its data, markup, styles, and scripts.
 
-<Callout kind="info" collapsed="false">
+<Callout kind="tip" collapsed="false">
   TAW is built for PHP and WordPress developers who prefer code-first workflows. You work in PHP classes, Composer, and Vite — not theme builders or click-driven admin panels.
 </Callout>
 
@@ -40,11 +40,11 @@ TAW is its own stack. The metabox engine, form system, image helpers, and SVG su
   </Card>
 
   <Card title="Rich metabox engine" href="/taw-core" icon="database" horizontal="false">
-    `text`, `textarea`, `wysiwyg`, `image`, `url`, `number`, `range`, `select`, `checkbox`, `color`, `group`, `repeater`, `post_select` — with conditional logic, tabbed layouts, and responsive grid placement. No plugin required.
+    14+ field types including `repeater`, `group`, `post_select`, `datepicker`, and `color` — with conditional AND/OR logic, tabbed layouts, repeater row layouts, and responsive grid placement. No plugin required.
   </Card>
 
   <Card title="Built-in form system" href="/taw-core" icon="edit" horizontal="false">
-    `Form` handles CSRF, honeypot spam protection, field validation, PRG redirect, and email delivery. Drop it into any template with a config array.
+    `Form` handles CSRF, honeypot spam protection, field validation, AJAX submission (no page reload), multi-step wizards, conditional fields, and email delivery. No plugin required.
   </Card>
 
   <Card title="Transactional email" href="/taw-core" icon="mail" horizontal="false">
@@ -137,7 +137,7 @@ TAW has two block types. Pick the one that fits your use case.
     ```php
     <?php
     // front-page.php
-    use TAW\Core\BlockRegistry;
+    use TAW\Core\Block\BlockRegistry;
 
     BlockRegistry::queue('hero');
     get_header();

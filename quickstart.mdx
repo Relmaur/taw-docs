@@ -103,7 +103,7 @@ TAW has two block types. For this quickstart we'll build a **MetaBlock** — a p
 
     namespace TAW\Blocks\Hero;
 
-    use TAW\Core\MetaBlock;
+    use TAW\Core\Block\MetaBlock;
     use TAW\Core\Metabox\Metabox;
 
     class Hero extends MetaBlock
@@ -113,18 +113,18 @@ TAW has two block types. For this quickstart we'll build a **MetaBlock** — a p
         protected function registerMetaboxes(): void
         {
             new Metabox([
-                'id'     => 'taw_hero',
-                'title'  => 'Hero Section',
-                'screen' => 'page',
-                'fields' => [
-                    ['id' => 'hero_heading',  'label' => 'Heading',  'type' => 'text',  'required' => true],
-                    ['id' => 'hero_subtext',  'label' => 'Subtext',  'type' => 'textarea'],
-                    ['id' => 'hero_image',    'label' => 'Image',    'type' => 'image'],
+                'id'      => 'taw_hero',
+                'title'   => 'Hero Section',
+                'screens' => ['page'],
+                'fields'  => [
+                    ['id' => 'hero_heading', 'label' => 'Heading', 'type' => 'text',     'required' => true],
+                    ['id' => 'hero_subtext', 'label' => 'Subtext', 'type' => 'textarea'],
+                    ['id' => 'hero_image',   'label' => 'Image',   'type' => 'image'],
                 ],
             ]);
         }
 
-        protected function getData(int $postId): array
+        protected function getData(int|false $postId): array
         {
             return [
                 'heading'   => $this->getMeta($postId, 'hero_heading'),
@@ -177,7 +177,7 @@ TAW blocks are not Gutenberg blocks. You queue and render them from your PHP tem
     <?php
     // front-page.php
 
-    use TAW\Core\BlockRegistry;
+    use TAW\Core\Block\BlockRegistry;
 
     BlockRegistry::queue('hero');  // schedules CSS/JS for <head>
     get_header();
@@ -205,7 +205,15 @@ TAW blocks are not Gutenberg blocks. You queue and render them from your PHP tem
 
 ## What you just built
 
-Here's what happened under the hood:
+```mermaid
+flowchart TD
+    A["Theme::boot()"] --> B["BlockLoader::loadAll()\ndiscovers Hero.php"]
+    B --> C["Metabox renders\nadmin UI"]
+    C --> D["Editor fills fields\nin WP Admin"]
+    D --> E["BlockRegistry::queue('hero')\nschedules style.scss for head"]
+    E --> F["BlockRegistry::render('hero')\ncalls getData()"]
+    F --> G["index.php renders\nwith extracted variables"]
+```
 
 - `BlockLoader::loadAll()` (called by `Theme::boot()`) discovered `Blocks/Hero/Hero.php` automatically — no registration required.
 - `Metabox` rendered the admin UI and saved field values to `post_meta`.
@@ -227,13 +235,13 @@ composer dump-autoload
 // Blocks/Button/Button.php
 namespace TAW\Blocks\Button;
 
-use TAW\Core\Block;
+use TAW\Core\Block\Block;
 
 class Button extends Block
 {
     protected string $id = 'button';
 
-    protected function defaults(): array
+    protected function defaultData(): array
     {
         return [
             'text'  => '',
@@ -264,7 +272,7 @@ Queue multiple blocks at once, then render each where it belongs:
 ```php
 <?php
 // front-page.php
-use TAW\Core\BlockRegistry;
+use TAW\Core\Block\BlockRegistry;
 
 BlockRegistry::queue('hero', 'features', 'stats', 'testimonials', 'cta');
 get_header();

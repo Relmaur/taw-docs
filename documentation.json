@@ -103,6 +103,11 @@
               {
                 "title": "Create Your First Page",
                 "path": "help-center/guides/setup-project"
+              },
+              {
+                "title": "Connect your AI agent to these docs",
+                "path": "help-center/guides/ai-agent-setup",
+                "icon": "bot"
               }
             ]
           }

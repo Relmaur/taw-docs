@@ -1,0 +1,86 @@
+---
+title: Connect your AI agent to these docs
+description: >-
+  Give Claude Code, Cursor, Windsurf, or any MCP-compatible AI assistant
+  live access to the TAW documentation so it can look up components,
+  field types, and API references without leaving your editor.
+---
+
+TAW ships with an MCP (Model Context Protocol) server that exposes the full documentation as a searchable tool. Once connected, your AI agent can look up any page — field types, block patterns, form API, ViteLoader — directly from your editor without you having to paste snippets or switch tabs.
+
+---
+
+## Claude Code
+
+### Add globally (recommended)
+
+Run this once from any terminal. The `--scope user` flag writes to `~/.claude.json`, making the server available in **every Claude Code session on this machine**.
+
+```bash
+claude mcp add taw-docs --transport http https://taw.mlizardo.com/_mcp --scope user
+```
+
+### Add per-project only
+
+If you only want the server active inside a specific project, omit the `--scope` flag (Claude Code defaults to project scope, writing to `.mcp.json` in the current directory):
+
+```bash
+claude mcp add taw-docs --transport http https://taw.mlizardo.com/_mcp
+```
+
+### Verify it's connected
+
+```bash
+claude mcp list
+```
+
+You should see `taw-docs` with status `connected`.
+
+<Callout kind="info" collapsed="false">
+  The MCP server is **machine-local**, not account-wide. If you work on multiple machines, run the add command on each one. Since the endpoint is a public URL, no files need to be transferred.
+</Callout>
+
+---
+
+## Cursor, Windsurf, and other MCP-compatible editors
+
+Any editor that supports the Model Context Protocol can connect using the HTTP transport. Add the following to your MCP server config (exact file location varies by editor — check your editor's MCP documentation):
+
+```json
+{
+  "mcpServers": {
+    "taw-docs": {
+      "type": "http",
+      "url": "https://taw.mlizardo.com/_mcp"
+    }
+  }
+}
+```
+
+---
+
+## What your agent can do once connected
+
+With the MCP active, you can ask your agent things like:
+
+- *"What field types does the TAW metabox engine support?"*
+- *"Show me the Form::register() API and the available input types."*
+- *"How do I set up a repeater with tabbed layout?"*
+- *"What's the correct way to handle Alpine lifecycle with Swup?"*
+
+The agent searches the live docs and returns the relevant section — no copy-pasting required.
+
+---
+
+## TAW's built-in AI context files
+
+Beyond the MCP, TAW Theme ships several files that give AI coding assistants structural knowledge of the project without any setup:
+
+| File | Purpose |
+| ---- | ------- |
+| `AGENTS.md` | Comprehensive architecture guide for Claude Code, Cursor, and generic agents |
+| `CLAUDE.md` | Claude Code-specific instructions and conventions |
+| `.github/copilot-instructions.md` | GitHub Copilot workspace instructions |
+| `.windsurfrules` | Windsurf / Codeium rules |
+
+These files are auto-loaded by their respective tools when you open the theme directory. The MCP server complements them by providing live, searchable access to the full documentation — the static files give the agent the *how*, the MCP gives it the *what*.
