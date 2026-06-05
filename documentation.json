@@ -1,5 +1,6 @@
 {
-  "name": "Starter Kit",
+  "name": "TAW — Build with WordPress",
+  "description": "Build custom WordPress pages like assembling components — not fighting WordPress.",
   "colors": {
     "light": {
       "brand": "#F97316"
