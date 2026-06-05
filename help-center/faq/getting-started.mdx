@@ -105,13 +105,8 @@ composer update taw/core
 
 **Does TAW have auto-updates in WordPress admin?**
 
-Yes, if you configure `ThemeUpdater` in `functions.php`:
+No. The `ThemeUpdater` class has been removed from TAW Theme. Theme and framework updates are managed through Composer:
 
-```php
-new TAW\Core\ThemeUpdater([
-    'slug'       => 'my-theme',
-    'github_url' => 'https://api.github.com/repos/your-username/my-theme/releases/latest',
-]);
+```bash
+composer update taw/core
 ```
-
-When a new GitHub release is found, the standard **Update Available** notice appears in the WordPress admin.

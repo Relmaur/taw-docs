@@ -168,34 +168,42 @@ Once the theme is booted and performance is configured, use helper classes from 
   Each helper has its own dedicated documentation. Use this section as an orientation and then follow the links when you are ready to integrate them into templates and metabox UIs.
 </Callout>
 
-### Vite asset helper functions
+### Vite asset helpers (`TAW\Support\ViteLoader`)
 
-`vite-loader.php` (autoloaded from `taw/core`) exposes two global functions you can call anywhere in your templates.
+`ViteLoader` is the OOP Vite bridge shipped in `taw/core`. It is PSR-4 autoloaded — no explicit include needed.
 
-<ParamField body="vite_asset_url($path)" param-type="string" required="true" deprecated="false">
+<ParamField body="ViteLoader::assetUrl($path)" param-type="string" required="true" deprecated="false">
   Resolve a theme asset path to its URL — returns the content-hashed production URL or the Vite dev server URL during development.
 
   ```php
   <?php
 
+  use TAW\Support\ViteLoader;
+
   // Resolve a self-hosted font file
-  $fontUrl = vite_asset_url('resources/fonts/Inter-Regular.woff2');
+  $fontUrl = ViteLoader::assetUrl('resources/fonts/Inter-Regular.woff2');
 
   echo '<link rel="preload" href="' . esc_url($fontUrl) . '" as="font" crossorigin>';
   ```
 </ParamField>
 
-<ParamField body="vite_is_dev()" param-type="bool" required="false" deprecated="false">
+<ParamField body="ViteLoader::isDevServerRunning()" param-type="bool" required="false" deprecated="false">
   Return `true` when the Vite dev server is running. Use this for dev-only logic such as disabling caches or injecting debug markup.
 
   ```php
   <?php
 
-  if (vite_is_dev()) {
+  use TAW\Support\ViteLoader;
+
+  if (ViteLoader::isDevServerRunning()) {
       // dev-only logic
   }
   ```
 </ParamField>
+
+<Callout kind="warning" collapsed="false">
+  The legacy procedural functions `vite_asset_url()` and `vite_is_dev()` are no longer in the Composer `files` autoload and are not available globally. Use `ViteLoader::assetUrl()` and `ViteLoader::isDevServerRunning()` instead.
+</Callout>
 
 ### TAW\Helpers\Image
 
@@ -211,7 +219,7 @@ Use this helper in hero sections, featured images, and any template that must lo
 
 #### Commonly used methods
 
-<ParamField body="Image::render($id, $size, $alt, $options = [])" param-type="string" required="true" deprecated="false">
+<ParamField body="Image::render($id, $size, $options = [])" param-type="string" required="true" deprecated="false">
   Render an `<img>` tag with automatically set `loading`, `fetchpriority`, `decoding`, `srcset`, and `sizes` attributes. Pass `['above_fold' => true]` for hero images that should load eagerly with high priority.
 
   ```php
@@ -220,25 +228,25 @@ Use this helper in hero sections, featured images, and any template that must lo
   use TAW\Helpers\Image;
 
   // Above-the-fold hero (eager, high priority)
-  echo Image::render($hero_id, 'full', 'Hero image', ['above_fold' => true]);
+  echo Image::render($hero_id, 'full', ['above_fold' => true]);
 
   // Regular image (lazy, low priority — the default)
-  echo Image::render(get_post_thumbnail_id(), 'large', 'Post thumbnail');
+  echo Image::render(get_post_thumbnail_id(), 'large');
 
   // With CSS class and custom sizes attribute
-  echo Image::render($id, 'large', 'Team photo', [
+  echo Image::render($id, 'large', [
       'class' => 'rounded-lg shadow-md',
       'sizes' => '(max-width: 768px) 100vw, 50vw',
   ]);
 
   // With arbitrary extra attributes
-  echo Image::render($id, 'medium', 'Logo', [
+  echo Image::render($id, 'medium', [
       'attr' => ['id' => 'site-logo', 'data-hero' => 'true'],
   ]);
   ```
 </ParamField>
 
-<ParamField body="Image::preload_tag($id, $size)" param-type="string" required="true" deprecated="false">
+<ParamField body="Image::preloadTag($id, $size)" param-type="string" required="true" deprecated="false">
   Generate a `<link rel="preload">` tag for your single most important image. Call before `wp_head()` or hook at priority 1–2 to ensure it lands early in `<head>`.
 
   ```php
@@ -246,7 +254,7 @@ Use this helper in hero sections, featured images, and any template that must lo
 
   use TAW\Helpers\Image;
 
-  echo Image::preload_tag($hero_id, 'full');
+  echo Image::preloadTag($hero_id, 'full');
   // → <link rel="preload" href="..." as="image" imagesrcset="..." imagesizes="...">
   ```
 </ParamField>
@@ -362,6 +370,23 @@ To render menus in templates, use `TAW\Core\Menu\Menu::get($location)`. See the 
 
 TAW Theme ships with ready-to-use blocks you can drop in immediately or treat as reference implementations when building your own.
 
+### Hero
+
+`Blocks/Hero/` is a full-featured MetaBlock that demonstrates the breadth of TAW Core's metabox field system. It serves both as a usable hero section and as a reference for advanced field patterns.
+
+**Registered fields:**
+
+- `heading` and `tagline` — text inputs (with a checkbox to toggle tagline visibility)
+- `content` — wysiwyg rich text editor
+- `image` — background image picker
+- `bg_color` — color picker for section background
+- `padding` — range slider (20–200 px, default 80 px)
+- `featured_post` / `related_posts` — single and multi `post_select` fields
+- `team_members` — repeater containing text, textarea, image, and a `group` for social URLs
+- `nested_repeater` — three-level nested repeater demonstrating sub-nested data structures
+
+The Hero block is the canonical reference for nested repeaters. Use it as a starting point when you need hierarchical repeater data in your own blocks.
+
 ### Menu — site header with live search
 
 `Blocks/Menu/` is a two-row site header with a keyboard-accessible Alpine.js live-search overlay. It extends `TAW\Core\Block` (UI Block) and renders itself with no metabox configuration required.
@@ -405,9 +430,17 @@ Edit the strings directly in `Blocks/Menu/index.php`:
   The Menu block pulls `primary` navigation from the location registered in `functions.php` via `register_nav_menus()`. Make sure a menu is assigned to the `primary` location in **WordPress Admin → Appearance → Menus** before rendering.
 </Callout>
 
-## Theme updater
+## Framework updates
 
-`ThemeUpdater` hooks into WordPress's update system to check a GitHub Releases URL for a newer version. When one is found, the standard **Update Available** notice appears in the admin.
+TAW Core is distributed as a Composer package (`taw/core`). To update the framework to the latest version, run:
+
+```bash
+composer update taw/core
+```
+
+## Theme updates (auto-updater)
+
+`TAW\Core\ThemeUpdater` (shipped in `taw/core`) hooks into WordPress's update system to check a GitHub Releases URL for new versions. When a newer release is found, the standard **Update Available** notice appears in the admin.
 
 ```php
 // functions.php
@@ -417,11 +450,23 @@ new TAW\Core\ThemeUpdater([
 ]);
 ```
 
-Updates are cached for 6 hours to avoid GitHub rate limits. The updater prefers a built ZIP asset attached to the release; it falls back to GitHub's auto-generated zipball if none is found.
+Updates are cached for 6 hours to avoid GitHub rate limits. The updater prefers a built ZIP asset in the release; falls back to GitHub's auto-generated zipball.
 
-<Callout kind="info" collapsed="false">
-  Framework updates (changes to `taw/core` itself) are handled separately via `composer update taw/core` — no updater config needed.
-</Callout>
+## CSS Studio (dev-only visual editor)
+
+CSS Studio is a browser-based visual editor that streams live-page edits directly to your AI coding assistant. It is pre-installed in TAW Theme.
+
+**Requires:** Vite dev server running (`npm run dev`) and the toggle enabled in WP Admin.
+
+**Toggle:** WP Admin → TAW Settings → Developer Tools → Enable CSS Studio
+
+**Start a session (inside Claude Code / your AI agent):**
+
+```
+/studio
+```
+
+When active, every change you make in the visual panel — text edits, style tweaks, attribute changes — is sent to the agent as structured data and applied to the source files automatically. CSS Studio is injected only when the Vite dev server is active, so it never ships to production.
 
 ## What to read next
 

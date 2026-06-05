@@ -4,6 +4,89 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-06-05" description="taw/core v1.15 · TAW Theme update" tags={["stable"]}>
+
+## taw/core v1.15 · TAW Theme — June 2026
+
+### Asset pipeline
+
+- **`ViteLoader` OOP API** — `TAW\Support\ViteLoader` is now the authoritative way to interact with Vite assets. New static methods: `ViteLoader::assetUrl()`, `ViteLoader::isDevServerRunning()`, `ViteLoader::enqueueAsset()`, and `ViteLoader::init()`.
+- **Legacy procedural helpers removed from autoload** — `vite_asset_url()` and `vite_is_dev()` are no longer in the Composer `files` autoload and are not available globally. Use `ViteLoader` instead.
+- **SCSS block asset priority** — when a block has both `style.scss` and `style.css`, SCSS now takes priority.
+
+### Form system
+
+- **`Form::register()` + `Form::display()`** — forms are now registered statically via `Form::register()` inside `boot()` and displayed in templates with `Form::display('id')`. The old `new Form()` + `$form->render()` pattern has been replaced.
+- **New input field types:** `radio` (with `options` and `layout`), `checkbox_group` (stored as comma-separated string), `date` (with `min_date` and `max_date`).
+- **Structural field types:** `heading`, `divider`, and `html` — cosmetic fields for layout and copy inside a form with no submission data.
+- **AND / OR conditional logic** — `conditions` now supports `'relation' => 'any'` for OR logic. The old flat-array AND format is still fully supported.
+- **Multi-step forms** — replace the top-level `fields` key with `steps`. Each step has a `title` and its own `fields` array. Includes a numbered step indicator, per-step client-side validation, and automatic navigation to the failing step on server error.
+- **`SubmissionsHandler` auto-wired** — `Theme::boot()` now registers `SubmissionsHandler` automatically; manual instantiation is no longer needed.
+
+### Metabox engine
+
+- **`datepicker` field type** — jQuery UI date picker; stored as a date string (`YYYY-MM-DD` default). Supports `date_format`, `min_date`, and `max_date` options.
+- **Repeater `layout` option** — repeater rows can now render as `tabbed_horizontal` or `tabbed_vertical` in addition to the default accordion.
+- **`screens` key (plural)** — the Metabox config option is now `screens` (accepts an array of post types, page slugs, or page template filenames). The singular `screen` is no longer used.
+
+### Transactional email
+
+- **Template path updated** — pre-compiled HTML templates now live at `mails/html/{name}.html`. MJML source files remain at `mails/{name}.mjml` for dev-time compilation.
+- **`MailTester` registration** — register manually with `(new \TAW\Core\Mail\MailTester())->register()` in `functions.php`.
+
+### Block system
+
+- **`defaultData()` method** — UI Blocks now use `defaultData()` instead of `defaults()` to define prop fallbacks.
+- **`getData(int|false $postId)`** — `MetaBlock::getData()` now accepts `int|false` so blocks return safe empty values on 404 pages.
+- **`boot()` for all blocks** — `BlockLoader` now calls `boot()` on every block type (not just UI Blocks) during discovery.
+
+### Navigation menus
+
+- **`MenuItem::target()`** — new method returning `'_self'` or `'_blank'`.
+- **`MenuItem::isActiveAncestor()`** — new method; `isInActiveTrail()` now means any of active/activeParent/activeAncestor is true.
+- **`MenuItem::wpPost()`** — new method returning the raw `WP_Post` menu item object.
+
+### TAW Theme
+
+- **`ThemeUpdater` re-introduced via `taw/core`** — `TAW\Core\ThemeUpdater` is available again for GitHub Releases-based auto-updates. Instantiate it in `functions.php`.
+- **CSS Studio toggle** — CSS Studio is now activated via **WP Admin → TAW Settings → Developer Tools → Enable CSS Studio** (previously auto-activated when the Vite dev server was running).
+- **`Image::render()` signature** — the `$alt` parameter has been removed. Pass options (including `class`, `sizes`, `above_fold`, `attr`) as the third argument directly.
+- **`Image::preloadTag()`** — renamed from `preload_tag()` to camelCase `preloadTag()`.
+
+</Update>
+
+<Update label="2026-04-14" description="taw/core v1.14 · TAW Theme update" tags={["stable"]}>
+
+## taw/core v1.14 · TAW Theme — April 2026
+
+### Metabox engine
+
+- **`files` field type** — new multi-file picker with drag-to-reorder. Stores an array of attachment IDs. Accepts `limit` to cap the number of selectable files.
+- **Nested repeaters** — repeater fields now fully support nesting: place a `repeater` inside another repeater's `fields` array for hierarchical data structures up to three levels deep. Serialization is pre-submit and handles re-entrant calls safely.
+- **JSON encoding** — all repeater data is now serialized with full Unicode support.
+- **`postMatchesTemplate`** — new method on `Metabox` for template matching; `screen` now accepts multiple post types (comma-separated or array).
+- **Repeater template tag** — internally switched from `<script>` to `<template>` for repeater row prototypes (better browser compatibility).
+- **jQuery selector optimization** — repeater element selectors are scoped for improved performance on pages with multiple repeaters.
+
+### Block system
+
+- **Block variations** — `MetaBlock` now accepts a `variations` array in its constructor to declare WordPress block variations. Asset handles are automatically namespaced per variation.
+- **`BlockLoader::boot()` for plain blocks** — when `BlockLoader` loads a UI Block (extending `Block`), it now calls the block's `boot()` method if one exists. Use it for one-time setup such as registering hooks.
+
+### REST API
+
+- **`post_select` page handling** — `SearchEndpoints` now properly validates the `page` post type and handles the WordPress special case automatically.
+
+### TAW Theme
+
+- **`ThemeUpdater` removed** — the `ThemeUpdater` class has been removed from TAW Theme. Use `composer update taw/core` to update the framework.
+- **`SearchEndpoints` cleaned up** — removed the theme-level override; the endpoint is now served exclusively by `taw/core`.
+- **Hero block** — added `content` (wysiwyg) field. Added a three-level `nested_repeater` field as a reference implementation for hierarchical repeater data.
+- **CSS Studio** — added as a dev-only dependency. Activated automatically when `vite_is_dev()` is `true`; never shipped to production.
+- **Performance** — `Theme::performance()` now schedules its work on `after_setup_theme` for better WordPress filter compatibility.
+
+</Update>
+
 <Update label="2026-03-19" description="Initial release" tags={["stable"]}>
 
 ## v1.0.0 — Initial release
@@ -35,7 +118,7 @@ Powered by Symfony Console, shipped inside `taw/core`.
 
 Config-driven metaboxes with no plugin dependencies. All field types render, validate, sanitize, and save through `TAW\Core\Metabox\Metabox`.
 
-**Supported field types:** `text`, `textarea`, `wysiwyg`, `url`, `number`, `range`, `select`, `checkbox`, `color`, `image`, `group`, `repeater`, `post_select`
+**Supported field types:** `text`, `textarea`, `wysiwyg`, `url`, `number`, `range`, `select`, `checkbox`, `color`, `image`, `files`, `group`, `repeater`, `post_select`
 
 - **Conditional logic** — show or hide fields based on other field values. Evaluated live in the admin with Alpine.js and server-side on save. Operators: `==`, `!=`, `contains`, `empty`, `!empty`.
 - **Tabbed layouts** — group fields into tabs using the `tabs` key; each tab references field IDs from the `fields` array.
@@ -108,7 +191,7 @@ Config-driven metaboxes with no plugin dependencies. All field types render, val
 
 ### Theme updater
 
-- `TAW\Core\Theme\ThemeUpdater` — hooks into the WordPress update system to check a GitHub Releases URL for new versions. Shows the standard **Update Available** notice in admin. Updates are cached for 6 hours.
+- `TAW\Core\Theme\ThemeUpdater` — ~~removed in a later release~~ hooked into the WordPress update system to check a GitHub Releases URL for new versions. Shows the standard **Update Available** notice in admin. Updates are cached for 6 hours. **Deprecated — see the v1.14 entry below.**
 
 ### Boot process
 

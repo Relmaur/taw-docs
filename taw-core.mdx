@@ -296,10 +296,32 @@ Each field below uses a `type` value that maps directly to the metabox renderer.
     </Steps>
   </Expandable>
 
+  <Expandable title="Files" default-open="false">
+    Multi-file picker with drag-to-reorder. Stores an array of attachment IDs. Accepts `limit` to cap the number of files that can be selected.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'gallery', 'label' => 'Gallery', 'type' => 'files', 'limit' => 10]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $attachmentIds = Metabox::get($postId, 'gallery');
+        foreach ($attachmentIds as $id) {
+            echo wp_get_attachment_image($id, 'medium');
+        }
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
   <Expandable title="Repeater" default-open="false">
-    Dynamic list of rows where each row contains the same set of sub-fields. Use a `fields` array inside the repeater to define the per-row schema — any field type is supported, including `image`, `color`, and `post_select`. Rows are drag-and-drop sortable and individually collapsible in the admin UI.
+    Dynamic list of rows where each row contains the same set of sub-fields. Use a `fields` array inside the repeater to define the per-row schema — any field type is supported, including `image`, `color`, `post_select`, and nested `repeater` fields. Rows are drag-and-drop sortable and individually collapsible in the admin UI.
 
     Accepts `min` (minimum required rows) and `max` (row cap, `0` = unlimited) options. Retrieve with `Metabox::get_repeater($postId, 'field_id')`, which returns an array of associative arrays — one per row.
+
+    Repeaters support **nested repeaters**: place a `repeater` inside the `fields` array of another repeater to model hierarchical data. Up to three levels of nesting are supported.
 
     <Steps>
       <Step title="Declaration" icon="code" title-type="p">
@@ -338,7 +360,7 @@ A full metabox fields configuration looks like this:
 new Metabox([
     'id'     => 'taw_hero',
     'title'  => 'Hero Section',
-    'screen' => 'page',
+    'screens' => ['page'],
     'fields' => [
         // Layout with widths
         [
@@ -458,7 +480,7 @@ Group fields into tabs using the `tabs` key. Each tab references field IDs from 
 new Metabox([
     'id'     => 'taw_hero',
     'title'  => 'Hero Section',
-    'screen' => 'page',
+    'screens' => ['page'],
     'fields' => [
         ['id' => 'heading',   'label' => 'Heading',   'type' => 'text'],
         ['id' => 'image',     'label' => 'Image',     'type' => 'image'],
@@ -520,58 +542,151 @@ foreach ($teamMembers as $member) {
 
 ## Forms&#x20;
 
-Forms and Mail in TAW Core give you a config-driven way to handle front-end forms, store submissions, post them to webhooks, and send templated emails using your theme's mail layouts.
+`TAW\Core\Form\Form` is a config-driven frontend form builder that handles CSRF protection, honeypot spam filtering, field validation, AJAX submission (no page reload), email delivery, and automatic submission persistence.
 
-### Forms: config-driven builder and submissions
+### Registration and rendering
 
-Use `TAW\Core\Form\Form` to define and render forms from configuration, with built-in validation, honeypot/CSRF patterns, and submission saving.
-
-A complete contact form example:
+Forms **must** be registered before templates load. The correct place is inside the block's `boot()` method, wrapped in `add_action('init', ...)` so translation functions are safe. Display the form in your template with `Form::display()`.
 
 ```php
 use TAW\Core\Form\Form;
 
-$form = new Form([
-    'id'           => 'contact',
-    'submit_label' => 'Send Message',
-    'messages'     => ['success' => "Thanks! We'll be in touch."],
-    'email' => [
-        'to_self'   => ['subject' => 'New contact',      'template' => 'contact-self'],
-        'to_client' => ['subject' => 'Got your message', 'template' => 'contact-client'],
-    ],
-    'fields' => [
-        ['id' => 'name',    'label' => 'Name',    'type' => 'text',     'required' => true],
-        ['id' => 'email',   'label' => 'Email',   'type' => 'email',    'required' => true],
-        ['id' => 'message', 'label' => 'Message', 'type' => 'textarea', 'required' => true],
-    ],
-]);
+// In your MetaBlock::boot():
+public static function boot(): void
+{
+    add_action('init', static function () {
+        Form::register([
+            'id'           => 'contact',
+            'submit_label' => 'Send Message',
+            'messages'     => ['success' => "Thanks! We'll be in touch."],
+            'email' => [
+                'to_self'   => ['subject' => 'New contact',      'template' => 'contact-self'],
+                'to_client' => ['subject' => 'Got your message', 'template' => 'contact-client'],
+            ],
+            'fields' => [
+                ['id' => 'name',    'label' => 'Name',    'type' => 'text',     'required' => true],
+                ['id' => 'email',   'label' => 'Email',   'type' => 'email',    'required' => true],
+                ['id' => 'message', 'label' => 'Message', 'type' => 'textarea', 'required' => true],
+            ],
+        ]);
+    });
+}
 
-$form->render();
+// In the block's index.php template:
+Form::display('contact');
 ```
 
 When both `email.to_self.template` and `email.to_client.template` are set, delivery uses `Mailer` + `MailTemplate`. Otherwise `Form` falls back to plain-text `wp_mail()`.
 
-**Supported form field types:** `text`, `email`, `textarea`, `select`, and any standard HTML input type (e.g. `tel`, `date`). Fields support `required`, `placeholder`, and `rows`.
+### Input field types
 
-`Form` handles CSRF (nonces), honeypot spam protection, field validation, and PRG redirect after success automatically — no extra wiring needed.
+| Type | Description |
+| ---- | ----------- |
+| `text` | Single-line text |
+| `email` | Email address — validated with `is_email()` |
+| `tel` | Phone number |
+| `url` | URL |
+| `number` | Numeric input |
+| `textarea` | Multi-line text; accepts `rows` (default `4`) |
+| `select` | Dropdown; pass `options` as `['value' => 'Label']` |
+| `radio` | Radio group; pass `options`; accepts `layout` (`'horizontal'` default / `'vertical'`) |
+| `checkbox` | Boolean toggle; value is `'1'` when checked |
+| `checkbox_group` | Multiple checkboxes; pass `options`; accepts `layout`; stored as comma-separated string |
+| `date` | Native date picker; accepts `min_date` and `max_date` (ISO format `YYYY-MM-DD`) |
 
-`TAW\Core\Form\SubmissionsHandler` registers the `taw_submission` custom post type and stores each successful submission in WP Admin. Activate it once in `functions.php`:
+Any other value (e.g. `password`, `hidden`) is passed straight through as the HTML `type` attribute.
+
+### Structural field types
+
+Structural fields are cosmetic only — they have no `id`, no validation, and produce no submission data.
 
 ```php
-new \TAW\Core\Form\SubmissionsHandler();
+['type' => 'heading', 'label' => '1. Personal Data', 'subtitle' => 'General identification'],
+['type' => 'divider'],
+['type' => 'html', 'content' => '<p class="text-sm text-gray-500">All fields marked * are required.</p>'],
 ```
 
-It optionally posts each submission to a webhook endpoint (n8n, Zapier, Make, etc.).
+| Type | Description |
+| ---- | ----------- |
+| `heading` | Dark section banner with `label` and optional `subtitle` |
+| `divider` | Horizontal rule (`<hr>`) |
+| `html` | Raw HTML via `content` key — rendered with `wp_kses_post` |
+
+All fields (including structural) accept `width` (percentage) for column placement.
+
+### Conditional fields
+
+Fields can show or hide based on other field values. Conditions are evaluated in the browser and re-enforced on the server — hidden fields are excluded from validation and submission data regardless of client-side state.
+
+By default all conditions use **AND** logic. Add `'relation' => 'any'` to switch to **OR**:
+
+```php
+// AND logic (default) — show 'cta_text' only when 'show_cta' is checked
+['id' => 'show_cta',  'label' => 'Show CTA',  'type' => 'checkbox'],
+['id' => 'cta_text',  'label' => 'CTA Text',  'type' => 'text',
+ 'conditions' => [
+     ['field' => 'show_cta', 'operator' => '==', 'value' => '1'],
+ ]],
+
+// OR logic — show 'spouse_name' when married OR cohabiting
+['id' => 'spouse_name', 'label' => 'Spouse / Partner name', 'type' => 'text',
+ 'conditions' => [
+     'relation' => 'any',
+     'rules'    => [
+         ['field' => 'estado_civil', 'operator' => '==', 'value' => 'married'],
+         ['field' => 'estado_civil', 'operator' => '==', 'value' => 'cohabiting'],
+     ],
+ ]],
+```
+
+**Supported operators:** `==`, `!=`, `>`, `<`, `>=`, `<=`, `contains`
+
+### Multi-step forms
+
+Replace the top-level `fields` key with `steps`. Each step has a `title` (shown in a numbered indicator) and its own `fields` array. All field types, widths, and conditions work identically inside steps.
+
+```php
+Form::register([
+    'id'           => 'application',
+    'submit_label' => 'Submit',
+    'next_label'   => 'Continue',   // optional; default "Next"
+    'prev_label'   => 'Back',       // optional; default "Back"
+    'messages'     => ['success' => 'Your form has been received.'],
+    'steps' => [
+        [
+            'title'  => 'Personal Info',
+            'fields' => [
+                ['type' => 'heading', 'label' => '1. General Data'],
+                ['id' => 'nombre',    'label' => 'Name',  'type' => 'text',  'required' => true, 'width' => 50],
+                ['id' => 'email',     'label' => 'Email', 'type' => 'email', 'required' => true, 'width' => 50],
+            ],
+        ],
+        [
+            'title'  => 'Declaration',
+            'fields' => [
+                ['type' => 'html', 'content' => '<p>I declare that all information provided is true.</p>'],
+                ['id' => 'confirm', 'label' => 'I confirm', 'type' => 'checkbox', 'required' => true],
+            ],
+        ],
+    ],
+]);
+```
+
+**Next** validates required fields in the current step before advancing. **Back** navigates without validation. **Submit** only appears on the last step. All fields from all steps are submitted together in a single AJAX request; if server validation fails, the form auto-navigates back to the step containing the first failing field.
+
+### Submission persistence
+
+`TAW\Core\Form\SubmissionsHandler` is wired up automatically by `Theme::boot()` — no manual instantiation needed. Every successful submission is saved as a `taw_submission` CPT entry viewable in **WP Admin → Submissions**.
 
 <Callout kind="info" collapsed="false">
-  Configure the webhook endpoint and HMAC secret under **Settings > Form Webhook** in the WordPress admin. TAW Core signs outbound submission payloads so your receiver can verify authenticity.
+  Configure the webhook endpoint and HMAC secret under **Settings → Form Webhook** in the WordPress admin. TAW Core signs outbound submission payloads with HMAC-SHA256 so your receiver can verify authenticity.
 </Callout>
 
 {/* MARK: OptionsPage */}
 
 ## Options page
 
-`TAW\Core\OptionsPage` provides site-wide settings stored in `wp_options`, using the same field config format as metaboxes. Configure it in `inc/options.php`.
+`TAW\Core\OptionsPage\OptionsPage` provides site-wide settings stored in `wp_options`, using the same field config format as metaboxes. Configure it in `inc/options.php`.
 
 ```php
 new OptionsPage([
@@ -595,12 +710,12 @@ new OptionsPage([
 ]);
 ```
 
-**Supported field types:** `text`, `textarea`, `wysiwyg`, `url`, `number`, `select`, `checkbox`, `color`, `image`. The same tabbed layout, validation, and `conditions` logic from metaboxes all apply.
+**Supported field types:** `text`, `textarea`, `wysiwyg`, `url`, `number`, `select`, `checkbox`, `color`, `image`, `files`. The same tabbed layout, validation, and `conditions` logic from metaboxes all apply.
 
 ### Retrieval
 
 ```php
-use TAW\Core\OptionsPage;
+use TAW\Core\OptionsPage\OptionsPage;
 
 $phone = OptionsPage::get('company_phone');
 $logo  = OptionsPage::get_image_url('logo', 'medium');
@@ -646,17 +761,20 @@ if ($menu && $menu->hasItems()) {
 | -------------------- | ------------ | -------------------------------------------------------- |
 | `title()`            | `string`     | Menu item label                                          |
 | `url()`              | `string`     | Destination URL                                          |
+| `target()`           | `string`     | `'_self'` or `'_blank'`                                  |
 | `openInNewTab()`     | `bool`       | True when target is `_blank`                             |
 | `hasChildren()`      | `bool`       |                                                          |
 | `children()`         | `MenuItem[]` | Direct child items                                       |
 | `isActive()`         | `bool`       | Current page matches this item                           |
 | `isActiveParent()`   | `bool`       | A child of this item is the current page                 |
-| `isInActiveTrail()`  | `bool`       | This item or a descendant is the current page            |
+| `isActiveAncestor()` | `bool`       | A descendant of this item is the current page            |
+| `isInActiveTrail()`  | `bool`       | This item or any ancestor/descendant is the current page |
 | `classes()`          | `string[]`   | Custom classes only (WP auto-classes filtered out)       |
 | `wpClasses()`        | `string[]`   | All classes including WP's auto-generated ones           |
 | `objectType()`       | `string`     | Object type (`'page'`, `'post'`, `'custom'`, etc.)       |
 | `objectId()`         | `int`        | The underlying post/term ID                              |
 | `description()`      | `string`     | Item description set in WordPress menu editor            |
+| `wpPost()`           | `WP_Post`    | The raw WP menu item object                              |
 
 <Callout kind="info" collapsed="false">
   Menus (`primary`, `footer`, etc.) are registered via `register_nav_menus()` in `functions.php`. Assign menus to locations in **WordPress Admin → Appearance → Menus**.
@@ -675,7 +793,7 @@ Requires `edit_posts` capability (logged-in editors and above).
 | Parameter   | Default  | Description                                         |
 | ----------- | -------- | --------------------------------------------------- |
 | `s`         | `''`     | Search string — omit to return recent posts         |
-| `post_type` | `'post'` | Post type(s) — comma-separated for multiple         |
+| `post_type` | `'post'` | Post type(s) — comma-separated for multiple. Pass `page` to search pages; the endpoint handles the special WordPress case automatically. |
 | `per_page`  | `10`     | Results per page (1–50)                             |
 | `exclude`   | `''`     | Comma-separated post IDs to exclude                 |
 
@@ -687,22 +805,20 @@ Requires `edit_posts` capability (logged-in editors and above).
 
 Use `TAW\Core\Mail\MailTemplate` to work with HTML or MJML templates from your theme and `TAW\Core\Mail\Mailer` to send emails with variable replacement.
 
-Mail templates live under your theme, for example `mails/contact.html` or `mails/contact.mjml`. `MailTemplate::getAvailable()` exposes the templates that exist on disk, and each template supports `{{var}}` placeholders for variables you pass at send time.
+Pre-compiled HTML templates live at `mails/html/{name}.html` (used in production). MJML source files live at `mails/{name}.mjml` and are compiled at runtime via `spatie/mjml-php` during development. Each template supports `{{variable_name}}` placeholders.
 
 A minimal example of sending a templated email:
 
 ```php
 use TAW\Core\Mail\Mailer;
 
-$mailer = new Mailer();
-
-$sent = $mailer
+$sent = (new Mailer())
     ->to('support@acme-agency.test')
     ->subject('New contact form submission')
-    ->template('contact') // resolves mails/contact.html or .mjml
+    ->template('contact')          // → mails/html/contact.html (prod) or mails/contact.mjml (dev)
     ->setVariables([
-        'name' => 'Jane Chen',
-        'email' => 'jane@acme.com',
+        'name'    => 'Jane Chen',
+        'email'   => 'jane@acme.com',
         'message' => 'I would like to discuss a new project.',
     ])
     ->send();
@@ -722,9 +838,13 @@ if (! $sent) {
 
 TAW Core adds admin screens to help you operate and test these modules without writing ad-hoc scripts.
 
-- **Tools > Test Emails** — registered by `MailTester::register()`, lets you send test emails using your templates and variables to verify layout and delivery in your environment.
+- **Tools → Test Emails** — register `MailTester` in `functions.php` to get a page for sending test emails using your templates and variables to verify layout and delivery in your environment:
 
-- **Settings > Form Webhook** — configures the webhook URL and HMAC secret that `SubmissionsHandler` uses when posting saved submissions to an external endpoint.
+  ```php
+  (new \TAW\Core\Mail\MailTester())->register();
+  ```
+
+- **Settings → Form Webhook** — configures the webhook URL and HMAC secret that `SubmissionsHandler` uses when posting saved submissions to an external endpoint.
 
 Use these screens to confirm templates render as expected and form submissions reach your downstream systems before wiring them into live flows.
 

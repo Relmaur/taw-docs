@@ -22,6 +22,21 @@ TAW has two block base classes, each suited to a different job:
 
 The only rule: **the folder name must match the class name.**
 
+When `BlockLoader` loads any block, it automatically calls its `boot()` method if one exists. Use `boot()` for one-time setup logic that must run on every request — for example, registering hooks, form handlers, or other side effects the block depends on.
+
+```php
+class Button extends Block
+{
+    protected string $id = 'button';
+
+    public static function boot(): void
+    {
+        // Runs once during BlockLoader::loadAll()
+        add_filter('some_hook', [static::class, 'myCallback']);
+    }
+}
+```
+
 ```
 Blocks/
 ├── Hero/
@@ -35,13 +50,13 @@ After adding a new block class, run `composer dump-autoload` to rebuild the PSR-
 
 ## Creating a MetaBlock
 
-MetaBlocks extend `TAW\Core\MetaBlock`. They register metaboxes for content authoring and expose that content through `getData()`.
+MetaBlocks extend `TAW\Core\Block\MetaBlock`. They register metaboxes for content authoring and expose that content through `getData()`.
 
 ```php
 // Blocks/Hero/Hero.php
 namespace TAW\Blocks\Hero;
 
-use TAW\Core\MetaBlock;
+use TAW\Core\Block\MetaBlock;
 use TAW\Core\Metabox\Metabox;
 
 class Hero extends MetaBlock
@@ -51,17 +66,17 @@ class Hero extends MetaBlock
     protected function registerMetaboxes(): void
     {
         new Metabox([
-            'id'     => 'taw_hero',
-            'title'  => 'Hero Section',
-            'screen' => 'page',
-            'fields' => [
+            'id'      => 'taw_hero',
+            'title'   => 'Hero Section',
+            'screens' => ['page'],
+            'fields'  => [
                 ['id' => 'hero_heading', 'label' => 'Heading', 'type' => 'text'],
                 ['id' => 'hero_image',   'label' => 'Image',   'type' => 'image'],
             ],
         ]);
     }
 
-    protected function getData(int $postId): array
+    protected function getData(int|false $postId): array
     {
         return [
             'heading'   => $this->getMeta($postId, 'hero_heading'),
@@ -87,19 +102,19 @@ The template receives the `getData()` return value via `extract()` — every key
 
 ## Creating a UI Block
 
-UI Blocks extend `TAW\Core\Block`. Instead of metaboxes they define a `defaults()` method. Props passed to `render()` are merged over these defaults, so missing props always have safe fallbacks.
+UI Blocks extend `TAW\Core\Block\Block`. Instead of metaboxes they define a `defaultData()` method. Props passed to `render()` are merged over these defaults, so missing props always have safe fallbacks.
 
 ```php
 // Blocks/Button/Button.php
 namespace TAW\Blocks\Button;
 
-use TAW\Core\Block;
+use TAW\Core\Block\Block;
 
 class Button extends Block
 {
     protected string $id = 'button';
 
-    protected function defaults(): array
+    protected function defaultData(): array
     {
         return [
             'text'  => '',
@@ -126,7 +141,7 @@ Use `BlockRegistry::queue()` before `get_header()` to register block assets in `
 ```php
 <?php
 // front-page.php
-use TAW\Core\BlockRegistry;
+use TAW\Core\Block\BlockRegistry;
 
 BlockRegistry::queue('hero', 'features', 'stats', 'testimonials', 'cta');
 get_header();
@@ -212,12 +227,45 @@ php bin/taw import:block path/to/Hero.zip
 php bin/taw import:block path/to/Hero.zip --group=sections --force
 ```
 
+## Block variations
+
+MetaBlock supports registering multiple WordPress block variations from a single block class. Pass a `variations` array to the constructor to declare style or layout alternatives that editors can choose in the block editor.
+
+```php
+class Hero extends MetaBlock
+{
+    protected string $id = 'hero';
+
+    protected function __construct()
+    {
+        parent::__construct([
+            'variations' => [
+                [
+                    'name'        => 'hero-centered',
+                    'title'       => 'Centered Hero',
+                    'description' => 'Text and image centered',
+                    'isDefault'   => true,
+                ],
+                [
+                    'name'  => 'hero-split',
+                    'title' => 'Split Hero',
+                    'description' => 'Text left, image right',
+                ],
+            ],
+        ]);
+    }
+    // ...
+}
+```
+
+Asset IDs (CSS/JS handles) are automatically namespaced per variation so each can enqueue its own styles without collision.
+
 ## MetaBlock convenience helpers
 
 Inside `getData()` you can use these wrappers instead of calling `Metabox::get*` directly:
 
 ```php
-protected function getData(int $postId): array
+protected function getData(int|false $postId): array
 {
     return [
         'heading'   => $this->getMeta($postId, 'hero_heading'),
