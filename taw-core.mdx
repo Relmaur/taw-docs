@@ -596,6 +596,29 @@ When both `email.to_self.template` and `email.to_client.template` are set, deliv
 
 Any other value (e.g. `password`, `hidden`) is passed straight through as the HTML `type` attribute.
 
+### Multi-column layout
+
+Fields live inside a 12-column CSS grid. Use the `width` key (as a percentage) to control how many columns a field spans. On mobile all fields collapse to full width.
+
+```php
+'fields' => [
+    ['id' => 'name',    'type' => 'text',     'label' => 'Name',    'width' => 50],
+    ['id' => 'company', 'type' => 'text',     'label' => 'Company', 'width' => 50],
+    ['id' => 'phone',   'type' => 'tel',      'label' => 'Phone',   'width' => 33],
+    ['id' => 'email',   'type' => 'email',    'label' => 'Email',   'width' => 67],
+    ['id' => 'message', 'type' => 'textarea', 'label' => 'Message', 'width' => 100],
+],
+```
+
+| `width` value | Grid span |
+| ------------- | --------- |
+| `≤ 25` | 3 / 12 columns |
+| `≤ 33` | 4 / 12 columns |
+| `≤ 50` | 6 / 12 columns |
+| `≤ 67` | 8 / 12 columns |
+| `≤ 75` | 9 / 12 columns |
+| `> 75` or omitted | 12 / 12 columns (full width) |
+
 ### Structural field types
 
 Structural fields are cosmetic only — they have no `id`, no validation, and produce no submission data.
@@ -784,7 +807,14 @@ if ($menu && $menu->hasItems()) {
 
 ## REST API
 
-`TAW\Core\Rest\SearchEndpoints` registers a search endpoint that powers the `post_select` metabox field. It is registered automatically by `Theme::boot()`.
+TAW Core registers two REST endpoints, both wired up automatically by `Theme::boot()`.
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/taw/v1/search-posts` | Post search for `post_select` fields — requires `edit_posts` capability |
+| `POST` | `/taw/v1/visual-editor/save` | Save field changes from the Visual Editor — requires `edit_posts` capability |
+
+`TAW\Core\Rest\SearchEndpoints` powers the `post_select` metabox field.
 
 <Request tabs="Example request">
   ```bash

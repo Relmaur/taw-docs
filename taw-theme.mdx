@@ -25,11 +25,7 @@ Call `TAW\Core\Theme::boot()` once from your theme to wire up block loading, Vit
   - Calls `Svg::register()` to enable safe SVG upload and sanitization.
 
 <Callout kind="info" collapsed="false">
-  `Theme::boot()` does not accept arguments and is designed to run exactly once per request. Call it from your theme bootstrap (for example, `functions.php`) before you add custom hooks that depend on blocks or Vite.
-</Callout>
-
-<Callout kind="alert" collapsed="false">
-  The Visual Editor (`TAW\Core\VisualEditor`) is under active development and is **not ready for production use**.
+  `Theme::boot()` accepts an optional config array (e.g. `['performance' => [...]]`) and is designed to run exactly once per request. Call it from your theme bootstrap (for example, `functions.php`) before you add custom hooks that depend on blocks or Vite.
 </Callout>
 
 ## Recommended bootstrap flow
