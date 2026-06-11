@@ -1,0 +1,6 @@
+# Local automation — not for the repo
+.sync.sh
+.sync-prompt.txt
+.sync-instructions.md
+.sync-state.json
+.sync.log
