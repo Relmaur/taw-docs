@@ -4,6 +4,25 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-06-10" description="Docs update" tags={["docs"]}>
+
+## Docs — June 2026
+
+### Visual Editor
+
+- **Visual Editor documented** — the Visual Editor (`TAW\Core\Editor\VisualEditor`) is now opt-in and production-ready. Enable it by calling `VisualEditor::enable()` before `Theme::boot()` in `functions.php`. The new [Visual Editor](/taw-core#visual-editor) section covers automatic behaviour, template annotations (`Editor::field()`, `Editor::attrs()`), and the save endpoint.
+- **Updated theme boot callout** — removed the "not ready for production" warning from the Theme boot page; replaced with a note pointing to the Visual Editor API.
+
+### REST API
+
+- **Visual editor endpoints documented** — `POST /taw/v1/visual-editor/save` and `GET /taw/v1/visual-editor/fields` are now listed in the REST API endpoint table.
+
+### Options page
+
+- **Removed `files` from supported field types** — `files` is not supported in `OptionsPage` (only in `Metabox`). Corrected the supported-types list to match the authoritative README.
+
+</Update>
+
 <Update label="2026-06-05" description="taw/core v1.15.52" tags={["stable"]}>
 
 ## taw/core v1.15.52 — June 2026

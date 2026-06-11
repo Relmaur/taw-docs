@@ -733,7 +733,7 @@ new OptionsPage([
 ]);
 ```
 
-**Supported field types:** `text`, `textarea`, `wysiwyg`, `url`, `number`, `select`, `checkbox`, `color`, `image`, `files`. The same tabbed layout, validation, and `conditions` logic from metaboxes all apply.
+**Supported field types:** `text`, `textarea`, `wysiwyg`, `url`, `number`, `select`, `checkbox`, `color`, `image`. The same tabbed layout, validation, and `conditions` logic from metaboxes all apply.
 
 ### Retrieval
 
@@ -807,12 +807,15 @@ if ($menu && $menu->hasItems()) {
 
 ## REST API
 
-TAW Core registers two REST endpoints, both wired up automatically by `Theme::boot()`.
+TAW Core registers the following REST endpoints automatically via `Theme::boot()`:
 
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
-| `GET` | `/taw/v1/search-posts` | Post search for `post_select` fields — requires `edit_posts` capability |
-| `POST` | `/taw/v1/visual-editor/save` | Save field changes from the Visual Editor — requires `edit_posts` capability |
+| `GET` | `/taw/v1/search-posts` | Post search powering `post_select` fields. Requires `edit_posts`. |
+| `POST` | `/taw/v1/visual-editor/save` | Save Visual Editor changes. Requires `edit_posts`. |
+| `GET` | `/taw/v1/visual-editor/fields` | Load all registered fields and current values for the editor panel. Requires `edit_posts`. |
+
+### search-posts
 
 `TAW\Core\Rest\SearchEndpoints` powers the `post_select` metabox field.
 
@@ -865,6 +868,49 @@ TAW Core registers two REST endpoints, both wired up automatically by `Theme::bo
 <ParamField query="exclude" param-type="string" required="false" deprecated="false">
   Comma-separated post IDs to exclude from results.
 </ParamField>
+
+{/* MARK: Visual Editor */}
+
+## Visual Editor
+
+`TAW\Core\Editor\VisualEditor` provides inline admin editing on the frontend. It is **opt-in** — you must explicitly enable it before calling `Theme::boot()`:
+
+```php
+// functions.php — before Theme::boot()
+use TAW\Core\Editor\VisualEditor;
+
+VisualEditor::enable();
+Theme::boot();
+```
+
+Once enabled, authenticated users with `edit_posts` capability see an **Edit Visually** button in the WordPress admin bar. Appending `?taw_visual_edit=1` to any URL also activates the editing shell.
+
+### What works automatically
+
+No template changes are required for the core experience:
+
+- All MetaBlock sections are wrapped in a clickable container (`data-taw-block-section`) with hover and active outlines.
+- Clicking a section on the page opens its fields in the editor panel.
+- Typing in a panel text field updates the matching text on the page in real time (content-matching heuristic — works when the field value appears as a discrete text node).
+- The panel shows only the blocks queued for the current page via `BlockRegistry::queue()`.
+
+All registered metabox fields appear in the editor panel automatically. Add `'editor' => false` to a field definition to exclude it from the panel.
+
+Changes are saved via `POST /wp-json/taw/v1/visual-editor/save` using the same sanitization pipeline as metaboxes.
+
+### Optional template annotations
+
+Add annotations to make inline editing precise and to enable "Edit inline on page" mode:
+
+```php
+// Wrap a value so it's directly clickable on the page
+<?= Editor::field($data['headline'], 'hero', 'headline', 'h2') ?>
+
+// Add data attributes to an existing element (e.g. <img>)
+<img <?= Editor::attrs('hero', 'hero_image') ?> src="...">
+```
+
+Without annotations the panel still shows and saves all fields, and live preview works via content matching. Annotations give the editor a direct DOM reference, making live updates exact.
 
 {/* MARK: Mail */}
 

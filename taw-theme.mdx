@@ -28,6 +28,10 @@ Call `TAW\Core\Theme::boot()` once from your theme to wire up block loading, Vit
   `Theme::boot()` accepts an optional config array (e.g. `['performance' => [...]]`) and is designed to run exactly once per request. Call it from your theme bootstrap (for example, `functions.php`) before you add custom hooks that depend on blocks or Vite.
 </Callout>
 
+<Callout kind="info" collapsed="false">
+  The Visual Editor is opt-in. Call `VisualEditor::enable()` before `Theme::boot()` in `functions.php` to activate it. See the [Visual Editor](/taw-core#visual-editor) section for the full API and template annotation helpers.
+</Callout>
+
 ## Recommended bootstrap flow
 
 Set up your theme by booting TAW Core and then configuring performance. Use this flow in your `functions.php` (or equivalent) entry point.
