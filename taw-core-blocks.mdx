@@ -86,6 +86,10 @@ class Hero extends MetaBlock
 }
 ```
 
+<Callout kind="info" collapsed="false">
+  `getData()` receives `int|false` because `get_the_ID()` returns `false` on 404 pages. The convenience helpers `getMeta()`, `getImageUrl()`, and `getRepeater()` all return safe empty values when passed `false`, so your block renders gracefully even on error pages.
+</Callout>
+
 The template receives the `getData()` return value via `extract()` — every key becomes a local variable.
 
 ```php

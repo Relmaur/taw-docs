@@ -4,6 +4,21 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-06-16" description="Docs update" tags={["docs"]}>
+
+## Docs — June 2026 (2)
+
+### New: Framework and Dump helpers
+
+- **`TAW\Helpers\Framework`** — documented the path/URL resolver helpers (`path()`, `url()`, `themePath()`, `themeUrl()`) that were present in the `taw/core` README but missing from the docs.
+- **`TAW\Helpers\Dump`** — documented the debug utility helpers (`Dump::dd()`, `Dump::log()`), also missing from the docs.
+
+### Blocks
+
+- **`getData(int|false)` 404 note** — added explanation that `getData()` receives `int|false` because `get_the_ID()` returns `false` on 404 pages, and that all MetaBlock convenience helpers handle `false` safely.
+
+</Update>
+
 <Update label="2026-06-11" description="Docs update" tags={["docs"]}>
 
 ## Docs — June 2026

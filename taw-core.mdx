@@ -961,6 +961,46 @@ TAW Core adds admin screens to help you operate and test these modules without w
 
 Use these screens to confirm templates render as expected and form submissions reach your downstream systems before wiring them into live flows.
 
+{/* MARK: Helpers */}
+
+## Helpers
+
+TAW Core ships static helper classes for common operations, all PSR-4 autoloaded under `TAW\Helpers\`.
+
+### Framework paths (`TAW\Helpers\Framework`)
+
+Resolve absolute paths and public URLs relative to either the `taw/core` package itself or your theme root. Useful for referencing packaged assets without hard-coding paths.
+
+```php
+use TAW\Helpers\Framework;
+
+// Absolute filesystem path within taw-core
+Framework::path('assets/admin.css');
+
+// Public URL within taw-core
+Framework::url('assets/admin.css');
+
+// Absolute filesystem path within the active theme
+Framework::themePath('resources/');
+
+// Public URL within the active theme
+Framework::themeUrl('resources/');
+```
+
+### Debug utilities (`TAW\Helpers\Dump`)
+
+Formatted debug helpers intended for local and development environments only. Do not leave these calls in production code.
+
+```php
+use TAW\Helpers\Dump;
+
+// Die and dump — outputs a formatted value and halts execution
+Dump::dd($value);
+
+// Log — writes a formatted value to the error log without halting
+Dump::log($value);
+```
+
 {/* MARK: Tool Index */}
 {/* 
 ## Tool index
