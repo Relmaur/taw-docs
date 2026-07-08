@@ -819,14 +819,16 @@ TAW Core registers the following REST endpoints automatically via `Theme::boot()
 
 `TAW\Core\Rest\SearchEndpoints` powers the `post_select` metabox field.
 
-<Request tabs="Example request">
-  ```bash
-  GET /wp-json/taw/v1/search-posts?s=hero&post_type=page&per_page=5
-  Authorization: Cookie (requires edit_posts capability)
-  ```
-</Request>
+Example request:
 
-<Response tabs="200 OK,401 Unauthorized">
+```bash
+GET /wp-json/taw/v1/search-posts?s=hero&post_type=page&per_page=5
+Authorization: Cookie (requires edit_posts capability)
+```
+
+Example responses:
+
+<CodeGroup tabs="200 OK,401 Unauthorized">
   ```json
   [
     {
@@ -849,7 +851,7 @@ TAW Core registers the following REST endpoints automatically via `Theme::boot()
     "status": 401
   }
   ```
-</Response>
+</CodeGroup>
 
 ### Query parameters
 
