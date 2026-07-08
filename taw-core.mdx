@@ -733,7 +733,327 @@ new OptionsPage([
 ]);
 ```
 
-Supports the same field types as Metabox. The same tabbed layout, validation, and `conditions` logic from metaboxes all apply.
+Options Page reuses the exact `TAW\Core\Metabox\Metabox` field renderer, so every field `type` behaves identically to its Metabox counterpart — the only difference is that values are read back with `OptionsPage::get()` instead of `Metabox::get()`. The same tabbed layout, `width` grid spans, validation, and `conditions` logic from metaboxes all apply.
+
+### Supported field types
+
+Each field below uses a `type` value that maps directly to the Options Page renderer.
+
+<ExpandableGroup>
+  <Expandable title="Text" default-open="false">
+    Single-line text input. Combine with `placeholder` and `required`. Stores a string value.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'company_name', 'label' => 'Company Name', 'type' => 'text', 'placeholder' => 'Enter name...', 'required' => true]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $companyName = OptionsPage::get('company_name');
+        echo esc_html($companyName);
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Url" default-open="false">
+    URL input with browser-level URL validation. Stores a string URL.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'social_url', 'label' => 'Social URL', 'type' => 'url', 'placeholder' => 'https://...']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $socialUrl = OptionsPage::get('social_url');
+        echo '<a href="' . esc_url($socialUrl) . '">Follow us</a>';
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Number" default-open="false">
+    Numeric input for integers or floats. Supports `min`, `max`, and `step` options to constrain the value and control the increment size.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'items_per_page', 'label' => 'Items Per Page', 'type' => 'number', 'min' => 1, 'max' => 50, 'step' => 1]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $itemsPerPage = (int) OptionsPage::get('items_per_page');
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Textarea" default-open="false">
+    Multi-line plain text area. Use `rows` to control height and combine with `placeholder` and `description` when you expect longer content.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'footer_text', 'label' => 'Footer Text', 'type' => 'textarea', 'rows' => 4, 'placeholder' => 'Enter footer text...']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $footerText = OptionsPage::get('footer_text');
+        echo esc_html($footerText);
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Wysiwyg" default-open="false">
+    Rich text editor field. Accepts `rows`, `media_buttons` (boolean), and `teeny` (boolean) options to control editor size and whether media buttons or a simplified toolbar are shown.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'announcement', 'label' => 'Announcement', 'type' => 'wysiwyg', 'rows' => 8, 'media_buttons' => true]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $announcement = OptionsPage::get('announcement');
+        echo wp_kses_post($announcement);
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Select" default-open="false">
+    Dropdown select input. Provide an `options` map of `value => label` pairs; the field stores the selected option value as a string.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'theme_style', 'label' => 'Theme Style', 'type' => 'select', 'options' => ['light' => 'Light', 'dark' => 'Dark']]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $themeStyle = OptionsPage::get('theme_style'); // 'light' or 'dark'
+        echo '<body class="theme--' . esc_attr($themeStyle) . '">';
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Checkbox" default-open="false">
+    Single checkbox input for boolean-style flags. Stores string values `'1'` or `'0'` using a hidden input that defaults to `'0'`.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'maintenance_mode', 'label' => 'Maintenance Mode', 'type' => 'checkbox']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $maintenanceMode = OptionsPage::get('maintenance_mode') === '1';
+        if ($maintenanceMode) {
+            // show maintenance notice
+        }
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Color" default-open="false">
+    Color picker input. Accepts a `default` value (for example `#ffffff`) and stores the selected color string.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'brand_color', 'label' => 'Brand Color', 'type' => 'color', 'default' => '#3143e3']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $brandColor = OptionsPage::get('brand_color');
+        echo '<style>:root { --brand: ' . esc_attr($brandColor) . '; }</style>';
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Datepicker" default-open="false">
+    Text input backed by a jQuery UI date picker widget. Accepts `date_format` (jQuery UI format, default `yy-mm-dd`), `min_date`, and `max_date` options. Stores the value as a plain string.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'sale_ends', 'label' => 'Sale Ends', 'type' => 'datepicker', 'date_format' => 'yy-mm-dd']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $saleEnds = OptionsPage::get('sale_ends');
+        echo esc_html($saleEnds);
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Range" default-open="false">
+    Slider-style range input. Supports `min`, `max`, and `step` options, plus an optional `unit` string (for example `%`, `px`) for display alongside the numeric value.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'container_width', 'label' => 'Container Width', 'type' => 'range', 'min' => 960, 'max' => 1440, 'step' => 20, 'unit' => 'px', 'default' => 1200]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $containerWidth = OptionsPage::get('container_width') ?: '1200';
+        echo '<style>.container { max-width: ' . esc_attr($containerWidth) . 'px; }</style>';
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Group" default-open="false">
+    Nested group of sub-fields. Use a `fields` array inside the group to define child fields with their own `id`, `type`, and options. Unlike a repeater, there is always exactly one row. Each sub-field is stored as its own option, named `{prefix}{group_id}_{sub_id}` — read it with `OptionsPage::get('group_id_sub_id')`, not the group's own id.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        [
+            'id'    => 'social_links',
+            'label' => 'Social Links',
+            'type'  => 'group',
+            'fields' => [
+                ['id' => 'facebook', 'label' => 'Facebook', 'type' => 'url', 'width' => '50'],
+                ['id' => 'instagram', 'label' => 'Instagram', 'type' => 'url', 'width' => '50'],
+            ],
+        ]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        // Stored as _taw_social_links_facebook and _taw_social_links_instagram
+        $facebookUrl  = OptionsPage::get('social_links_facebook');
+        $instagramUrl = OptionsPage::get('social_links_instagram');
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Post Select" default-open="false">
+    Post selector field. Supports `post_type` (single or multiple types), `multiple` (boolean to allow multiple selections), and `max` (integer cap on the number of selected posts).
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        // Single post
+        ['id' => 'featured_page', 'label' => 'Featured Page', 'type' => 'post_select', 'post_type' => 'page']
+
+        // Multiple posts with a cap
+        ['id' => 'highlighted_posts', 'label' => 'Highlighted Posts', 'type' => 'post_select', 'post_type' => 'post', 'multiple' => true, 'max' => 3]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $featuredPageId    = (int) OptionsPage::get('featured_page');
+        $highlightedIds    = json_decode(OptionsPage::get('highlighted_posts', '_taw_', '[]'), true);
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Image" default-open="false">
+    WordPress media library picker. Stores an attachment ID as an integer. Retrieve as a URL with `OptionsPage::get_image_url('field_id', 'size')`.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'logo', 'label' => 'Logo', 'type' => 'image']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $logoUrl = OptionsPage::get_image_url('logo', 'medium');
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Files" default-open="false">
+    Multi-file picker with drag-to-reorder. Stores an array of attachment IDs as JSON. Accepts `limit` to cap the number of files that can be selected.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'brochures', 'label' => 'Brochures', 'type' => 'files', 'limit' => 5]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $attachmentIds = json_decode(OptionsPage::get('brochures', '_taw_', '[]'), true);
+        foreach ($attachmentIds as $id) {
+            echo wp_get_attachment_link($id);
+        }
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Repeater" default-open="false">
+    Dynamic list of rows where each row contains the same set of sub-fields. Use a `fields` array inside the repeater to define the per-row schema — any field type is supported, including `image`, `color`, `post_select`, and nested `repeater` fields. Rows are drag-and-drop sortable and individually collapsible in the admin UI.
+
+    Accepts `min` (minimum required rows) and `max` (row cap, `0` = unlimited) options. The repeater is stored as a single JSON-encoded option — decode it manually, since (unlike Metabox) `OptionsPage` has no dedicated `get_repeater()` helper.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        [
+            'id'    => 'office_locations',
+            'label' => 'Office Locations',
+            'type'  => 'repeater',
+            'min'   => 1,
+            'max'   => 10,
+            'fields' => [
+                ['id' => 'city',    'label' => 'City',    'type' => 'text', 'width' => '50'],
+                ['id' => 'address', 'label' => 'Address', 'type' => 'text', 'width' => '50'],
+            ],
+        ]
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $locations = json_decode(OptionsPage::get('office_locations', '_taw_', '[]'), true);
+        foreach ($locations as $location) {
+            echo esc_html($location['city'] ?? '');
+            echo esc_html($location['address'] ?? '');
+        }
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+</ExpandableGroup>
+
+### Other OptionsPage config options
+
+| Option      | Default                        | Description                                                              |
+| ----------- | ------------------------------- | -------------------------------------------------------------------------|
+| `id`        | *(required)*                    | Unique slug used as the admin menu page slug and the settings group name |
+| `title`     | Value of `id`                   | Page heading shown in the WordPress admin content area                  |
+| `menu_title`| Value of `title`                | Label shown in the WordPress admin sidebar menu                         |
+| `capability`| `'manage_options'`              | WordPress capability required to view and save the page                 |
+| `prefix`    | `'_taw_'`                       | Option name prefix applied to all field IDs                             |
+| `icon`      | `'dashicons-admin-generic'`     | Dashicon or SVG string used for the top-level admin menu icon           |
+| `position`  | *(none)*                        | Menu order position passed to `add_menu_page()`                         |
+| `fields`    | `[]`                            | Top-level field definitions, same format as Metabox                     |
+| `tabs`      | `[]`                            | Optional tabbed layout — same format as Metabox tabs                    |
 
 ### Retrieval
 
