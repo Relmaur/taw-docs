@@ -29,7 +29,7 @@ Call `TAW\Core\Theme::boot()` once from your theme to wire up block loading, Vit
 </Callout>
 
 <Callout kind="info" collapsed="false">
-  The Visual Editor is opt-in. Call `VisualEditor::enable()` before `Theme::boot()` in `functions.php` to activate it. See the [Visual Editor](/taw-core#visual-editor) section for the full API and template annotation helpers.
+  The Visual Editor is opt-in. Call `VisualEditor::enable()` before `Theme::boot()` to activate it — in scaffolds using `Theme::bootstrapFullSite()`, that means `inc/customizations.php`, not `functions.php` (which is framework-owned). See the [Visual Editor](/taw-core#visual-editor) section for the full API and template annotation helpers.
 </Callout>
 
 ## Recommended bootstrap flow

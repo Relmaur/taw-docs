@@ -1195,14 +1195,13 @@ Example responses:
 
 ## Visual Editor
 
-`TAW\Core\Editor\VisualEditor` provides inline admin editing on the frontend. It is **opt-in** — you must explicitly enable it before calling `Theme::boot()`:
+`TAW\Core\Editor\VisualEditor` provides inline admin editing on the frontend. It is **opt-in** — you must explicitly enable it before calling `Theme::boot()`. In taw-theme scaffolds using `Theme::bootstrapFullSite()`, `functions.php` is framework-owned, so this goes in `inc/customizations.php` instead, which `bootstrapFullSite()` guarantees loads before `boot()`:
 
 ```php
-// functions.php — before Theme::boot()
+// inc/customizations.php
 use TAW\Core\Editor\VisualEditor;
 
 VisualEditor::enable();
-Theme::boot();
 ```
 
 Once enabled, authenticated users with `edit_posts` capability see an **Edit Visually** button in the WordPress admin bar. Appending `?taw_visual_edit=1` to any URL also activates the editing shell.

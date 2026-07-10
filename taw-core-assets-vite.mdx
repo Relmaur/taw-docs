@@ -11,6 +11,20 @@ TAW Theme uses [Vite](https://vitejs.dev/) as its build tool. During development
 
 TAW Core bridges Vite and WordPress through `TAW\Support\ViteLoader`, a PSR-4 autoloaded class shipped inside `taw/core`. You do not need to wire anything up manually — `Theme::boot()` handles it.
 
+### How dev-mode is detected
+
+`ViteLoader::isDevServerRunning()` connects to the dev server (`localhost:5173` by default) and confirms it's actually Vite by requesting `GET /@vite/client` and checking for an HTTP 200 response — not just that something is listening on the port.
+
+<Callout kind="alert" collapsed="false">
+  A bare port-open check is a false-positive trap: any unrelated process — another dev server, a Docker container, anything — can end up bound to port 5173 for reasons that have nothing to do with your project. When that happens, the theme serves dead `localhost:5173` asset URLs in production, with no assets loading at all, even though `npm run build` succeeded and the manifest on disk is completely correct.
+</Callout>
+
+**Optional hot-file convention** (recommended, Laravel Vite plugin-style): have `vite.config.js` write the dev server's actual URL to `public/build/hot` on startup and delete it on shutdown. `ViteLoader` reads this to resolve the correct host:port before probing — useful if the dev server ever needs to bind a non-default port. The default TAW Theme scaffold ships this plugin already; see `vite.config.js`'s `hotFilePlugin`.
+
+<Callout kind="info" collapsed="false">
+  The scaffold's `vite.config.js` sets `server.strictPort: true` deliberately — it does not auto-move to a free port on conflict. `server.origin` (needed for correct absolute font URLs) is hardcoded to port 5173; if Vite silently moved to a different port, that value would go stale with no error, and only fonts would quietly 404. If `npm run dev` fails to start, something else has port 5173 — find it with `lsof -i :5173` and stop it, rather than letting two dev servers collide.
+</Callout>
+
 ## Entry points
 
 | File | Role |

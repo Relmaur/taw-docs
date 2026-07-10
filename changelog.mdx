@@ -4,6 +4,49 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-09" description="functions.php split, inspect CLI, and a real Vite dev-detection fix" tags={["taw-core", "taw-theme", "cli", "vite", "bugfix"]}>
+
+## July 2026 — framework bootstrap split, live introspection, dev-server detection fix
+
+### `Theme::bootstrapFullSite()` — `functions.php` is now 100% framework-owned
+
+New one-call bootstrap (`taw/core` v1.16.63+): `functions.php` collapses to two lines (require autoload, call `Theme::bootstrapFullSite(get_template_directory())`). Everything that used to be hand-written there — theme supports, nav menus, performance tuning, `VisualEditor::enable()`, an explicit `MetaboxOrder::lock()` — moves to three theme-owned files, none of which framework updates ever touch: `inc/options.php` (pre-existing), `inc/performance.php`, and `inc/customizations.php`.
+
+<Callout kind="alert" collapsed="false">
+  `inc/customizations.php` loads **before** `Theme::boot()` (fixed in v1.16.65). Flag-style opt-ins like `VisualEditor::enable()` are synchronous — `boot()` reads the flag immediately via `VisualEditor::init()`, which silently no-ops if `enable()` hasn't run yet. Hook-registration-only customizations (`add_action` calls for later events) work fine regardless of order.
+</Callout>
+
+`VisualEditor` is opt-in, not automatic — call `VisualEditor::enable()` in `inc/customizations.php` before `Theme::boot()` runs. (Earlier docs incorrectly said this was automatic — corrected.)
+
+### `php bin/taw inspect` — live introspection
+
+New CLI command reports the site's actual current state: registered blocks and their real metabox field schemas, registered forms, the installed `taw/core` version, and whether `MetaboxOrder` is locked. Unlike other `bin/taw` commands, this one boots WordPress itself, since the data only exists once `after_setup_theme`/`init` have fired.
+
+```bash
+php bin/taw inspect          # human-readable summary
+php bin/taw inspect --json   # machine-readable
+```
+
+### CI smoke-test
+
+New `.github/workflows/ci.yml` + `bin/ci/check-getdata-signature.php` — runs `composer validate`, `php -l` across the repo, and a check that every `MetaBlock::getData()` is declared exactly `getData(int|false $postId): array` on every push/PR. A narrower signature there is a PHP fatal that takes the entire site down, since every block auto-loads on every request.
+
+### `update-theme` — manifest-based sync, no git merge required
+
+The `update-theme` AI skill (for syncing the shared `taw-theme` scaffold into a client site) no longer depends on shared git history at all. It copies a small, precisely-delimited set of framework-owned paths (`functions.php`, `.claude/skills/`, `bin/`, CI config) directly from a fresh checkout — no merge, no conflicts. A new client project can start from a single clean `git init` commit.
+
+### Vite dev-server detection — real bug fix
+
+`ViteLoader::isDevServerRunning()` previously just checked whether *anything* was listening on port 5173 (`fsockopen`). Any unrelated process — another dev server, a Docker container, anything — could occupy that port for reasons that have nothing to do with the project, causing the theme to serve dead `localhost:5173` asset URLs in production with **no CSS/JS loading at all**, even though `npm run build` succeeded and the manifest was completely correct. Found on a real client project where an unrelated Dockerized Vite instance for a different project happened to be bound to the same port.
+
+Fixed in `taw/core` v1.16.66: `isDevServerRunning()` now verifies at the HTTP level — `GET /@vite/client` must return an actual `200` — not just that the port is open. The scaffold's `vite.config.js` also gained an optional hot-file convention (writes the dev server's real URL to `public/build/hot`) for resolving the correct host:port, and keeps `server.strictPort: true` deliberately (auto-moving ports would silently break hardcoded font URLs instead of failing loudly).
+
+### CI: composer GitHub auth + stale PHP version constraint
+
+Two real bugs found fixing CI: (1) `composer install` needs the GitHub API to resolve `taw/core`'s VCS repository, and unauthenticated API access caps at 60 requests/hour — Actions' shared runner IPs hit that constantly. Fixed by authenticating with the free `GITHUB_TOKEN`. (2) Once that was fixed, CI correctly surfaced that `composer.json` claimed PHP `>=8.1` while `symfony/console` had already resolved to a version requiring `>=8.2` — a real, pre-existing latent bug, not just a CI mismatch. Bumped the declared minimum PHP to 8.2 everywhere to match reality.
+
+</Update>
+
 <Update label="2026-06-16" description="Docs update" tags={["docs"]}>
 
 ## Docs — June 2026 (2)
