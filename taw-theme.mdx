@@ -455,6 +455,16 @@ TAW Core is distributed as a Composer package (`taw/core`). To update the framew
 composer update taw/core
 ```
 
+## Static analysis
+
+TAW Theme ships `phpstan.neon` (level 5, `Blocks/` and `inc/` only) with WordPress core stubs via `szepeviktor/phpstan-wordpress`, so core functions/classes resolve correctly instead of erroring as unknown.
+
+```bash
+composer run phpstan
+```
+
+Runs automatically in CI on every push/PR. Prefer fixing types over adding `ignoreErrors` entries — see the `wp-phpstan` skill in [WordPress/agent-skills](https://github.com/WordPress/agent-skills) for WordPress-specific typing patterns.
+
 ## Theme updates (auto-updater)
 
 `TAW\Core\ThemeUpdater` (shipped in `taw/core`) hooks into WordPress's update system to check a GitHub Releases URL for new versions. When a newer release is found, the standard **Update Available** notice appears in the admin.

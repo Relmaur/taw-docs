@@ -4,6 +4,32 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-10" description="PHPStan static analysis, WordPress-aware, wired into CI across all three repos" tags={["taw-core", "taw-theme", "ci", "static-analysis"]}>
+
+## July 2026 — PHPStan static analysis
+
+`taw-theme` and `taw/core` now ship `phpstan.neon` (level 5) with WordPress core stubs via `szepeviktor/phpstan-wordpress`, so `add_action`, `WP_Query`, and other core WP symbols resolve correctly instead of erroring as unknown. Runs via `composer run phpstan`, and as a new CI step on every push/PR alongside the existing lint and `getData()` signature checks.
+
+```bash
+composer run phpstan
+```
+
+`taw-theme` analyzes `Blocks/` and `inc/` only; `taw/core` analyzes `src/`. Both repos started clean or near-clean — `taw/core` carries a small `phpstan-baseline.neon` (26 findings, mostly `WP_Post` dynamic-property access and a Symfony Console interface gap) captured as a migration aid, not a permanent suppression file.
+
+<Callout kind="info" collapsed="false">
+  If a block template trips a PHPStan false positive on a variable that's actually guaranteed present (e.g. `isset($x)` or `$x ?? default` on a value `defaults()`/`getData()` always supplies), that's expected — PHPStan can't trace TAW's `extract()`-based template variable injection statically. Verify the variable really is wired through `render()`/`getData()` before assuming it's a false positive; baseline it once confirmed, don't widen types or add defensive checks to silence it.
+</Callout>
+
+### CI fix: `excludePaths` must mark build artifacts optional
+
+`phpstan.neon`'s `excludePaths` initially listed `node_modules/` and `public/build/` unconditionally. Both are gitignored build artifacts that don't exist on a fresh CI checkout (CI never runs `npm install`/`npm run build`), and PHPStan treats a missing `excludePaths` entry as a hard config error, not a no-op — it failed with `Invalid entries in excludePaths`, not the memory-limit crash it looked like at first. Fixed by marking both paths optional with the `(?)` suffix. A `--memory-limit=-1` change landed alongside this while diagnosing (the parallel worker legitimately needs more headroom on GitHub's runners than a local dev machine), but the exclude-path fix was the actual break.
+
+### External skill references, not vendored wholesale
+
+`AGENTS.md`/`CLAUDE.md` now point at specific skills from [WordPress/agent-skills](https://github.com/WordPress/agent-skills) — `wp-phpstan` (source for the WP-aware PHPStan setup above), plus `wp-performance`, `wp-wpcli-and-ops`, `wp-playground` as on-demand reading. Explicitly steering away from `wp-block-development` and `wp-block-themes`: those teach native Gutenberg blocks and `theme.json`, both of which TAW replaces with its own MetaBlock/Block system and Vite pipeline — following them would fight this framework's conventions rather than extend it.
+
+</Update>
+
 <Update label="2026-07-09" description="functions.php split, inspect CLI, and a real Vite dev-detection fix" tags={["taw-core", "taw-theme", "cli", "vite", "bugfix"]}>
 
 ## July 2026 — framework bootstrap split, live introspection, dev-server detection fix
