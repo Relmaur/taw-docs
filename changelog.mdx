@@ -4,6 +4,27 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-10 (3)" description="fields:get/fields:set CLI commands for direct, sanitized field read/write" tags={["taw-core", "taw-theme", "cli"]}>
+
+## July 2026 — `fields:get` / `fields:set`
+
+New `taw/core` v1.16.68 CLI commands give an agent (or a script) a safe, first-party way to read and write Metabox/OptionsPage field values directly, without going through wp-admin. This is the same read/write primitive `VisualEditorEndpoint` already uses for its REST-driven saves — `Metabox::get_field_config()` to resolve a field's type from the live registry, then the matching type-aware getter (`get_repeater()`, `get_bool()`, `get_posts()`, ...) or sanitizer (`sanitizeValue()`, `sanitizeRepeaterRows()`) — minus the Visual Editor's `'editor' => true` gate, since CLI access is already a trusted, direct-DB-write context.
+
+```bash
+php bin/taw fields:get 42 hero_heading --json
+php bin/taw fields:get 42 team_members --json                        # repeater comes back as a decoded array
+
+php bin/taw fields:set 42 hero_heading "Welcome"
+php bin/taw fields:set 42 team_members --file=/tmp/team.json         # --file avoids shell JSON-quoting for repeater/array values
+php bin/taw fields:set 42 hero_heading "Welcome" --dry-run           # preview the sanitized result without writing
+```
+
+Verified end-to-end against a live site before shipping: XSS payloads correctly stripped by the real sanitizers on both scalar and repeater fields, unknown-field/nonexistent-post error paths return clean messages with the right exit code, and a real write/read-back/revert round-trip persisted correctly. The `wp-load.php`-locating logic (previously private to `InspectCommand`) was extracted into a shared `TAW\CLI\WpLoader` helper, since three commands now need it.
+
+This is the "populate the content" half of a design-to-page pipeline — `figma-to-block`/`make-metablock` scaffold a block and its empty fields, `fields:set` fills them in, so "build this page from a Figma design" can mean the whole thing, not just an empty scaffold.
+
+</Update>
+
 <Update label="2026-07-10 (2)" description="WP-CLI as a first-class agent tool, plus a real textdomain-timing bug fix" tags={["taw-core", "taw-theme", "wp-cli", "bugfix"]}>
 
 ## July 2026 — WP-CLI integration, and a real WordPress 6.7+ bug fix
