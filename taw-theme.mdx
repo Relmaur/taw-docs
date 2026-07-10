@@ -484,6 +484,16 @@ php bin/taw fields:set 42 hero_heading "Welcome" --dry-run           # preview t
 
 This is the "populate the content" half of a design-to-page pipeline: `figma-to-block`/`make-metablock` scaffold the block and its empty fields, `fields:set` fills them in.
 
+### Content-writing safety model
+
+`fields:set` itself has no interactive confirmation — it's a raw primitive, usable from scripts, not just an AI agent. All risk judgment belongs to whichever skill or agent calls it. The `populate-content` Claude Code skill (and the population step built into `make-metablock`/`figma-to-block`/`build-page`) follows a mandatory model: always `--dry-run` before a real write; always confirm before overwriting a non-empty existing value (old vs. new shown side by side); always confirm before writing to a `publish`-status post regardless of whether the field is empty; one confirmation for an entire batch plan, never silently expanded mid-batch; extra scrutiny on `wysiwyg`/`'sanitize' => 'code'` fields when the source content is external; never touches `post_title`/`post_content`/`post_status`, only Metabox/OptionsPage meta; no wildcard mass-edits — every affected post/field is enumerated up front.
+
+<Callout kind="warning" collapsed="false">
+  `populate-content` is security-sensitive by design — it writes directly to a live database. Skipping the dry-run or the confirmation gate because a change "looks small" is exactly the failure mode this model exists to prevent.
+</Callout>
+
+See the [AI Integration](/ai-integration) page for the full picture — skills, this safety model, `inspect`, WP-CLI, CI, and static analysis together.
+
 ## WP-CLI — live site data access
 
 `bin/taw` scaffolds, introspects, and (via `fields:get`/`fields:set` above) can now read/write individual field values — but it has no general-purpose view into site *content* beyond that. For posts, options, users, terms, transients, arbitrary PHP via `wp eval`/`wp eval-file`, or an interactive `wp shell`, use WordPress's own official CLI, **WP-CLI** (the `wp` command). It's a host-level tool, not bundled by this theme, but present on virtually every real WordPress host and every local dev environment (Local, Herd, DDEV).

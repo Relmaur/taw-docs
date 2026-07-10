@@ -1,0 +1,163 @@
+---
+title: AI Integration
+description: >-
+  TAW ships a working toolkit for AI coding agents, not just documentation for them — skills,
+  live introspection, direct field read/write with a mandatory safety model, static analysis,
+  and CI, in the same spirit as Laravel Boost.
+---
+
+## Point an agent at a TAW project, not just docs about one
+
+TAW isn't just documented for AI coding assistants — it ships a working toolkit for them. An agent working in a TAW project can scaffold blocks, assemble full pages, implement Figma designs, populate real content, sync with the upstream scaffold, and inspect the live site's actual current state, not just read about how to do those things.
+
+Two separate, independently-versioned sources of truth back all of this — don't conflate them:
+
+- **[`taw-theme`](https://github.com/Relmaur/taw-theme)** — the canonical scaffold. Synced into a client site via the `update-theme` skill.
+- **[`taw/core`](https://github.com/Relmaur/taw-core)** — the framework package. Synced via `composer update taw/core`.
+
+---
+
+## Architecture docs, picked up automatically
+
+Any LLM-powered coding tool reads these on its own — no manual pointer needed:
+
+| File | Read by |
+|---|---|
+| `AGENTS.md` | Claude Code, Cursor, and generic agents — the comprehensive architecture guide |
+| `CLAUDE.md` | Claude Code specifically |
+| `.github/copilot-instructions.md` | GitHub Copilot |
+| `.windsurfrules` | Windsurf / Codeium |
+
+`AGENTS.md` is the deepest of the four and the one the others point back to for full detail — if you're deciding where to add something, it goes there first.
+
+---
+
+## Claude Code skills
+
+Invoked by name (`/make-metablock`, etc.) or triggered automatically by a plain-language request that matches. Live in `.claude/skills/`, synced into client sites the same way as the rest of the framework-owned scaffold.
+
+<Columns cols="2">
+  <Card title="make-metablock" icon="package" horizontal="false">
+    "add a pricing table section" → a fully wired MetaBlock: class, metabox fields, template, styles. Also accepts a pasted/attached screenshot as the design source.
+  </Card>
+
+  <Card title="build-page" icon="layout-template" horizontal="false">
+    "build a homepage with hero, features, and a contact form" → an entire page assembled from existing and newly-scaffolded blocks. Accepts a text brief, a Figma URL, or a screenshot.
+  </Card>
+
+  <Card title="figma-to-block" icon="figma" horizontal="false">
+    "implement this Figma design" → a block whose markup and metabox fields match the design exactly, driven by the Figma MCP tools — reference code, screenshot, and asset URLs, not eyeballed guesses.
+  </Card>
+
+  <Card title="populate-content" icon="pencil" horizontal="false">
+    "fill in the team_members repeater on the About page with this list" → writes real field values via `fields:set`, with a mandatory dry-run + confirmation safety model (see below) before any risky write.
+  </Card>
+
+  <Card title="update-theme" icon="refresh-cw" horizontal="false">
+    "update the theme" → copies a small, precisely-delimited set of framework-owned paths (`functions.php`, `.claude/skills/`, `bin/`, CI config) from the canonical `taw-theme` repo. Direct file sync, no git merge, no shared history required — never touches your `Blocks/`, templates, or content.
+  </Card>
+
+  <Card title="studio" icon="paintbrush" horizontal="false">
+    Applies live CSS Studio visual edits made in the browser back into source files.
+  </Card>
+</Columns>
+
+### How the design-to-page skills compose
+
+`build-page` orchestrates section-by-section decisions and delegates the actual block work:
+
+- A **text-brief** section → `make-metablock`
+- A **Figma-sourced** section → `figma-to-block`
+- A **screenshot-sourced** section → `make-metablock` (which also accepts screenshots directly)
+
+For a Figma or screenshot brief, `build-page` asks **once**, for the whole page, whether to populate real extracted content, leave fields as template fallbacks, or fill with Lorem Ipsum placeholder content — then passes that answer down so individual section builds don't ask again. Any actual content write goes through `populate-content`, never a direct meta write from inside `make-metablock`/`figma-to-block` themselves.
+
+---
+
+## Live introspection — `php bin/taw inspect`
+
+Reports the site's actual current state: registered blocks and their real metabox field schemas, registered forms, the installed `taw/core` version, whether `MetaboxOrder` is locked. An agent queries this instead of reconstructing it by grepping PHP source — which can drift from what's actually registered at runtime.
+
+```bash
+php bin/taw inspect          # human-readable summary
+php bin/taw inspect --json   # machine-readable
+```
+
+---
+
+## Direct field read/write — `php bin/taw fields:get` / `fields:set`
+
+Read or write any Metabox/OptionsPage field's value directly, sanitized with the exact same rules a real admin form save uses — the same primitive `VisualEditorEndpoint` uses for its own REST-driven saves. No hand-encoding a repeater's JSON shape, no guessing which sanitizer applies to which field type.
+
+```bash
+php bin/taw fields:get 42 team_members --json                        # repeater comes back as a decoded array
+php bin/taw fields:set 42 hero_heading "Welcome" --dry-run           # preview the sanitized result without writing
+```
+
+This is what turns "build this page from a Figma design" into something that can also populate the content, not just scaffold empty fields.
+
+### Content-writing safety model
+
+Writing content is inherently higher-stakes than scaffolding it, so every skill that writes via `fields:set` follows a mandatory model — documented once, referenced everywhere it applies, not duplicated per skill:
+
+<Steps>
+  <Step title="Dry run, always">
+    Never call `fields:set` for real without having already seen the `--dry-run` sanitized preview.
+  </Step>
+  <Step title="Confirm before overwriting non-empty content">
+    Read the current value with `fields:get` first; if non-empty, show old vs. new side by side and get explicit confirmation — even if the existing content looks like a placeholder, it may be real.
+  </Step>
+  <Step title="Confirm before writing to a published post">
+    Regardless of whether the target field is currently empty — a live, publicly-visible post is inherently higher-stakes than a draft.
+  </Step>
+  <Step title="One confirmation per batch, not per field">
+    Show the entire plan — every post, field, and value that will change — before writing any of it. Never silently expand scope mid-batch.
+  </Step>
+  <Step title="Extra scrutiny on raw-HTML fields">
+    `wysiwyg` fields (and anything with `'sanitize' => 'code'`) get flagged specifically when the source content came from outside the conversation — `wp_kses_post()` is deliberately permissive.
+  </Step>
+  <Step title="Never touches core post data">
+    `fields:set` only ever writes Metabox/OptionsPage meta — never `post_title`, `post_content`, or `post_status`. A request implying a core-post-data change is treated as separate and higher-risk.
+  </Step>
+  <Step title="No wildcard mass-edits">
+    Every post ID and field a batch operation will touch is enumerated and shown up front — never "every page matching X" without listing what that actually resolves to.
+  </Step>
+</Steps>
+
+<Callout kind="warning" collapsed="false">
+  `fields:set` itself has no interactive confirmation built in — it's a raw primitive, usable from scripts, not just an AI agent. All of the above is agent-level policy (enforced by the calling skill), the same way this project's git-push confirmation is a policy the agent follows, not something `git` itself enforces.
+</Callout>
+
+---
+
+## WP-CLI — live site data access
+
+`bin/taw` covers the framework (scaffolding, introspection, and now field-level content). For everything else — posts, users, terms, transients, arbitrary PHP via `wp eval`, an interactive `wp shell` — use WordPress's own official CLI. It's a host-level tool, not bundled by this theme, but present on virtually every real WordPress host and every local dev environment.
+
+<Callout kind="info" collapsed="false">
+  Full walkthrough, including the Local by Flywheel connection quirk that makes a bare `wp` command fail with a DB connection error even though the site works fine in the browser, is in the [TAW Theme](/taw-theme#wp-cli-live-site-data-access) page.
+</Callout>
+
+---
+
+## CI, not just convention
+
+`.github/workflows/ci.yml` runs on every push/PR:
+
+- `composer validate` and `php -l` across the repo
+- A dedicated check that every `MetaBlock::getData()` matches the exact signature the framework requires — a mismatch there is a site-wide PHP fatal, not a cosmetic bug, since every block auto-loads on every request
+- PHPStan (level 5, WordPress-aware via `szepeviktor/phpstan-wordpress`) over `Blocks/` and `inc/`
+
+An agent doesn't have to trust its own read of a change — CI catches the two failure modes (a signature typo, a type error) most likely to slip through a plausible-looking diff.
+
+---
+
+## Live documentation lookup
+
+The `mcp__taw-docs__search_documentation` MCP tool, when available, searches this documentation site's current indexed content directly — hybrid semantic + keyword search — rather than requiring a URL guess or a stale cached answer.
+
+---
+
+## External WordPress skill references
+
+For general WordPress capabilities this framework doesn't already own an abstraction for, `AGENTS.md`/`CLAUDE.md` point at specific skills from [WordPress/agent-skills](https://github.com/WordPress/agent-skills): `wp-phpstan` (the source for the PHPStan setup above), `wp-performance`, `wp-wpcli-and-ops`, `wp-playground`. Deliberately **not** referenced: `wp-block-development` and `wp-block-themes` — those teach native Gutenberg blocks and `theme.json`, both of which TAW replaces with its own MetaBlock/Block system and Vite pipeline. Following them would fight this framework's conventions, not extend them.

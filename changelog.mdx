@@ -4,6 +4,26 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-10 (4)" description="populate-content skill, with a mandatory content-writing safety model" tags={["taw-theme", "skills", "security"]}>
+
+## July 2026 — `populate-content` skill, and a content-writing safety model
+
+New Claude Code skill: `populate-content` fills real field values on a real post from a document, list, or plain-language description the user provides — e.g. *"fill in the team_members repeater on the About page with this list"*. It resolves the target post and field(s), maps source content to a field's shape (asking for confirmation on ambiguous mappings, e.g. repeater sub-fields that don't obviously correspond to the source document's structure), and writes via `fields:set`.
+
+Because this is a skill that writes directly to a live database, it follows a mandatory safety model — documented once in `AGENTS.md` § "Content-writing safety model" and referenced by every skill that writes content, not duplicated per skill:
+
+- Always `--dry-run` before any real write.
+- Always confirm before overwriting a non-empty existing value — old vs. new shown side by side.
+- Always confirm before writing to a `publish`-status post, regardless of whether the field is currently empty.
+- Batch operations get **one** confirmation for the entire plan, shown up front — never expanded mid-batch without re-confirming.
+- Extra scrutiny on `wysiwyg`/`'sanitize' => 'code'` fields when the source content came from outside the conversation.
+- Never touches `post_title`/`post_content`/`post_status` — Metabox/OptionsPage meta only.
+- No wildcard/glob mass-edits — every affected post and field enumerated up front.
+
+`make-metablock` (screenshot-sourced blocks) and `figma-to-block` (Figma-sourced blocks) now ask, once real content is available and a target post exists, whether to populate real extracted values, leave fields as template fallbacks, or fill with Lorem Ipsum placeholder content — delegating any real write to `populate-content` rather than writing meta directly themselves. `build-page` asks this once per page instead of once per section for a design-sourced brief, and passes the answer down so individual section builds don't re-ask.
+
+</Update>
+
 <Update label="2026-07-10 (3)" description="fields:get/fields:set CLI commands for direct, sanitized field read/write" tags={["taw-core", "taw-theme", "cli"]}>
 
 ## July 2026 — `fields:get` / `fields:set`
