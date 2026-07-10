@@ -465,6 +465,30 @@ composer run phpstan
 
 Runs automatically in CI on every push/PR. Prefer fixing types over adding `ignoreErrors` entries — see the `wp-phpstan` skill in [WordPress/agent-skills](https://github.com/WordPress/agent-skills) for WordPress-specific typing patterns.
 
+## WP-CLI — live site data access
+
+`bin/taw` scaffolds and introspects the *framework* (blocks, fields, forms) — it knows nothing about actual site *content*. For that, use WordPress's own official CLI, **WP-CLI** (the `wp` command): posts, options, users, terms, transients, arbitrary PHP via `wp eval`/`wp eval-file`, even an interactive `wp shell`. It's a host-level tool, not bundled by this theme, but present on virtually every real WordPress host and every local dev environment (Local, Herd, DDEV).
+
+```bash
+wp post list --post_type=page --fields=ID,post_title,post_status
+wp option get siteurl
+wp eval 'echo home_url();'
+```
+
+<Callout kind="warning" collapsed="false">
+  **Local by Flywheel connection quirk:** `wp-config.php`'s `DB_HOST` is `localhost`, but Local runs a per-site MySQL instance on its own Unix socket, not the system default. A bare `wp` command fails with `Error establishing a database connection` even though the site works fine in the browser. Fix by pointing PHP's own socket setting at Local's actual socket:
+
+  ```bash
+  ps aux | grep mysqld   # find the socket path for this site's mysqld — .../Local/run/<SITE_ID>/conf/mysql/my.cnf
+  SOCK="$HOME/Library/Application Support/Local/run/<SITE_ID>/mysql/mysqld.sock"
+  php -d mysqli.default_socket="$SOCK" -d pdo_mysql.default_socket="$SOCK" "$(which wp)" post list --path=/path/to/site/app/public
+  ```
+
+  If multiple Local sites are running, disambiguate sockets with `mysql --socket="$SOCK" -uroot -proot -e "SELECT option_value FROM wp_options WHERE option_name='siteurl';" local`.
+</Callout>
+
+`ViteLoader::isDevServerRunning()` is safe under WP-CLI — the dev-server probe only runs on `wp_enqueue_scripts`, which doesn't fire for most `wp` commands. For general WP-CLI operations beyond this framework's scope, see the `wp-wpcli-and-ops` skill in [WordPress/agent-skills](https://github.com/WordPress/agent-skills).
+
 ## Theme updates (auto-updater)
 
 `TAW\Core\ThemeUpdater` (shipped in `taw/core`) hooks into WordPress's update system to check a GitHub Releases URL for new versions. When a newer release is found, the standard **Update Available** notice appears in the admin.

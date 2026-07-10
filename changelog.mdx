@@ -4,6 +4,24 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-10 (2)" description="WP-CLI as a first-class agent tool, plus a real textdomain-timing bug fix" tags={["taw-core", "taw-theme", "wp-cli", "bugfix"]}>
+
+## July 2026 — WP-CLI integration, and a real WordPress 6.7+ bug fix
+
+### WP-CLI documented as a first-class agent tool
+
+`bin/taw` only covers framework scaffolding/introspection (blocks, fields, forms) — it has no visibility into actual site content. WordPress's own `wp` CLI fills that gap: posts, options, users, terms, transients, arbitrary PHP via `wp eval`/`wp eval-file`, an interactive `wp shell`. Documented in `taw-theme.mdx` and `AGENTS.md`/`CLAUDE.md`, including the Local by Flywheel connection quirk that makes a bare `wp` command fail with a DB connection error even though the site works fine in-browser (Local runs a per-site MySQL socket, not the system default `wp-config.php` assumes).
+
+### Real bug: textdomain loaded too early on every single request
+
+Using WP-CLI to test the connection quirk above immediately surfaced a genuine, pre-existing bug: every request triggered WordPress 6.7+'s `_load_textdomain_just_in_time` `doing_it_wrong` notice. Root cause — `Theme::bootstrapFullSite()` required `inc/options.php` (whose `OptionsPage`/Metabox field configs call `__('...', 'taw-theme')` at file scope) synchronously, during `functions.php`'s own load, which always runs before `after_setup_theme` even starts firing. WordPress's actual gate for this notice (verified directly in `wp-includes/l10n.php`) is whether `after_setup_theme` has started — not "before `init`" as the notice's own message text claims.
+
+Fixed in `taw/core` v1.16.67: both the textdomain load and `inc/options.php`'s require are now deferred to `after_setup_theme`, at priorities 1 and 5 respectively — ahead of `inc/customizations.php`'s own callback and `BlockLoader::loadAll()` (both default priority 10). The scaffold's `inc/customizations.php` no longer needs its own `load_theme_textdomain()` call (removed — it was on `init`, running even later than `register_nav_menus()`'s translation calls, which never actually fixed the ordering).
+
+This is exactly the class of bug static analysis can't catch — PHPStan checks types, not hook-firing order at runtime. It was only found by actually booting the site through `wp eval` and reading the debug output.
+
+</Update>
+
 <Update label="2026-07-10" description="PHPStan static analysis, WordPress-aware, wired into CI across all three repos" tags={["taw-core", "taw-theme", "ci", "static-analysis"]}>
 
 ## July 2026 — PHPStan static analysis

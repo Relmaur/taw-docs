@@ -735,6 +735,10 @@ new OptionsPage([
 
 Options Page reuses the exact `TAW\Core\Metabox\Metabox` field renderer, so every field `type` behaves identically to its Metabox counterpart — the only difference is that values are read back with `OptionsPage::get()` instead of `Metabox::get()`. The same tabbed layout, `width` grid spans, validation, and `conditions` logic from metaboxes all apply.
 
+<Callout kind="info" collapsed="false">
+  If you're registering this from `inc/options.php` in a `Theme::bootstrapFullSite()` scaffold, translated field labels (`__('Phone', 'taw-theme')`) are safe to use as-is — `bootstrapFullSite()` (`taw/core` v1.16.67+) defers both the textdomain load and `inc/options.php`'s own require to `after_setup_theme`, specifically to avoid WordPress 6.7+'s `_load_textdomain_just_in_time` notice. Don't call `load_theme_textdomain()` yourself in `inc/customizations.php` — it's already handled.
+</Callout>
+
 ### Supported field types
 
 Each field below uses a `type` value that maps directly to the Options Page renderer.
