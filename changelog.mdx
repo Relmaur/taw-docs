@@ -4,6 +4,30 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-10 (5)" description="Forms API: rate limiting, Cloudflare Turnstile, and richer validation rules" tags={["taw-core", "security"]}>
+
+## July 2026 — Forms API security hardening
+
+Three additions to the Forms API's security posture, taking it beyond its existing CSRF-nonce + honeypot baseline:
+
+**Rate limiting** — on by default (5 attempts/60 seconds, per IP, per form), backed by WP transients, no external cache dependency. Checked before the nonce check, since a flooding script doesn't need a valid nonce to cause load.
+
+```php
+Form::register([
+    'id' => 'contact',
+    'rate_limit' => ['max' => 3, 'window' => 120], // override, or false to disable
+    'fields' => [...],
+]);
+```
+
+**Optional Cloudflare Turnstile bot verification** — `'turnstile' => true`, keyed via `TAW_TURNSTILE_SITE_KEY`/`TAW_TURNSTILE_SECRET_KEY` constants in `wp-config.php` (never a metabox/OptionsPage field — those are REST-readable by anyone with `edit_posts`). Fails closed on any network error; degrades gracefully (no widget, no check) rather than blocking submission when a form opts in but keys aren't configured, with a `WP_DEBUG`-only notice for developers.
+
+**Field validation rules** beyond `required`: `min_length`, `max_length`, `pattern` (+ `pattern_message`), and `min`/`max` for `number` fields. Render as native HTML attributes for client-side UX; the authoritative check is always server-side.
+
+Verified end-to-end against real forms on live sites before shipping: rate limiting via rapid requests at the live AJAX endpoint (confirmed blocked on the 6th attempt), Turnstile via Cloudflare's publicly documented test keys (always-pass, always-block, and the unconfigured fail-closed case), and every validation rule type via direct unit tests, including a malformed-pattern fail-safe.
+
+</Update>
+
 <Update label="2026-07-10 (4)" description="populate-content skill, with a mandatory content-writing safety model" tags={["taw-theme", "skills", "security"]}>
 
 ## July 2026 — `populate-content` skill, and a content-writing safety model

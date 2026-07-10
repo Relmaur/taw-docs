@@ -542,7 +542,7 @@ foreach ($teamMembers as $member) {
 
 ## Forms&#x20;
 
-`TAW\Core\Form\Form` is a config-driven frontend form builder that handles CSRF protection, honeypot spam filtering, field validation, AJAX submission (no page reload), email delivery, and automatic submission persistence.
+`TAW\Core\Form\Form` is a config-driven frontend form builder that handles CSRF protection, honeypot spam filtering, rate limiting, optional Cloudflare Turnstile bot verification, field validation, AJAX submission (no page reload), email delivery, and automatic submission persistence.
 
 ### Registration and rendering
 
@@ -595,6 +595,58 @@ When both `email.to_self.template` and `email.to_client.template` are set, deliv
 | `date` | Native date picker; accepts `min_date` and `max_date` (ISO format `YYYY-MM-DD`) |
 
 Any other value (e.g. `password`, `hidden`) is passed straight through as the HTML `type` attribute.
+
+### Security
+
+Every form has CSRF (nonce) protection and honeypot spam filtering by default — no configuration needed.
+
+**Rate limiting** is on by default too: 5 attempts per 60 seconds, per IP, per form — backed by WP transients, no external cache (Redis/Memcached) required. Checked before the nonce check, since a flooding script doesn't need a valid nonce to cause load.
+
+```php
+Form::register([
+    'id' => 'contact',
+    'rate_limit' => ['max' => 3, 'window' => 120], // override the default
+    // 'rate_limit' => false, // or disable entirely
+    'fields' => [...],
+]);
+```
+
+**Cloudflare Turnstile** is opt-in bot verification. Site/secret keys are PHP constants defined in `wp-config.php` — the same pattern as database credentials, never a metabox/OptionsPage field, since those are readable via the REST API by anyone with `edit_posts`.
+
+```php
+// wp-config.php
+define('TAW_TURNSTILE_SITE_KEY', '0x...');
+define('TAW_TURNSTILE_SECRET_KEY', '0x...');
+```
+
+```php
+Form::register([
+    'id' => 'contact',
+    'turnstile' => true,
+    'fields' => [...],
+]);
+```
+
+<Callout kind="info" collapsed="false">
+  Get real keys from the [Cloudflare Turnstile dashboard](https://dash.cloudflare.com/?to=/:account/turnstile). If a form opts in but keys aren't configured yet, the widget silently doesn't render and no verification runs — a `WP_DEBUG`-only notice flags the misconfiguration to developers, not visitors. `Turnstile::verify()` fails closed on any network error or malformed response from Cloudflare's API.
+</Callout>
+
+**Field validation rules**, beyond `required`:
+
+| Rule | Applies to | Effect |
+| ---- | ---------- | ------ |
+| `min_length` | text-like fields | Rejects values shorter than N characters |
+| `max_length` | text-like fields | Rejects values longer than N characters |
+| `pattern` (+ `pattern_message`) | text-like fields | PHP regex, matched against the whole value |
+| `min` / `max` | `number` fields | Numeric range |
+
+```php
+['id' => 'name',  'type' => 'text', 'min_length' => 2, 'max_length' => 80],
+['id' => 'phone', 'type' => 'tel',  'pattern' => '[0-9+ ()-]{7,20}', 'pattern_message' => 'Enter a valid phone number.'],
+['id' => 'guests','type' => 'number', 'min' => 1, 'max' => 20],
+```
+
+These render as native HTML `minlength`/`maxlength`/`pattern`/`min`/`max` attributes for client-side UX, but the authoritative check always runs server-side — HTML attributes are trivially removable from the DOM. An empty, non-required field never fails these checks.
 
 ### Multi-column layout
 
