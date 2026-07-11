@@ -4,6 +4,20 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-10 (6)" description="Per-field custom error messages for every Forms validation rule" tags={["taw-core", "forms"]}>
+
+## July 2026 — per-field custom validation messages
+
+Extends the `{rule}_message` convention (previously only `pattern_message`) to `required`, the built-in `email` format check, `min_length`, `max_length`, `min`, and `max` — each optional, falling back to the existing generic default (with the field's `label` interpolated) when not set.
+
+```php
+['id' => 'name',  'type' => 'text',  'required' => true, 'required_message' => 'Please tell us your name.'],
+['id' => 'email', 'type' => 'email', 'required' => true, 'email_message' => 'That doesn\'t look like a real email address.'],
+['id' => 'age',   'type' => 'number', 'min' => 18, 'min_message' => 'You must be 18 or older.'],
+```
+
+</Update>
+
 <Update label="2026-07-10 (5)" description="Forms API: rate limiting, Cloudflare Turnstile, and richer validation rules" tags={["taw-core", "security"]}>
 
 ## July 2026 — Forms API security hardening
