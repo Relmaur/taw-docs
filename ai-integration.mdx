@@ -61,6 +61,10 @@ Invoked by name (`/make-metablock`, etc.) or triggered automatically by a plain-
     "onboard this new client project" → picks up right after the first push: verifies `gh` CLI auth, enables and smoke-tests the GitHub Actions permission `framework-sync.yml` needs to open pull requests, then walks through optional integrations (Turnstile, email, CSS Studio, Visual Editor) as explicit yes/no questions instead of leaving them to be discovered later.
   </Card>
 
+  <Card title="sync-remote" icon="git-merge" horizontal="false">
+    "sync with remote, please" → the standard pull → compare → resolve → push flow: fetches and compares against origin, reconciles diverged history via a real merge (never rebase, never a guessed conflict resolution), optionally runs `phpstan`, and always confirms before the final push.
+  </Card>
+
   <Card title="studio" icon="paintbrush" horizontal="false">
     Applies live CSS Studio visual edits made in the browser back into source files.
   </Card>

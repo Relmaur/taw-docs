@@ -4,6 +4,14 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-12 (5)" description="New sync-remote skill: standard pull/compare/resolve/push git workflow" tags={["taw-theme", "skills"]}>
+
+## July 2026 — sync-remote skill
+
+New Claude Code skill triggered explicitly ("sync with remote, please"): fetches and compares against origin, reconciles diverged history via a real merge (never rebase), stops for explicit human resolution on genuine conflicts rather than guessing a side, optionally runs `phpstan` before pushing, and always confirms the push separately — "sync" authorizes pulling and reconciling, not the push itself. Built after real cross-machine divergence on a client project (two independent commits both adding the same line to `.gitignore`), resolved cleanly by git's own merge algorithm — the case this skill generalizes.
+
+</Update>
+
 <Update label="2026-07-12 (4)" description="Dynamic smoke test: real WordPress+MySQL block/form rendering in CI" tags={["taw-theme", "ci"]}>
 
 ## July 2026 — dynamic smoke test in CI
