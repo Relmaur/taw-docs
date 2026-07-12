@@ -4,6 +4,23 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-12 (2)" description="Automated framework-drift detection: php bin/taw sync + a weekly CI workflow" tags={["taw-core", "taw-theme", "cli", "ci"]}>
+
+## July 2026 — automated framework-drift detection
+
+New `php bin/taw sync` CLI command (`taw/core` v1.16.72) checks whether the installed `taw/core` version is behind the latest release, and whether a project's Tier 1/Tier 2 `taw-theme` scaffold paths differ from the canonical repo — without booting WordPress, so it can run in CI. `--apply` writes Tier 1 changes directly; Tier 2 is always report-only, same human-review requirement as the `update-theme` skill it shares logic with.
+
+Both `sync` and `update-theme` now read a single shared manifest (`taw/core`'s `resources/update-manifest.json`) for the Tier 1/Tier 2/never-touched path lists, instead of maintaining the same lists independently in two places.
+
+A new `.github/workflows/framework-sync.yml` (Tier 1, so it propagates to every client project via `update-theme`) runs `sync` unattended on a weekly schedule: bumps `taw/core`, applies Tier 1, runs the same verification CI runs on every push, and opens a pull request with Tier 2 diffs for review — only if something actually changed and verification passed.
+
+```bash
+php bin/taw sync --json    # report only
+php bin/taw sync --apply   # also write Tier 1 changes
+```
+
+</Update>
+
 <Update label="2026-07-12 (1)" description="Form-level default validation messages for translating an entire form's copy at once" tags={["taw-core", "forms"]}>
 
 ## July 2026 — form-level default validation messages
