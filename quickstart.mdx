@@ -63,6 +63,16 @@ Make sure your environment meets these requirements:
 
     Visit the frontend — you should see the TAW Theme layout rendered with Vite-powered assets.
   </Step>
+
+  <Step title="Enable automated framework updates (one-time GitHub setting)" icon="refresh-cw" title-type="p">
+    Your new project ships with `.github/workflows/framework-sync.yml` from the first commit — a weekly check that bumps `taw/core`, syncs framework-owned scaffold files, and opens a pull request if anything changed. It needs one manual setting enabled on the new repo:
+
+    **Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"**
+
+    <Callout kind="alert" collapsed="false">
+      This is off by default on every new GitHub repo. Without it, the workflow still runs on schedule, but its PR-opening step silently fails — nothing breaks loudly, it just never surfaces the update.
+    </Callout>
+  </Step>
 </Steps>
 
 ---
@@ -311,6 +321,8 @@ Vite outputs content-hashed CSS and JS to `public/build/`. WordPress loads these
 | `php bin/taw make:block Name --with-style --with-script` | Include `style.scss` and `script.js` |
 | `php bin/taw export:block Hero` | Export a block as a portable ZIP |
 | `php bin/taw import:block path/to/Hero.zip` | Import a block from a ZIP |
+| `php bin/taw sync --json` | Check for drift: `taw/core` version + `taw-theme` scaffold |
+| `php bin/taw sync --apply` | Also write safe (Tier 1) scaffold changes |
 | `composer dump-autoload` | Rebuild classmap after adding new block classes |
 
 ---
