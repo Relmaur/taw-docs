@@ -4,6 +4,14 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-12 (6)" description="Fix: update-theme no longer full-overwrites composer.json/package.json" tags={["taw-theme", "skills", "fix"]}>
+
+## July 2026 — update-theme composer.json/package.json fix
+
+A Tier 2 diff on `composer.json`/`package.json` was being treated the same as prose docs — full-file overwrite once approved. That's dangerous for these two files specifically: a real client project's own added dependencies are additive and will never exist in the canonical `taw-theme` scaffold, so a whole-file overwrite would silently delete every client-added package. Fixed: `update-theme` now edits only the genuinely framework-relevant lines by hand for these two files, and tells the user plainly when a diff is just structural noise from additive dependencies rather than asking them to re-decide the same non-issue on every run. Found via real usage on a client project.
+
+</Update>
+
 <Update label="2026-07-12 (5)" description="New sync-remote skill: standard pull/compare/resolve/push git workflow" tags={["taw-theme", "skills"]}>
 
 ## July 2026 — sync-remote skill
