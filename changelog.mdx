@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-12 (4)" description="Dynamic smoke test: real WordPress+MySQL block/form rendering in CI" tags={["taw-theme", "ci"]}>
+
+## July 2026 — dynamic smoke test in CI
+
+New `bin/ci/smoke-test.php` boots a real, CI-provisioned WordPress + MySQL install with the theme active, creates a real post, and renders every registered `MetaBlock` + displays every registered `Form` against it, failing on any runtime error. Complements the existing static checks (`php -l`, the `getData()` signature check, PHPStan) by catching the class of bug none of them can see: an undefined function call, a template referencing a variable `getData()` never returned, WP API misuse — anything that only surfaces once the render path actually executes.
+
+Runs as a new parallel job in `ci.yml` on every push/PR, and inside `framework-sync.yml`'s verification gate against the post-sync codebase before a weekly update PR is opened.
+
+</Update>
+
 <Update label="2026-07-12 (3)" description="New project-init skill: post-scaffold client onboarding checklist" tags={["taw-theme", "skills"]}>
 
 ## July 2026 — project-init skill

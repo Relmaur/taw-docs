@@ -146,13 +146,14 @@ Writing content is inherently higher-stakes than scaffolding it, so every skill 
 
 ## CI, not just convention
 
-`.github/workflows/ci.yml` runs on every push/PR:
+`.github/workflows/ci.yml` runs two jobs on every push/PR:
 
 - `composer validate` and `php -l` across the repo
 - A dedicated check that every `MetaBlock::getData()` matches the exact signature the framework requires — a mismatch there is a site-wide PHP fatal, not a cosmetic bug, since every block auto-loads on every request
 - PHPStan (level 5, WordPress-aware via `szepeviktor/phpstan-wordpress`) over `Blocks/` and `inc/`
+- A dynamic smoke test: a second job spins up a real WordPress + MySQL environment, activates the theme, creates a real post, and renders every registered block + form against it (`bin/ci/smoke-test.php`) — catching runtime errors (undefined function calls, template/data mismatches) that none of the static checks above can see
 
-An agent doesn't have to trust its own read of a change — CI catches the two failure modes (a signature typo, a type error) most likely to slip through a plausible-looking diff.
+An agent doesn't have to trust its own read of a change — CI catches both static mistakes (a signature typo, a type error) and runtime ones (a block that only fails once it actually executes) that could slip through a plausible-looking diff.
 
 ---
 
