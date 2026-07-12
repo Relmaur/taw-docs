@@ -4,6 +4,26 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-12 (1)" description="Form-level default validation messages for translating an entire form's copy at once" tags={["taw-core", "forms"]}>
+
+## July 2026 — form-level default validation messages
+
+Adds a fallback tier between per-field `{rule}_message` overrides and the hardcoded English defaults: a top-level `messages` entry per rule (`required`, `email`, `min_length`, `max_length`, `pattern`, `min`, `max`). Lets a non-English site set its validation copy once per form instead of repeating a `{rule}_message` on every field. Precedence: field-level `{rule}_message` > form-level `messages.{rule}` > built-in English default.
+
+```php
+Form::register([
+    'id' => 'contact',
+    'messages' => [
+        'required'   => '%s es obligatorio.',
+        'email'      => 'Correo electrónico no válido.',
+        'min_length' => '%1$s debe tener al menos %2$d caracteres.',
+    ],
+    'fields' => [...],
+]);
+```
+
+</Update>
+
 <Update label="2026-07-10 (6)" description="Per-field custom error messages for every Forms validation rule" tags={["taw-core", "forms"]}>
 
 ## July 2026 — per-field custom validation messages
