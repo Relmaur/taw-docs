@@ -4,6 +4,14 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-12 (3)" description="New project-init skill: post-scaffold client onboarding checklist" tags={["taw-theme", "skills"]}>
+
+## July 2026 — project-init skill
+
+New Claude Code skill picking up right after `composer create-project` + the first push: verifies `gh` CLI authentication, checks and (with confirmation) enables the GitHub Actions "Allow GitHub Actions to create and approve pull requests" permission `framework-sync.yml` needs, then triggers a real manual run to confirm the whole pipeline actually works rather than assuming it does. Also walks through optional per-project integrations — Cloudflare Turnstile, transactional email, CSS Studio, Visual Editor — as explicit yes/no questions instead of leaving them to be discovered later. None of these are enabled without an explicit answer.
+
+</Update>
+
 <Update label="2026-07-12 (2)" description="Automated framework-drift detection: php bin/taw sync + a weekly CI workflow" tags={["taw-core", "taw-theme", "cli", "ci"]}>
 
 ## July 2026 — automated framework-drift detection

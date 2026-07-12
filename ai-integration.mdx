@@ -57,6 +57,10 @@ Invoked by name (`/make-metablock`, etc.) or triggered automatically by a plain-
     "update the theme" → copies a small, precisely-delimited set of framework-owned paths (`functions.php`, `.claude/skills/`, `bin/`, CI config) from the canonical `taw-theme` repo. Direct file sync, no git merge, no shared history required — never touches your `Blocks/`, templates, or content.
   </Card>
 
+  <Card title="project-init" icon="rocket" horizontal="false">
+    "onboard this new client project" → picks up right after the first push: verifies `gh` CLI auth, enables and smoke-tests the GitHub Actions permission `framework-sync.yml` needs to open pull requests, then walks through optional integrations (Turnstile, email, CSS Studio, Visual Editor) as explicit yes/no questions instead of leaving them to be discovered later.
+  </Card>
+
   <Card title="studio" icon="paintbrush" horizontal="false">
     Applies live CSS Studio visual edits made in the browser back into source files.
   </Card>
