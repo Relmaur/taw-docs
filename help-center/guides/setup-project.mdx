@@ -67,6 +67,10 @@ git remote add origin <your-repo-url>
 git push -u origin main
 ```
 
+<Callout kind="info" collapsed="false">
+  `<your-repo-url>` assumes an empty repository already exists for this project — create one on github.com first, or use `gh repo create <name> --private --source=. --remote=origin --push` to create it, add the remote, and push in one step (in which case skip the last two lines above).
+</Callout>
+
 **Why this doesn't need `--keep-vcs` or a shared git history with `taw-theme`.** Earlier versions of this framework synced updates via `git merge`, which needed a common ancestor commit. `update-theme` now copies a small, precisely delimited set of framework-owned paths directly from a fresh checkout of the canonical `taw-theme` repo, regardless of this project's own git history — so a single clean commit here is all you need, forever.
 
 ---
