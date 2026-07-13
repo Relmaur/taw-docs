@@ -39,6 +39,20 @@ Make sure your environment meets these requirements:
     This creates the theme folder with the correct structure and pulls in the `taw/core` framework package.
   </Step>
 
+  <Step title="Initialize git and push to your own repository" icon="git-branch" title-type="p">
+    ```bash
+    cd my-theme
+
+    git init
+    git add -A
+    git commit -m "Initial commit"
+    git remote add origin <your-repo-url>
+    git push -u origin main
+    ```
+
+    A shared git history with the canonical `taw-theme` repo isn't required — framework updates sync via direct file copy (`update-theme`), not a git merge. A single clean commit is enough.
+  </Step>
+
   <Step title="Install PHP and JS dependencies" icon="download" title-type="p">
     ```bash
     cd my-theme
@@ -64,8 +78,14 @@ Make sure your environment meets these requirements:
     Visit the frontend — you should see the TAW Theme layout rendered with Vite-powered assets.
   </Step>
 
-  <Step title="Enable automated framework updates (one-time GitHub setting)" icon="refresh-cw" title-type="p">
-    Your new project ships with `.github/workflows/framework-sync.yml` from the first commit — a weekly check that bumps `taw/core`, syncs framework-owned scaffold files, and opens a pull request if anything changed. It needs one manual setting enabled on the new repo:
+  <Step title="Set up framework-sync and optional integrations" icon="refresh-cw" title-type="p">
+    Your new project ships with `.github/workflows/framework-sync.yml` from the first commit — a weekly check that bumps `taw/core`, syncs framework-owned scaffold files, and opens a pull request if anything changed.
+
+    <Callout kind="tip" collapsed="false">
+      If you're working with Claude Code, run the **`project-init`** skill now — it checks `gh` CLI auth, enables the required GitHub setting below with confirmation, triggers a real run to verify the whole pipeline works, and walks through optional integrations (Cloudflare Turnstile, transactional email, CSS Studio, Visual Editor) as explicit yes/no questions.
+    </Callout>
+
+    Setting it up by hand instead just needs one manual setting enabled on the new repo:
 
     **Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"**
 

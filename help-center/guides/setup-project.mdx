@@ -35,17 +35,21 @@ cd my-theme
 
 ```
 my-theme/
-├── Blocks/            ← your blocks go here
-├── bin/taw            ← CLI entry point
+├── .claude/skills/         ← Claude Code skills (make-metablock, project-init, update-theme, …)
+├── .github/workflows/      ← CI (lint, phpstan, smoke test) + weekly framework-sync, from commit 1
+├── Blocks/                 ← your blocks go here
+├── bin/taw                ← CLI entry point
 ├── inc/
-│   └── options.php    ← theme options page config
+│   ├── customizations.php ← theme supports, nav menus, any other site-specific hooks
+│   ├── options.php        ← theme options page config
+│   └── performance.php    ← performance config (returns the array for Theme::performance())
 ├── resources/
-│   ├── css/app.css    ← Tailwind v4 directives
-│   ├── scss/          ← global SCSS + critical CSS
-│   ├── fonts/         ← self-hosted WOFF2 files
-│   └── js/app.js      ← Alpine.js + global JS
-├── vendor/taw/core/   ← framework internals (managed by Composer)
-├── functions.php      ← boot TAW Core here
+│   ├── css/app.css        ← Tailwind v4 directives
+│   ├── scss/              ← global SCSS + critical CSS
+│   ├── fonts/              ← self-hosted WOFF2 files
+│   └── js/app.js          ← Alpine.js + global JS
+├── vendor/taw/core/        ← framework internals (managed by Composer)
+├── functions.php           ← 100% framework-owned, never hand-edit — see step 7
 ├── vite.config.js
 ├── composer.json
 └── package.json
@@ -53,7 +57,21 @@ my-theme/
 
 ---
 
-## 2. Install dependencies
+## 2. Initialize git and push to your own repository
+
+```bash
+git init
+git add -A
+git commit -m "Initial commit"
+git remote add origin <your-repo-url>
+git push -u origin main
+```
+
+**Why this doesn't need `--keep-vcs` or a shared git history with `taw-theme`.** Earlier versions of this framework synced updates via `git merge`, which needed a common ancestor commit. `update-theme` now copies a small, precisely delimited set of framework-owned paths directly from a fresh checkout of the canonical `taw-theme` repo, regardless of this project's own git history — so a single clean commit here is all you need, forever.
+
+---
+
+## 3. Install dependencies
 
 ```bash
 composer install   # PHP deps — pulls taw/core and other packages
@@ -64,7 +82,7 @@ npm install        # Frontend toolchain — Vite, Tailwind, Alpine
 
 ---
 
-## 3. Start the dev server
+## 4. Start the dev server
 
 ```bash
 npm run dev
@@ -80,7 +98,7 @@ Leave this terminal open while you develop.
 
 ---
 
-## 4. Activate the theme
+## 5. Activate the theme
 
 Go to **WordPress Admin → Appearance → Themes**, find your theme, and click **Activate**.
 
@@ -88,34 +106,53 @@ Visit the frontend — you should see the TAW layout loading assets from the Vit
 
 ---
 
-## 5. Review `functions.php`
+## 6. Set up framework-sync and optional integrations
 
-Open `functions.php`. The generated file calls `Theme::boot()` and `Theme::performance([...])`. This is the only required bootstrap — TAW does the rest automatically.
+Your new project ships with `.github/workflows/framework-sync.yml` from the first commit — a weekly check that bumps `taw/core`, applies framework-owned scaffold updates, runs the same verification CI runs on every push, and opens a pull request if anything changed.
 
-```php
-<?php
-use TAW\Core\Theme;
+<Callout kind="tip" collapsed="false">
+  If you're working with Claude Code, run the **`project-init`** skill now. It checks `gh` CLI authentication, enables the GitHub setting below with confirmation, triggers a real run to verify the pipeline actually works, and walks through optional per-project integrations — Cloudflare Turnstile, transactional email, CSS Studio, Visual Editor — as explicit yes/no questions, only setting up what you actually want.
+</Callout>
 
-add_action('after_setup_theme', function () {
-    Theme::boot();
+Doing it by hand instead just needs one manual setting enabled on the new repo:
 
-    Theme::performance([
-        'remove_bloat'     => true,
-        'remove_emoji'     => true,
-        'remove_meta_tags' => true,
-        'remove_oembed'    => true,
-    ]);
-});
-```
+**Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"**
 
-`Theme::boot()` does three things on `after_setup_theme`:
-1. Calls `BlockLoader::loadAll()` — discovers every block in `Blocks/`.
-2. Calls `ViteLoader::init()` — prepares the asset pipeline.
-3. Calls `Svg::register()` — enables safe SVG uploads.
+<Callout kind="alert" collapsed="false">
+  This is off by default on every new GitHub repo. Without it, the workflow still runs on schedule, but its PR-opening step silently fails — nothing breaks loudly, it just never surfaces the update.
+</Callout>
 
 ---
 
-## 6. Scaffold your first block
+## 7. Review `functions.php`
+
+Open `functions.php`. It's intentionally tiny and 100% framework-owned — never hand-edit it, since `update-theme` overwrites it unconditionally on every sync:
+
+```php
+<?php
+
+require_once get_template_directory() . '/vendor/autoload.php';
+
+TAW\Core\Theme\Theme::bootstrapFullSite(get_template_directory());
+```
+
+That's the whole file. `bootstrapFullSite()` does everything a theme used to have to spell out by hand:
+
+1. Calls `Theme::boot()` — which calls `BlockLoader::loadAll()` (discovers every block in `Blocks/`), `ViteLoader::init()` (prepares the asset pipeline), and `Svg::register()` (enables safe SVG uploads).
+2. Locks each page's metabox order to match its template's `BlockRegistry::render()` sequence, via `MetaboxOrder::lockFromTemplate()`.
+3. Wires up CSS Studio's dev-mode config injection.
+4. Auto-loads three theme-owned files, only if they exist, none of which `update-theme` ever touches:
+   - `inc/options.php` — `OptionsPage` field configuration
+   - `inc/performance.php` — returns the config array passed to `Theme::performance()`
+   - `inc/customizations.php` — theme supports, nav menu registration, and any other site-specific hooks
+
+<Callout kind="info" collapsed="false">
+  Site-specific setup that used to go directly in `functions.php` — theme supports, nav menus, `Svg::register()`, an explicit `MetaboxOrder::lock()` call — goes in `inc/customizations.php` instead. This is what makes `update-theme` a plain file copy instead of a merge: the boundary between "framework" and "this project's site" is a fact about which file something is in, not something computed from a diff.
+</Callout>
+
+---
+
+## 8. Scaffold your first block
 
 Use the CLI to generate the files:
 
@@ -172,7 +209,7 @@ Open `Blocks/Hero/index.php` and write the template:
 
 ---
 
-## 7. Render the block
+## 9. Render the block
 
 In your WordPress template (e.g. `front-page.php`):
 
@@ -193,7 +230,7 @@ Go to a page in the WordPress editor — the **Hero Section** metabox appears be
 
 ---
 
-## 8. Production build
+## 10. Production build
 
 When you're ready to deploy:
 
@@ -212,3 +249,4 @@ Vite outputs content-hashed files to `public/build/`. WordPress loads these when
 - **Export and reuse blocks** — `php bin/taw export:block Hero` creates a ZIP you can import into any TAW project.
 - **Add site-wide options** — configure `inc/options.php` with an `OptionsPage` for settings like phone number, logo, and footer text.
 - **Add a contact form** — drop a `Form` config into any template for CSRF-protected, validated form handling.
+- **Finish onboarding checks** — if you skipped step 6 above, run the `project-init` skill (or its manual equivalent) before shipping any real feature work.
