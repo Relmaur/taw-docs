@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-13 (1)" description="taw/core v1.16.73: PHPUnit unit test suite (Brain Monkey, no real WP install)" tags={["taw-core", "testing"]}>
+
+## July 2026 — PHPUnit unit test suite for taw-core
+
+New `tests/Unit/` suite (`composer run test`), using [Brain Monkey](https://brain-wp.github.io/BrainMonkey/) to stub individual WordPress functions rather than requiring a real WordPress + MySQL install — fast, isolated tests of `taw-core`'s own logic. Covers the message-resolution precedence every Forms validation rule shares (field-level override > form-level default > built-in default), `RateLimiter`'s fixed-window logic, and `Turnstile`'s configured/not-configured states plus `verify()`'s success/rejected/network-error/malformed-response paths with fail-closed behavior throughout.
+
+This is a deliberate division of labor with `taw-theme`'s `bin/ci/smoke-test.php`: that suite boots a real WordPress environment and exercises the full render path against a live theme (integration coverage); this suite covers `taw-core`'s internal logic in isolation (unit coverage). `Form::requiredMessage()`/`Form::emailMessage()` were extracted out of `Form::process()` as small, independently-testable private methods (no behavior change) to make this possible without mocking the entire AJAX pipeline. Wired into `taw-core`'s own CI alongside PHPStan.
+
+</Update>
+
 <Update label="2026-07-12 (6)" description="Fix: update-theme no longer full-overwrites composer.json/package.json" tags={["taw-theme", "skills", "fix"]}>
 
 ## July 2026 — update-theme composer.json/package.json fix
