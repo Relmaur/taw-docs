@@ -74,7 +74,7 @@ Invoked by name (`/make-metablock`, etc.) or triggered automatically by a plain-
   </Card>
 
   <Card title="audit-seo" icon="search" horizontal="false">
-    "audit SEO for page 42" → extracts a post's text-bearing copy via `php bin/taw seo:extract`, analyzes keyword presence, copywriting impact, and readability, then — only with explicit approval — writes rewrites back via `php bin/taw seo:inject`.
+    "audit SEO for page 42" (or the whole site) → extracts a post's text-bearing copy and SEO meta (title tag, meta description, social image — Yoast-aware) via `php bin/taw seo:extract`, analyzes keyword presence, copywriting impact, and readability, then asks whether to apply directly or generate a shareable client-approval report before — only with explicit approval — writing rewrites back via `php bin/taw seo:inject`.
   </Card>
 </Columns>
 

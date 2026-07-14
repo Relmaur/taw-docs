@@ -4,6 +4,20 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-14 (4)" description="taw/core v1.16.82: TAW-native SEO meta (Yoast-aware) + site-wide audit-seo" tags={["taw-core", "taw-theme", "skills", "feature"]}>
+
+## July 2026 — SEO meta system + site-wide audits
+
+TAW has never owned per-post SEO meta (title tag, meta description, social/OG image) natively — every real site either has an SEO plugin installed or nothing at all. New `TAW\Core\Seo\SeoMeta` (wired into `Theme::boot()`) fixes this without fighting whatever else might be installed: with no SEO plugin active, it registers its own lightweight metabox and renders the actual `<head>` tags itself; with Yoast active, TAW's own UI and output both stand down entirely and it reads/writes Yoast's own meta keys directly instead, so Yoast's own UI stays in sync; with a different plugin active (RankMath, SmartCrawl), TAW's output stands down but write support isn't attempted — `seo:inject` refuses any meta write with a clear reason rather than guessing at that plugin's key scheme.
+
+`seo:extract`/`seo:inject` extended: every dump now includes a `seo_meta` object (title/description/social image, its current source, and the post's own already-uploaded candidate images for recommendation) beside the existing page-copy `blocks`. Both commands gain `--all` for a genuine site-wide audit — `seo:extract --all` extracts every published page/post in one run; `seo:inject --all` applies it with *per-post* independence, so one page failing validation doesn't block the rest.
+
+The `audit-seo` skill now analyzes SEO meta alongside page copy (empty/generic meta title or description as a Red Flag, social image recommended from existing uploads or asked about via AskUserQuestion when none exist), and supports "audit SEO for the whole site" as a trigger.
+
+Caught two real bugs live-testing before shipping: `og_image_id: 0` (extraction's own "no image set" sentinel) was being rejected as an invalid attachment on an unedited round-trip; and the `wp` passthrough command (from the prior release) wasn't forwarding piped/redirected stdin to the child process, breaking `wp eval-file -`-style usage — fixed via the standard `isatty()` check so a live interactive session never blocks on stdin that was never meant to be forwarded. Verified end-to-end: single-post and site-wide extract/inject round-trips, plus a deliberately-broken post confirming `--all`'s per-post isolation (6/7 succeeded, the broken one specifically reported, command correctly exits non-zero for the partial run while still applying everything that passed).
+
+</Update>
+
 <Update label="2026-07-14 (3)" description="taw/core v1.16.80–v1.16.81: auto-resolved Local by Flywheel MySQL socket (WpLoader + new wp passthrough)" tags={["taw-core", "taw-theme", "fix", "feature"]}>
 
 ## July 2026 — Local by Flywheel socket auto-detection
