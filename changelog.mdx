@@ -4,6 +4,20 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-14 (3)" description="taw/core v1.16.80–v1.16.81: auto-resolved Local by Flywheel MySQL socket (WpLoader + new wp passthrough)" tags={["taw-core", "taw-theme", "fix", "feature"]}>
+
+## July 2026 — Local by Flywheel socket auto-detection
+
+A recurring, easy-to-hit failure: every CLI command that boots WordPress (`inspect`, `fields:get`/`fields:set`, `export:static`, `seo:extract`/`seo:inject`) failed with "Error establishing a database connection" when run from an ordinary terminal under Local by Flywheel — `DB_HOST` in `wp-config.php` is just `'localhost'`, which resolves to the *system* default MySQL socket, but Local runs a separate MySQL instance per site on its own per-site Unix socket. Only Local's own "Open Site Shell" sets the environment variables that would make this resolve correctly.
+
+`WpLoader::autoConfigureLocalSocket()` fixes this at the root instead of requiring a manually-typed `-d mysqli.default_socket=...` workaround every time: it reads Local's own `sites.json` (which maps every site's local path to a short site ID — the same ID that names its socket's containing directory), matches the theme directory against it, and points PHP's MySQL drivers at the real socket via `ini_set()` before `wp-load.php` ever connects. A pure no-op everywhere this doesn't apply (real hosting, CI, other local environments). Wired into all six commands that boot WordPress.
+
+The same problem also affects the separate `wp` binary (WordPress's own official CLI) — a different process WpLoader's `ini_set()` fix can't reach. New `php bin/taw wp <args>` is a thin passthrough to the real `wp` binary (every argument forwarded exactly as given, unparsed) that resolves both the socket and `--path` automatically before shelling out. `AGENTS.md`'s WP-CLI section now recommends it over a bare `wp` command.
+
+Caught a real bug during live-testing: the socket-existence check used `is_file()`, which always returns `false` for a Unix domain socket (it only matches regular files) — silently failing every time even with everything else correct. Fixed to `file_exists()`, which doesn't discriminate by type. Verified end-to-end with zero manual flags: `inspect`, `fields:get`, `seo:extract`, and `wp post list`/`wp option get`/`wp eval` all confirmed working, plus error/exit-code passthrough on a deliberately-failing `wp` command.
+
+</Update>
+
 <Update label="2026-07-14 (2)" description="taw/core v1.16.79: seo:extract/seo:inject CLI commands + audit-seo skill" tags={["taw-core", "taw-theme", "skills", "feature"]}>
 
 ## July 2026 — SEO/copy audit loop

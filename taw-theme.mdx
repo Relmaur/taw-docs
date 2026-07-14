@@ -498,14 +498,16 @@ See the [AI Integration](/ai-integration) page for the full picture — skills, 
 
 `bin/taw` scaffolds, introspects, and (via `fields:get`/`fields:set` above) can now read/write individual field values — but it has no general-purpose view into site *content* beyond that. For posts, options, users, terms, transients, arbitrary PHP via `wp eval`/`wp eval-file`, or an interactive `wp shell`, use WordPress's own official CLI, **WP-CLI** (the `wp` command). It's a host-level tool, not bundled by this theme, but present on virtually every real WordPress host and every local dev environment (Local, Herd, DDEV).
 
+**Prefer `php bin/taw wp <args>` over a bare `wp` command** — a thin passthrough (every argument forwarded exactly as given) that automatically resolves `--path` and, under Local by Flywheel, the per-site MySQL socket (see the Callout below) — no manual configuration needed:
+
 ```bash
-wp post list --post_type=page --fields=ID,post_title,post_status
-wp option get siteurl
-wp eval 'echo home_url();'
+php bin/taw wp post list --post_type=page --fields=ID,post_title,post_status
+php bin/taw wp option get siteurl
+php bin/taw wp eval 'echo home_url();'
 ```
 
 <Callout kind="warning" collapsed="false">
-  **Local by Flywheel connection quirk:** `wp-config.php`'s `DB_HOST` is `localhost`, but Local runs a per-site MySQL instance on its own Unix socket, not the system default. A bare `wp` command fails with `Error establishing a database connection` even though the site works fine in the browser. Fix by pointing PHP's own socket setting at Local's actual socket:
+  **Local by Flywheel connection quirk:** `wp-config.php`'s `DB_HOST` is `localhost`, but Local runs a per-site MySQL instance on its own Unix socket, not the system default. A bare `wp` command fails with `Error establishing a database connection` even though the site works fine in the browser — `php bin/taw wp` (above) resolves this automatically. If you need the real `wp` binary directly anyway, the manual fix is the same thing `bin/taw wp` does internally:
 
   ```bash
   ps aux | grep mysqld   # find the socket path for this site's mysqld — .../Local/run/<SITE_ID>/conf/mysql/my.cnf
