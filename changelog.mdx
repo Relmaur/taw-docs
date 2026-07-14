@@ -18,6 +18,18 @@ Two real bugs were caught live-testing against a real dev site before shipping: 
 
 </Update>
 
+<Update label="2026-07-13 (2)" description="Docs fix: Get Started guides now cover git init, framework-sync, and project-init" tags={["taw-docs", "docs"]}>
+
+## July 2026 — Get Started guides brought current with recent DX additions
+
+The [Quickstart](/quickstart) and [Setting up a new TAW project](/help-center/guides/setup-project) guides had fallen behind several recent framework additions. Both now cover: initializing git and pushing to a repository (a step that was missing entirely, despite being a prerequisite for `framework-sync.yml` to do anything), and the `project-init` skill as the recommended way to enable and verify the GitHub Actions PR permission plus walk through optional integrations.
+
+`setup-project.mdx` additionally had a stale `functions.php` code example showing the pre-`bootstrapFullSite()` architecture (manual `Theme::boot()` + `Theme::performance()` calls wrapped in `add_action('after_setup_theme', ...)`) — replaced with the current two-line `functions.php` and an accurate description of what `bootstrapFullSite()` does, including the `inc/` file split. Its "what was created" file tree was also missing `.github/workflows/` and `.claude/skills/`, both of which ship from the first commit now.
+
+A second pass caught two more real gaps in the new git-init step of both guides: the prerequisites list never mentioned needing `git` at all, and `git remote add origin <your-repo-url>` never explained where that URL comes from for a reader following the guide for the first time. Both fixed — `git` (plus an empty pre-created repo) is now a listed prerequisite, and a callout explains creating the repo first (on github.com, or via `gh repo create --source=. --remote=origin --push` as a one-step alternative).
+
+</Update>
+
 <Update label="2026-07-13 (1)" description="taw/core v1.16.73: PHPUnit unit test suite (Brain Monkey, no real WP install)" tags={["taw-core", "testing"]}>
 
 ## July 2026 — PHPUnit unit test suite for taw-core
