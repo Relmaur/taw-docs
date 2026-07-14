@@ -4,6 +4,20 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-14 (1)" description="taw/core v1.16.77: static site export (export:static) + opt-in headless CORS" tags={["taw-core", "taw-theme", "skills", "feature"]}>
+
+## July 2026 — Static site export + headless CORS
+
+New `php bin/taw export:static` command (`TAW\CLI\ExportStaticCommand`) fetches every published page/post over HTTP against its own permalink, rewrites absolute site-URL references to root-relative paths (or an explicit `--prod-url`), and writes `<dir>/<slug>/index.html` plus the built Vite assets and `wp-content/uploads/` into a self-contained bundle — deployable as-is to Cloudflare Pages, Vercel, or any static host. Forms and search deliberately stay dynamic (`admin-ajax.php?action=taw_form_*`, `taw/v1/search-posts`) rather than being frozen into the export.
+
+New `TAW\Core\Rest\Cors` (wired into `Theme::boot()`, no-op unless `TAW_HEADLESS_ORIGINS` is set in `wp-config.php` — same opt-in pattern as Turnstile) opens up cross-origin access to both surfaces once the static bundle is served from a different domain: REST via WordPress core's own `allowed_http_origins` filter, `admin-ajax.php` via hand-rolled headers scoped to `taw_form_*` actions only. Always an explicit origin allowlist, never a wildcard.
+
+New `export-static` Claude Code skill in `taw-theme` (`.claude/skills/export-static/`) walks through building assets, running the export, verifying the output, and reminding the user about the headless-CORS follow-up.
+
+Two real bugs were caught live-testing against a real dev site before shipping: the command initially assumed Vite always builds to `dist/` (this project's own `vite.config.js` uses `public/build/` — now detects both, matching `ViteLoader`'s own resolution order), and initially copied the Vite build flattened to the export root instead of its real theme-relative URL path (every CSS/JS reference would have 404'd once deployed — fixed to mirror the exact path the exported HTML references).
+
+</Update>
+
 <Update label="2026-07-13 (1)" description="taw/core v1.16.73: PHPUnit unit test suite (Brain Monkey, no real WP install)" tags={["taw-core", "testing"]}>
 
 ## July 2026 — PHPUnit unit test suite for taw-core
