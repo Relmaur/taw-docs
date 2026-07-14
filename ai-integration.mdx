@@ -68,6 +68,14 @@ Invoked by name (`/make-metablock`, etc.) or triggered automatically by a plain-
   <Card title="studio" icon="paintbrush" horizontal="false">
     Applies live CSS Studio visual edits made in the browser back into source files.
   </Card>
+
+  <Card title="export-static" icon="globe" horizontal="false">
+    "export the site as static" → a self-contained HTML/CSS/JS bundle for edge hosting (Cloudflare Pages, Vercel), via `php bin/taw export:static`. Forms and search deliberately stay live against WordPress rather than being frozen into the export.
+  </Card>
+
+  <Card title="audit-seo" icon="search" horizontal="false">
+    "audit SEO for page 42" → extracts a post's text-bearing copy via `php bin/taw seo:extract`, analyzes keyword presence, copywriting impact, and readability, then — only with explicit approval — writes rewrites back via `php bin/taw seo:inject`.
+  </Card>
 </Columns>
 
 ### How the design-to-page skills compose

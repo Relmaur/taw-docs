@@ -4,6 +4,20 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-14 (2)" description="taw/core v1.16.79: seo:extract/seo:inject CLI commands + audit-seo skill" tags={["taw-core", "taw-theme", "skills", "feature"]}>
+
+## July 2026 — SEO/copy audit loop
+
+New `php bin/taw seo:extract <post_id>` walks the live Metabox field registry (the same one `TAW\Core\Metabox\SeoContentIntegration` already walks to feed Yoast/SmartCrawl), keeps only non-empty `text`/`textarea`/`wysiwyg` content — including inside repeater rows, recursively — and writes a hierarchical JSON dump grouped by block. Image/URL/`post_select`/layout fields are excluded by design: this is a copy audit, not a general field dump.
+
+New `php bin/taw seo:inject <post_id>` writes an edited copy of that JSON back, with real safety rails, not a thin `update_post_meta()` wrapper: every field is validated against the live registry before anything is written (all-or-nothing, never a partial write); only text-bearing fields are accepted, anything else is rejected in favor of `fields:set`; repeater rows are merged into the *current* live row by index rather than replaced wholesale, so a non-text sub-field on the same row is never lost; a row-count mismatch against live data (someone edited the post in the admin meanwhile) refuses rather than guessing alignment; core post data (`post_title`/`post_content`/`post_status`) is never touched. `--dry-run` previews the sanitized values before any real write.
+
+New `audit-seo` Claude Code skill in `taw-theme` performs the analysis itself — keyword presence (H1/H2), copywriting/CTA quality, readability — and reports Red Flags/Polish Opportunities, applying approved rewrites only after explicit batch confirmation, following the same content-writing safety model as `populate-content`/`fields:set`.
+
+Verified end-to-end against a real dev site: extract → edit → dry-run → real inject → confirmed via `fields:get`, plus both safety rails (unknown field, wrong field type) tested and confirmed to refuse cleanly without writing anything.
+
+</Update>
+
 <Update label="2026-07-14 (1)" description="taw/core v1.16.77: static site export (export:static) + opt-in headless CORS" tags={["taw-core", "taw-theme", "skills", "feature"]}>
 
 ## July 2026 — Static site export + headless CORS
