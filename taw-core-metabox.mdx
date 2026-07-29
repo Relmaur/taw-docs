@@ -314,6 +314,24 @@ All field types share a base set of options:
     echo esc_html($eventDate);
     ```
   </Expandable>
+
+  <Expandable title="icon" default-open="false">
+    Lucide icon picker. Stores a bare icon name (e.g. `house`), sanitized with `sanitize_key()`.
+
+    <Callout kind="tip">
+      Opt-in — call `TAW\Core\Icons\Lucide::enable()` in `inc/customizations.php` before `Theme::boot()`, or this field renders a notice instead of the picker. Full reference: `taw-core` README § "Icon System".
+    </Callout>
+
+    ```php
+    ['id' => 'feature_icon', 'label' => 'Icon', 'type' => 'icon']
+    ```
+
+    ```php
+    use TAW\Core\Icons\Lucide;
+
+    echo Lucide::render(Metabox::get($postId, 'feature_icon'), ['class' => 'w-6 h-6']);
+    ```
+  </Expandable>
 </ExpandableGroup>
 
 ## Conditional fields

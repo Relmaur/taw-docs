@@ -32,6 +32,14 @@ Call `TAW\Core\Theme::boot()` once from your theme to wire up block loading, Vit
   The Visual Editor is opt-in. Call `VisualEditor::enable()` before `Theme::boot()` to activate it — in scaffolds using `Theme::bootstrapFullSite()`, that means `inc/customizations.php`, not `functions.php` (which is framework-owned). See the [Visual Editor](/taw-core#visual-editor) section for the full API and template annotation helpers.
 </Callout>
 
+<Callout kind="info" collapsed="false">
+  The `icon` field type is opt-in — call `Lucide::enable()` in `inc/customizations.php` before `Theme::boot()`. It's commented out by default in this theme's scaffold. See [Icon System](/taw-core#icon-system).
+</Callout>
+
+<Callout kind="info" collapsed="false">
+  Media Folders is opt-in at the `taw/core` level, but this theme's `inc/customizations.php` scaffold calls `MediaFolders::enable()` by default, so every new taw-theme site has nestable Media Library folders active out of the box. See [Media Folders](/taw-core#media-folders).
+</Callout>
+
 ## Recommended bootstrap flow
 
 Set up your theme by booting TAW Core and then configuring performance. Use this flow in your `functions.php` (or equivalent) entry point.

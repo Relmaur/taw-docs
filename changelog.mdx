@@ -4,6 +4,24 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-29 (pending release)" description="taw/core: Lucide icon field type + nestable Media Folders" tags={["taw-core", "taw-theme", "feature"]}>
+
+## July 2026 — Icon System + Media Folders
+
+<Callout kind="info">
+  Shipped in source; not yet tagged. Version number to be assigned by the next `taw-release` run — see `taw-core` `AGENTS.md`/README for the actual `taw/core` version once cut.
+</Callout>
+
+Two new opt-in subsystems, both following the same `enable()`-before-`Theme::boot()` pattern `VisualEditor` established.
+
+New `icon` Metabox/OptionsPage field type (`TAW\Core\Icons\Lucide`): the full [Lucide](https://lucide.dev) icon set (~1,750 icons) is now vendored directly inside `taw-core` (`resources/icons/lucide/`, refreshed via the new `php bin/taw icons:sync` command) — the wp-admin picker never makes a network call. Stores a bare icon name; `Lucide::render($name, [...])` renders it as inline SVG in templates and needs no `enable()` call of its own, same relationship `Svg::render()`/`Svg::inline()` have to `Svg::register()`. A new `GET taw/v1/icons` REST route (opt-in, only registered when enabled) powers the picker's search.
+
+New nestable Media Library folders (`TAW\Core\Media\MediaFolders`): a single hierarchical taxonomy on attachments, with a dedicated **Media → Folders** admin screen (folder tree, drag-and-drop attachment organization, an "Unfiled" pseudo-folder) plus a filter dropdown/column/bulk-action on the classic Media Library list view. Built entirely on WordPress core's own taxonomy REST support (`wp/v2/taw_media_folder`, and a `taw_media_folder` param on `wp/v2/media`) — no custom REST endpoint needed. Deliberately does **not** patch the native Grid view's Backbone internals, to avoid the fragility that comes with hooking WordPress core's JS views across version updates. Opt-in at the `taw/core` level, but the `taw-theme` scaffold's `inc/customizations.php` calls `MediaFolders::enable()` by default, so every new taw-theme site has it active out of the box.
+
+Full reference: `taw-core` README §§ "Icon System" and "Media Folders", and this site's [Icon System](/taw-core#icon-system) / [Media Folders](/taw-core#media-folders) sections.
+
+</Update>
+
 <Update label="2026-07-14 (4)" description="taw/core v1.16.82: TAW-native SEO meta (Yoast-aware) + site-wide audit-seo" tags={["taw-core", "taw-theme", "skills", "feature"]}>
 
 ## July 2026 — SEO meta system + site-wide audits

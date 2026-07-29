@@ -352,6 +352,30 @@ Each field below uses a `type` value that maps directly to the metabox renderer.
       </Step>
     </Steps>
   </Expandable>
+
+  <Expandable title="Icon" default-open="false">
+    Lucide icon picker. Stores a bare icon name (e.g. `house`) sanitized with `sanitize_key()`.
+
+    <Callout kind="tip">
+      Opt-in. Call `TAW\Core\Icons\Lucide::enable()` in `inc/customizations.php` before `Theme::boot()`, or the field renders a notice instead of the picker. See [Icon System](#icon-system) below.
+    </Callout>
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'feature_icon', 'label' => 'Icon', 'type' => 'icon']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        use TAW\Core\Icons\Lucide;
+
+        $iconName = Metabox::get($postId, 'feature_icon');
+        echo Lucide::render($iconName, ['class' => 'w-6 h-6']);
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
 </ExpandableGroup>
 
 A full metabox fields configuration looks like this:
@@ -1117,6 +1141,29 @@ Each field below uses a `type` value that maps directly to the Options Page rend
       </Step>
     </Steps>
   </Expandable>
+
+  <Expandable title="Icon" default-open="false">
+    Lucide icon picker. Stores a bare icon name (e.g. `house`) sanitized with `sanitize_key()`.
+
+    <Callout kind="tip">
+      Opt-in. Call `TAW\Core\Icons\Lucide::enable()` in `inc/customizations.php` before `Theme::boot()`, or the field renders a notice instead of the picker. See [Icon System](#icon-system) below.
+    </Callout>
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'brand_icon', 'label' => 'Icon', 'type' => 'icon']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        use TAW\Core\Icons\Lucide;
+
+        echo Lucide::render(OptionsPage::get('brand_icon'), ['class' => 'w-6 h-6']);
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
 </ExpandableGroup>
 
 ### Other OptionsPage config options
@@ -1212,6 +1259,7 @@ TAW Core registers the following REST endpoints automatically via `Theme::boot()
 | `GET` | `/taw/v1/search-posts` | Post search powering `post_select` fields. Requires `edit_posts`. |
 | `POST` | `/taw/v1/visual-editor/save` | Save Visual Editor changes. Requires `edit_posts`. |
 | `GET` | `/taw/v1/visual-editor/fields` | Load all registered fields and current values for the editor panel. Requires `edit_posts`. |
+| `GET` | `/taw/v1/icons` | Lucide icon search powering the `icon` field type. Requires `edit_posts`. Only registered when `Lucide::enable()` was called — see [Icon System](#icon-system). |
 
 ### search-posts
 
@@ -1267,6 +1315,34 @@ Example responses:
 
 <ParamField query="exclude" param-type="string" required="false" deprecated="false">
   Comma-separated post IDs to exclude from results.
+</ParamField>
+
+### icons
+
+`TAW\Core\Rest\IconsEndpoint` powers the `icon` metabox field's wp-admin picker. Only registered when `Lucide::enable()` has been called.
+
+Example request:
+
+```bash
+GET /wp-json/taw/v1/icons?search=arrow&per_page=20
+Authorization: Cookie (requires edit_posts capability)
+```
+
+Example response:
+
+```json
+[
+  { "name": "arrow-right", "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" ...>...</svg>" },
+  { "name": "arrow-left", "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" ...>...</svg>" }
+]
+```
+
+<ParamField query="search" param-type="string" required="false" deprecated="false">
+  Search string matched against icon names and keywords (tags, categories, aliases). Omit to return the first results in the vendored index.
+</ParamField>
+
+<ParamField query="per_page" param-type="integer" required="false" deprecated="false">
+  Results per page. Accepts `1`–`120`. Defaults to `60`.
 </ParamField>
 
 {/* MARK: Visual Editor */}
@@ -1359,6 +1435,77 @@ TAW Core adds admin screens to help you operate and test these modules without w
 - **Settings → Form Webhook** — configures the webhook URL and HMAC secret that `SubmissionsHandler` uses when posting saved submissions to an external endpoint.
 
 Use these screens to confirm templates render as expected and form submissions reach your downstream systems before wiring them into live flows.
+
+{/* MARK: Icon System */}
+
+## Icon System
+
+TAW Core vendors the full [Lucide](https://lucide.dev) icon set (~1,750 icons) directly inside the package — `resources/icons/lucide/` (SVGs) plus `resources/icons/lucide-index.json` (a searchable name/keyword index). The wp-admin icon picker reads only these local files, so it never makes a network call. Re-vendor the set with `php bin/taw icons:sync` whenever Lucide ships new icons.
+
+<Callout kind="tip">
+  The icon picker is opt-in. Call this once, in `inc/customizations.php`, before `Theme::boot()`:
+
+  ```php
+  TAW\Core\Icons\Lucide::enable();
+  ```
+
+  Without it, an `icon` field renders an inline notice instead of the picker.
+</Callout>
+
+### Using the `icon` field type
+
+Declare it exactly like any other Metabox or OptionsPage field — see the [Icon](#supported-field-types) entry above for the full declaration/usage example. The stored value is a bare icon name (e.g. `house`), sanitized with `sanitize_key()`.
+
+### Rendering icons in templates
+
+`Lucide::render()` needs **no** `enable()` call — the same relationship `Svg::register()` (upload support) has to `Svg::inline()`/`Svg::render()` (template output). It reads the vendored SVG and merges `class`, `attr`, and `title` onto the root element.
+
+```php
+use TAW\Core\Icons\Lucide;
+
+echo Lucide::render('arrow-right', [
+    'class' => 'w-5 h-5 text-blue-600',
+    'title' => 'Next',
+]);
+```
+
+Lucide's SVGs use `stroke="currentColor"`, so CSS/Tailwind text-color utilities control icon color for free. `Lucide::render()` returns an empty string for an unknown or malformed name — safe to echo unconditionally.
+
+### Icon search REST endpoint
+
+`GET taw/v1/icons?search=&per_page=` powers the wp-admin picker (see [REST API](#rest-api) below) and is only registered once `Lucide::enable()` has been called. Requires `edit_posts` plus a valid `wp_rest` nonce, same as the other TAW REST routes.
+
+{/* MARK: Media Folders */}
+
+## Media Folders
+
+Nestable Media Library folders, built on a single hierarchical taxonomy (`taw_media_folder`) registered on `attachment` with `show_in_rest` enabled. That one flag gives the whole feature its REST layer for free, straight from WordPress core — there's no custom REST endpoint class:
+
+- Full folder (term) CRUD, including re-nesting via `parent`, at `wp/v2/taw_media_folder`.
+- A `taw_media_folder` query param on the existing `wp/v2/media` route, for filtering by folder and for reassigning a file's folder (`PATCH wp/v2/media/<id>`).
+
+<Callout kind="tip">
+  Opt-in at the framework level, but **on by default** in the `taw-theme` scaffold's `inc/customizations.php`:
+
+  ```php
+  TAW\Core\Media\MediaFolders::enable();
+  ```
+
+  Remove that line for a site that doesn't need folder organization. Only the `upload_files` capability is required — not `manage_options`.
+</Callout>
+
+### Two admin surfaces
+
+<Columns cols="2">
+  <Card title="Media → Folders" icon="folder-tree" horizontal={false}>
+    A dedicated screen: a folder tree (create, rename, delete, drag-and-drop to re-nest) alongside a drag-and-drop attachment grid, including an "Unfiled" pseudo-folder for attachments with no folder assigned. Entirely custom markup and REST calls — no WordPress core Grid-view (Backbone) internals are touched, deliberately, since patching those is fragile across core versions.
+  </Card>
+  <Card title="Classic List view" icon="list" horizontal={false}>
+    The existing Media Library list screen (`upload.php?mode=list`) gets a folder filter dropdown, a "Folder" column, and a "Move to folder…" bulk action — for anyone who prefers browsing there instead.
+  </Card>
+</Columns>
+
+A folder's position in the tree is its only "category" — one folder per attachment (`wp_set_object_terms()`), with no separate tagging layer on top.
 
 {/* MARK: Helpers */}
 
