@@ -4,13 +4,36 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
-<Update label="2026-07-29 (pending release)" description="taw/core: Media Folders Grid-view sidebar + vendored Alpine.js" tags={["taw-core", "taw-theme", "feature"]}>
+<Update label="2026-07-29 (pending release)" description="taw/core: Media Folders Grid-view sidebar — drag-and-drop refinement" tags={["taw-core", "feature"]}>
 
-## July 2026 — Media Folders Grid-view sidebar + vendored Alpine.js
+## July 2026 — Grid-view sidebar: drag attachments into folders
 
 <Callout kind="info">
-  Shipped in source; not yet tagged. Version number to be assigned by the next `taw-release` run — see `taw-core` `AGENTS.md`/README for the actual `taw/core` version once cut.
+  Shipped in source; not yet tagged. Version number to be assigned by the next `taw-release` run.
 </Callout>
+
+Two refinements to the Grid-view sidebar's drag-and-drop, on top of the existing folder-to-folder re-nesting:
+
+- Grid thumbnails (single or multi-selected, via WordPress's own selection model) are now draggable straight onto a folder row to file them — a `dragstart`/drop-target bridge on top of WordPress core's own Backbone attachment views, reusing the same `wp/v2/media` REST call the dedicated Folders screen already used for this.
+- Dragging a folder row (or an attachment) no longer triggers WordPress core's own "drop files to upload" overlay — that overlay fires on any drag reaching it regardless of what's being dragged, so internal drags are now kept from bubbling up to it while real OS file drags are left completely alone.
+
+Full reference: `taw-core` README § "Media Folders".
+
+</Update>
+
+<Update label="2026-07-29 (v1.16.93)" description="taw/core v1.16.93: Media Folders Grid-view sidebar polish pass" tags={["taw-core", "feature"]}>
+
+## July 2026 — Grid-view sidebar polish pass
+
+A FileBird-inspired visual pass on the Grid-view sidebar: Lucide icons throughout, a toolbar (New Folder / Rename / Delete, context-aware and disabled until a real folder is selected), a collapsible sidebar (persisted via `localStorage`), an overflow menu (Expand all / Display folder IDs), per-folder expand/collapse chevrons, and folder count badges. Purely a UI layer on top of the existing tree/CRUD/live-filter behavior — no change to the REST routes or the `ajax_query_attachments_args` bridge underneath it.
+
+Full reference: `taw-core` README § "Media Folders".
+
+</Update>
+
+<Update label="2026-07-29 (v1.16.88)" description="taw/core v1.16.88: Media Folders Grid-view sidebar + vendored Alpine.js" tags={["taw-core", "taw-theme", "feature"]}>
+
+## July 2026 — Media Folders Grid-view sidebar + vendored Alpine.js
 
 `TAW\Core\Media\MediaFolders` gains a third admin surface: a FileBird-style sidebar bolted directly onto the default Media Library **Grid view** (`upload.php`'s thumbnail grid), not just the dedicated Folders screen and the classic List view. Clicking a folder in the sidebar filters the grid live, via a new `ajax_query_attachments_args` filter plus a narrow JS bridge that reads/sets props on `wp.media`'s existing Backbone query object — the same technique folder plugins like FileBird use, not a Backbone *view* override, so the existing Folders screen and List-view integration are untouched. The sidebar has the same full folder CRUD (create/rename/delete/drag-to-reparent) as the dedicated screen, and stays in sync with the List view's filter dropdown when switching between the two.
 
