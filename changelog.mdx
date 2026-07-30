@@ -4,6 +4,19 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-30 (pending release)" description="taw/core: Grid-view sidebar — folder and file sort controls" tags={["taw-core", "feature"]}>
+
+## July 2026 — Grid-view sidebar: sort controls
+
+Two independent sort controls, each remembered per-browser:
+
+- **Folder tree** — sort by name (A–Z/Z–A) or creation order (newest/oldest first), applied at every nesting level. Uses the terms REST endpoint's own `orderby=id` (term IDs increase monotonically with creation), since WordPress terms have no native creation-date field — no new REST endpoint needed.
+- **File grid** — sort by name, upload date, or **file size** (largest/smallest first). Applied directly as `wp.media`'s existing Backbone query props (`orderby`/`order`/`meta_key`), the same bridge the folder filter already uses — no new AJAX filter needed for this half either.
+
+File-size sorting needed one new piece: WordPress core only stores a file's size nested inside a serialized metadata array, which SQL can't `ORDER BY`. A new `_taw_media_filesize` postmeta value is now set on every upload, and backfilled once for pre-existing attachments the first time anyone sorts by size.
+
+</Update>
+
 <Update label="2026-07-30 (v1.16.101)" description="taw/core v1.16.101: TAW Media — dedicated screen rebuilt as a full Alpine app" tags={["taw-core", "feature"]}>
 
 ## July 2026 — TAW Media: the dedicated screen becomes a full app

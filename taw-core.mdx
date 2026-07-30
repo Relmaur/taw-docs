@@ -1504,9 +1504,13 @@ Nestable Media Library folders, built on a single hierarchical taxonomy (`taw_me
     The existing Media Library list screen (`upload.php?mode=list`) gets a folder filter dropdown, a "Folder" column, and a "Move to folder…" bulk action — for anyone who prefers browsing there instead.
   </Card>
   <Card title="Grid view sidebar" icon="layout-panel-left" horizontal={false}>
-    A FileBird-style sidebar (Alpine.js) bolted onto the default Media Library Grid view — the same folder tree and full CRUD as the dedicated screen. Clicking a folder filters the grid live via an `ajax_query_attachments_args` filter plus a narrow bridge that sets props on `wp.media`'s existing Backbone query object, not a Backbone *view* override. Stays in sync with the List view's dropdown via the same `taw_media_folder` param. Grid thumbnails (single or multi-selected) are draggable straight onto a folder row to file them, and internal drags are kept from triggering WordPress core's own upload-dropzone overlay.
+    A FileBird-style sidebar (Alpine.js) bolted onto the default Media Library Grid view — the same folder tree and full CRUD as the dedicated screen. Clicking a folder filters the grid live via an `ajax_query_attachments_args` filter plus a narrow bridge that sets props on `wp.media`'s existing Backbone query object, not a Backbone *view* override. Stays in sync with the List view's dropdown via the same `taw_media_folder` param. Grid thumbnails (single or multi-selected) are draggable straight onto a folder row to file them, and internal drags are kept from triggering WordPress core's own upload-dropzone overlay. Two independent sort controls, each remembered per-browser: the folder tree by name or creation order, and the file grid by name, upload date, or file size.
   </Card>
 </Columns>
+
+<Callout kind="tip">
+  File-size sorting reads a dedicated `_taw_media_filesize` postmeta value, since WordPress core only stores file size nested inside a serialized metadata array that SQL can't `ORDER BY` directly. It's populated on every new upload and backfilled once for pre-existing attachments the first time anyone sorts by size.
+</Callout>
 
 A folder's position in the tree is its only "category" — one folder per attachment (`wp_set_object_terms()`), with no separate tagging layer on top.
 
