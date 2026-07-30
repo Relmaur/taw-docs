@@ -4,6 +4,36 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-30 (v1.16.101)" description="taw/core v1.16.101: TAW Media — dedicated screen rebuilt as a full Alpine app" tags={["taw-core", "feature"]}>
+
+## July 2026 — TAW Media: the dedicated screen becomes a full app
+
+The dedicated **Media → TAW Media** admin screen (previously "Media → Folders") is rebuilt from an imperative vanilla-JS page into a full Alpine.js app, matching the Grid-view sidebar's look and adding real app capabilities the old screen never had:
+
+- Lucide icons throughout, a toolbar (New Folder / Rename / Delete, context-aware), an overflow menu (Expand all / Display folder IDs), and folder count badges — the same visual language as the Grid-view sidebar.
+- A breadcrumb above the attachment grid, and subfolders now show as clickable cards in the grid pane itself (not just the tree), matching the Grid-view sidebar's own folder cards.
+- **Direct file upload**: drag OS files straight onto the screen (or use the Upload Files button) to upload directly into the currently open folder, via `wp/v2/media`'s own multipart upload support plus its taxonomy REST field, in the same request.
+- **Multi-select + bulk actions**: click attachments to select several, then bulk-delete or drag the selection onto a folder to move them all at once.
+- The scoping fix from the Grid-view sidebar (a folder only shows what's directly inside it, not descendants' files too) applies here as well.
+
+The underlying `TAW\Core\Media\MediaFolders` class and the `taw_media_folder` taxonomy key are unchanged — this is a UI/JS rewrite of one admin screen, not an API or data-model change.
+
+</Update>
+
+<Update label="2026-07-30 (v1.16.96–v1.16.100)" description="taw/core: Grid-view sidebar — folder scoping, breadcrumb, folder cards, live-refresh fixes" tags={["taw-core", "fix", "feature"]}>
+
+## July 2026 — Grid-view sidebar: scoping, navigation, and live-refresh fixes
+
+A run of fixes and refinements to the Grid-view sidebar, in order:
+
+- Fixed the Grid-view's folder click-filter always returning zero results — `WP_Query::parse_tax_query()` auto-detects any top-level query key matching a registered taxonomy's `query_var` and adds its own slug-based tax_query clause, AND-combined with the sidebar's own (numeric-ID-based) one, which never matched. Fixed by removing the raw key before the query runs.
+- Fixed a folder's Grid view also showing every subfolder's files mixed in — `tax_query` defaults to `include_children: true` for hierarchical taxonomies; now explicitly `false`, so a folder only shows what's directly inside it.
+- Replaced the initial subfolder "tiles" (which reused WP core's photo-thumbnail markup and had a clipped-icon rendering bug) with dedicated folder cards — their own markup, shown in a row above the photo grid rather than mixed into it — plus a breadcrumb above them for navigating back up.
+- Fixed the grid not refreshing live after moving a file while still viewing its (unchanged) source or destination folder — Backbone's `props.set()` only re-fetches on an actual value change, so the collection's own `_requery()` is now called directly instead.
+- Fixed folder-card count badges not updating after an in-view move — the card re-render's "already correct, skip" check compared folder IDs only, not their counts.
+
+</Update>
+
 <Update label="2026-07-30 (v1.16.95)" description="taw/core v1.16.95: Media Folders drag-and-drop fixes — folder counts, drag-ghost rendering" tags={["taw-core", "fix"]}>
 
 ## July 2026 — Grid-view sidebar: drag-and-drop fixes
