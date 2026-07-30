@@ -4,6 +4,20 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-30 (v1.16.110)" description="taw/core v1.16.110: document + wire up the Emailit email transport for per-client sites" tags={["taw-core", "docs"]}>
+
+## July 2026 — Emailit transport: documented and wired into the scaffold
+
+`TAW\Support\EmailConfig::useEmailit()` already existed in `taw/core` but was never documented or wired into `taw-theme`'s scaffold. Now that it's actually in use for paying clients:
+
+- New **"Email"** section in the `taw/core` README, and a matching section on the `taw/core` reference page here, documenting `EmailConfig::useEmailit()` — routes all `wp_mail()` calls (form submissions, password resets, WooCommerce, etc.) through Emailit's API, with automatic fallback to plain `wp_mail()` if unconfigured or the API call fails.
+- `taw-theme`'s `inc/customizations.php` now has a commented-out wiring block, matching the style of this scaffold's other opt-in features — gated on a `defined('EMAILIT_API_KEY')` check, so it's a genuine no-op on every site that doesn't define the constant.
+- `EMAILIT_API_KEY` / `EMAILIT_FROM_EMAIL` / `EMAILIT_FROM_NAME` are site-specific secrets that belong in each client's own `wp-config.php`, never in the theme repo. The `emailit/emailit-php` SDK is only required on sites that opt in (`composer require emailit/emailit-php`), not a default dependency.
+
+No behavior change to `EmailConfig` itself — this is documentation and scaffold wiring for an existing, already-working class.
+
+</Update>
+
 <Update label="2026-07-30 (v1.16.106)" description="taw/core v1.16.106: Grid-view sidebar — folder and file sort controls" tags={["taw-core", "feature"]}>
 
 ## July 2026 — Grid-view sidebar: sort controls
