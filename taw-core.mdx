@@ -1494,14 +1494,17 @@ Nestable Media Library folders, built on a single hierarchical taxonomy (`taw_me
   Remove that line for a site that doesn't need folder organization. Only the `upload_files` capability is required — not `manage_options`.
 </Callout>
 
-### Two admin surfaces
+### Three admin surfaces
 
-<Columns cols="2">
+<Columns cols="3">
   <Card title="Media → Folders" icon="folder-tree" horizontal={false}>
-    A dedicated screen: a folder tree (create, rename, delete, drag-and-drop to re-nest) alongside a drag-and-drop attachment grid, including an "Unfiled" pseudo-folder for attachments with no folder assigned. Entirely custom markup and REST calls — no WordPress core Grid-view (Backbone) internals are touched, deliberately, since patching those is fragile across core versions.
+    A dedicated screen: a folder tree (create, rename, delete, drag-and-drop to re-nest) alongside a drag-and-drop attachment grid, including an "Unfiled" pseudo-folder for attachments with no folder assigned. Entirely custom markup and REST calls — no WordPress core Grid-view (Backbone) internals are touched here.
   </Card>
   <Card title="Classic List view" icon="list" horizontal={false}>
     The existing Media Library list screen (`upload.php?mode=list`) gets a folder filter dropdown, a "Folder" column, and a "Move to folder…" bulk action — for anyone who prefers browsing there instead.
+  </Card>
+  <Card title="Grid view sidebar" icon="layout-panel-left" horizontal={false}>
+    A FileBird-style sidebar (Alpine.js) bolted onto the default Media Library Grid view — the same folder tree and full CRUD as the dedicated screen. Clicking a folder filters the grid live via an `ajax_query_attachments_args` filter plus a narrow bridge that sets props on `wp.media`'s existing Backbone query object, not a Backbone *view* override. Stays in sync with the List view's dropdown via the same `taw_media_folder` param.
   </Card>
 </Columns>
 

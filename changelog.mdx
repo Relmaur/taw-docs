@@ -4,13 +4,25 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
-<Update label="2026-07-29 (pending release)" description="taw/core: Lucide icon field type + nestable Media Folders" tags={["taw-core", "taw-theme", "feature"]}>
+<Update label="2026-07-29 (pending release)" description="taw/core: Media Folders Grid-view sidebar + vendored Alpine.js" tags={["taw-core", "taw-theme", "feature"]}>
 
-## July 2026 — Icon System + Media Folders
+## July 2026 — Media Folders Grid-view sidebar + vendored Alpine.js
 
 <Callout kind="info">
   Shipped in source; not yet tagged. Version number to be assigned by the next `taw-release` run — see `taw-core` `AGENTS.md`/README for the actual `taw/core` version once cut.
 </Callout>
+
+`TAW\Core\Media\MediaFolders` gains a third admin surface: a FileBird-style sidebar bolted directly onto the default Media Library **Grid view** (`upload.php`'s thumbnail grid), not just the dedicated Folders screen and the classic List view. Clicking a folder in the sidebar filters the grid live, via a new `ajax_query_attachments_args` filter plus a narrow JS bridge that reads/sets props on `wp.media`'s existing Backbone query object — the same technique folder plugins like FileBird use, not a Backbone *view* override, so the existing Folders screen and List-view integration are untouched. The sidebar has the same full folder CRUD (create/rename/delete/drag-to-reparent) as the dedicated screen, and stays in sync with the List view's filter dropdown when switching between the two.
+
+Alpine.js — used by every admin-side interactive widget in `taw-core` (Metabox fields, Options Page, the Icon picker, and now this sidebar) — is no longer loaded from a CDN. It's vendored as a static asset (`assets/vendor/alpine.min.js`, pinned to 3.15.12) and enqueued through a new shared `TAW\Support\Alpine::enqueue()` helper, since `taw/core` installs on arbitrary client sites where a CDN dependency for a required admin script isn't safe to assume.
+
+Full reference: `taw-core` README § "Media Folders" and § "Dependencies".
+
+</Update>
+
+<Update label="2026-07-29 (v1.16.86)" description="taw/core v1.16.86: Lucide icon field type + nestable Media Folders" tags={["taw-core", "taw-theme", "feature"]}>
+
+## July 2026 — Icon System + Media Folders
 
 Two new opt-in subsystems, both following the same `enable()`-before-`Theme::boot()` pattern `VisualEditor` established.
 
