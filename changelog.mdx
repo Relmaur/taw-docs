@@ -4,6 +4,17 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-30 (v1.16.112)" description="taw/core v1.16.112: security audit — SVG upload sanitizer fail-open fix, ABSPATH guard hardening" tags={["taw-core", "security", "fix"]}>
+
+## July 2026 — Security fixes from a full framework audit
+
+A full pass across `taw/core` for anything that could let a site get compromised. One real, exploitable bug found and fixed; broader hardening applied everywhere it's safe to.
+
+- **Fixed: `Svg::sanitizeOnUpload()` could leave an unsanitized file on disk.** `wp_handle_upload()` moves an uploaded file to its final, publicly-servable location *before* this filter runs. Previously, if sanitization failed to positively confirm a file was safe — either `enshrined/svg-sanitize` returning `false` for malformed/unparseable XML, or (a second bug found in the same pass) *throwing* an uncaught `LogicException` for well-formed XML with no `<svg>` root — the original file was silently left in place, unsanitized, at its uploads URL. Any user with `upload_files` (Author and above by default) could exploit this for stored XSS. Now: any failure to positively confirm the file is clean deletes it and rejects the upload outright, and the exception path is caught so it converges to the same rejection instead of crashing the request.
+- **Added `if (!defined('ABSPATH')) { exit; }` guards** to the framework classes where it's safe to add them — direct defense-in-depth against a file being requested directly if a host doesn't block `.php` execution inside `vendor/`. Deliberately **not** added to `bin/taw`'s CLI command classes, `Framework.php`, or the two Composer `files`-autoloaded bootstrap files (`performance.php`, `utilities.php`) — all four are used in contexts where WordPress is legitimately not yet bootstrapped, and guarding them breaks `bin/taw` outright (verified against a real, unintentional regression during this fix, caught before shipping).
+
+</Update>
+
 <Update label="2026-07-30 (v1.16.111)" description="taw/core v1.16.111: per-form webhooks (previously one shared webhook per site)" tags={["taw-core", "feature"]}>
 
 ## July 2026 — Per-form webhooks
