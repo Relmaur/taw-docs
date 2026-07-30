@@ -4,13 +4,20 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
-<Update label="2026-07-29 (pending release)" description="taw/core: Media Folders Grid-view sidebar — drag-and-drop refinement" tags={["taw-core", "feature"]}>
+<Update label="2026-07-30 (v1.16.95)" description="taw/core v1.16.95: Media Folders drag-and-drop fixes — folder counts, drag-ghost rendering" tags={["taw-core", "fix"]}>
+
+## July 2026 — Grid-view sidebar: drag-and-drop fixes
+
+Two fixes surfaced while testing the drag-and-drop refinement below:
+
+- **Folder count badges always read 0**, regardless of actual contents. WordPress core's default taxonomy count callback only counts attachments with `post_status = 'publish'` (or whose parent post is) — standalone Media Library uploads are `inherit` status with no parent, so they were never counted. `registerTaxonomy()` now sets `'update_count_callback' => '_update_generic_term_count'`, which counts relationships directly. The underlying filtering/query was never affected by this — only the badge. **Existing sites need a one-time `wp term recount taw_media_folder`** to catch up on assignments made before this shipped; new assignments count correctly automatically from here on.
+- **Drag ghost visually bled into the next grid thumbnail.** WordPress's Grid view lays out attachments with `float: left` + percentage widths, a layout where Chromium's automatic drag-ghost snapshot is known to leak into an adjacent floated sibling. Fixed by setting an explicit drag image (`dataTransfer.setDragImage()`, just the thumbnail `<img>`) instead of relying on the browser's automatic capture.
+
+</Update>
+
+<Update label="2026-07-29 (v1.16.94)" description="taw/core v1.16.94: Media Folders Grid-view sidebar — drag-and-drop refinement" tags={["taw-core", "feature"]}>
 
 ## July 2026 — Grid-view sidebar: drag attachments into folders
-
-<Callout kind="info">
-  Shipped in source; not yet tagged. Version number to be assigned by the next `taw-release` run.
-</Callout>
 
 Two refinements to the Grid-view sidebar's drag-and-drop, on top of the existing folder-to-folder re-nesting:
 
