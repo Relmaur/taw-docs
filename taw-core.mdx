@@ -803,6 +803,23 @@ Form::register([
   Configure the webhook endpoint and HMAC secret under **Settings → Form Webhook** in the WordPress admin. TAW Core signs outbound submission payloads with HMAC-SHA256 so your receiver can verify authenticity.
 </Callout>
 
+**Per-form webhooks** — each form can fire to its own webhook target instead of one shared site-wide URL, resolved in precedence order:
+
+1. An admin-configured override for that specific form (Settings → Form Webhook page's **Per-Form Webhooks** table — one row per registered form).
+2. A code-level default set via the form's own `webhook` config key:
+   ```php
+   Form::register([
+       'id'      => 'contact',
+       'webhook' => ['url' => 'https://n8n.example.com/webhook/contact', 'secret' => 'optional-hmac-secret'],
+       'fields'  => [...],
+   ]);
+   ```
+3. The **Default Webhook** at the top of the same settings page — the site-wide fallback for any form with neither of the above.
+
+<Callout kind="tip">
+  A form with none of the three configured just doesn't fire a webhook — the submission is still saved to the `taw_submission` CPT either way.
+</Callout>
+
 {/* MARK: Email */}
 
 ## Email

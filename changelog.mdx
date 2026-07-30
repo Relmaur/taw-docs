@@ -4,6 +4,20 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-30 (v1.16.111)" description="taw/core v1.16.111: per-form webhooks (previously one shared webhook per site)" tags={["taw-core", "feature"]}>
+
+## July 2026 — Per-form webhooks
+
+Every form previously shared one site-wide webhook URL/secret (Settings → Form Webhook), regardless of which form actually submitted. Each form can now target its own webhook, resolved in precedence order:
+
+1. An admin-configured override for that specific form — a new **Per-Form Webhooks** table on the same **Settings → Form Webhook** page, one row per form registered via `Form::register()`.
+2. A code-level default set on the form itself, via a new `'webhook' => ['url' => ..., 'secret' => ...]` config key.
+3. The existing **Default Webhook** field — now the site-wide fallback for any form with neither of the above, rather than the only option.
+
+Fully backward compatible: any site with the old single webhook already configured keeps firing it for every form exactly as before, until a form is given its own override. No migration needed.
+
+</Update>
+
 <Update label="2026-07-30 (v1.16.110)" description="taw/core v1.16.110: document + wire up the Emailit email transport for per-client sites" tags={["taw-core", "docs"]}>
 
 ## July 2026 — Emailit transport: documented and wired into the scaffold
