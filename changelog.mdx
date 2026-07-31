@@ -4,6 +4,32 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-30 (v1.16.115)" description="taw/core v1.16.115: webhook payload gets page_url + a taw_form_webhook_payload filter for per-site customization" tags={["taw-core", "feature"]}>
+
+## July 2026 — Webhook payload: page_url + a customization filter
+
+Every form's webhook payload now includes `page_url` — the full URL of the page the form was actually submitted from, captured server-side at render time (not read from the request's `Referer` header, which browsers and privacy tools can strip). The same registered form is often embedded on more than one page; this is what lets a downstream automation (n8n, Zapier, Make) tell those submissions apart without needing a separate `form_id` per page.
+
+A new `taw_form_webhook_payload` filter runs on the payload right before it's sent — and before the HMAC signature is computed over it — letting a specific site add or override anything the default shape doesn't cover, entirely from that site's own `inc/customizations.php`, with no `taw-core` changes needed:
+
+```php
+add_filter('taw_form_webhook_payload', function (array $payload, string $formId, int $postId, array $data) {
+    $path = wp_parse_url($payload['page_url'], PHP_URL_PATH) ?? '';
+
+    if (str_contains($path, '/financiera/')) {
+        $payload['destination'] = 'financiera-sheet';
+    } elseif (str_contains($path, '/fideicomisos/')) {
+        $payload['destination'] = 'fideicomisos-sheet';
+    }
+
+    return $payload;
+}, 10, 4);
+```
+
+`page_url` is also stored on the submission's `taw_submission` CPT entry (visible in the admin detail view, next to Webhook Status and User IP) and shown in the Settings → Form Webhook page's payload example.
+
+</Update>
+
 <Update label="2026-07-30 (v1.16.112)" description="taw/core v1.16.112: security audit — SVG upload sanitizer fail-open fix, ABSPATH guard hardening" tags={["taw-core", "security", "fix"]}>
 
 ## July 2026 — Security fixes from a full framework audit
