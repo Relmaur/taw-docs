@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-31 (v1.16.119)" description="taw/core v1.16.119: ViteLoader's manifest cache can no longer serve stale asset hashes after a deploy" tags={["taw-core", "fix"]}>
+
+## July 2026 — ViteLoader: manifest cache invalidates on deploy, not on a timer
+
+`ViteLoader::getManifest()` cached the parsed Vite manifest under a fixed key for 24 hours. On a site with a persistent object cache (Redis/Memcached), that meant a deploy which rotated asset filenames could leave the site serving the *previous* build's hashed JS/CSS URLs — both genuinely 404ing — for up to a day, unless something explicitly flushed the object cache afterward. This is exactly what happened on a real client site: two entry-point assets 404'd in production while the manifest on disk was already correct.
+
+Fixed: the cache key now includes the manifest file's own mtime. A deploy necessarily rewrites `manifest.json` with a new mtime, so the previous build's cache entry is orphaned automatically — no deploy hook, no manual flush, no reliance on remembering. If a site is currently affected, one manual object-cache flush clears it immediately; going forward, this can't recur.
+
+</Update>
+
 <Update label="2026-07-31 (v1.16.118)" description="taw/core v1.16.118: Emailit sends proper multipart/alternative (HTML + plain-text) emails" tags={["taw-core", "fix"]}>
 
 ## July 2026 — Emailit: multipart/alternative emails, not HTML-only
