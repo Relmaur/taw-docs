@@ -4,6 +4,18 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-30 (v1.16.116)" description="taw/core v1.16.116: fix Emailit transport being a silent no-op since it was introduced" tags={["taw-core", "fix"]}>
+
+## July 2026 — Emailit transport: fixed a silent no-op
+
+`EmailConfig::useEmailit()` has never actually sent mail through Emailit, since it was first documented in v1.16.110 — `interceptForEmailit()` referenced `\Emailit\Client`, a class that has never existed in the real `emailit/emailit-php` SDK (the actual client class is `\Emailit\EmailitClient`). Every site with Emailit configured silently fell back to plain `wp_mail()` on every send, with no error logged anywhere.
+
+Fixed: both references now point at the correct `\Emailit\EmailitClient` class. No change to the public API — `EmailConfig::useEmailit($apiKey, $from, $fromName)` is called exactly the same way as before; sites already "configured" for Emailit will simply start actually using it once they update.
+
+`emailit/emailit-php` is now also required as a dev dependency in `taw/core` itself (previously only `composer suggest`ed), so this integration has real regression test coverage against the actual installed SDK.
+
+</Update>
+
 <Update label="2026-07-30 (v1.16.115)" description="taw/core v1.16.115: webhook payload gets page_url + a taw_form_webhook_payload filter for per-site customization" tags={["taw-core", "feature"]}>
 
 ## July 2026 — Webhook payload: page_url + a customization filter
