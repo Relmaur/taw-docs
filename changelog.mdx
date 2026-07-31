@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-31 (v1.16.118)" description="taw/core v1.16.118: Emailit sends proper multipart/alternative (HTML + plain-text) emails" tags={["taw-core", "fix"]}>
+
+## July 2026 — Emailit: multipart/alternative emails, not HTML-only
+
+`EmailConfig::useEmailit()` sent every HTML email (which is all of them, now that `Form::sendWithTemplate()` is active) with no plain-text alternative part — `text` was explicitly set to `null` and dropped before ever reaching the Emailit API. A missing plain-text part is one of several small factors that can compound with new-sender reputation issues on some spam filters.
+
+Fixed: HTML sends now include a plain-text fallback, derived from the HTML via `wp_strip_all_tags($message, true)` (the whitespace-collapsing variant, since MJML's nested-table output otherwise leaves the plain-text version full of stray blank lines). Both `html` and `text` go to `EmailService::send()` together — Emailit's API accepts them as independent, non-exclusive params. Non-HTML sends are unaffected.
+
+</Update>
+
 <Update label="2026-07-30 (v1.16.117)" description="taw/core v1.16.117: escape submitted field values before interpolating into HTML notification/confirmation emails" tags={["taw-core", "security", "fix"]}>
 
 ## July 2026 — Escaping fix: form notification/confirmation emails
