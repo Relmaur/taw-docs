@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-07-30 (v1.16.117)" description="taw/core v1.16.117: escape submitted field values before interpolating into HTML notification/confirmation emails" tags={["taw-core", "security", "fix"]}>
+
+## July 2026 — Escaping fix: form notification/confirmation emails
+
+`Form::sendWithTemplate()` built the `{{all_fields}}` block (and each individual `{{field_id}}` / `{{client_name}}` placeholder) by concatenating raw submitted values straight into the HTML email sent to both the site admin and the submitter themselves. A field value containing `<`, `&`, or a full tag broke the email's layout for both recipients — a real gap since this path emails the submitter their own data back.
+
+Fixed: every value going into a `{{...}}` placeholder is now wrapped in `esc_html()` before it reaches the template. This applies uniformly, including inside attribute contexts (e.g. a `mailto:` href built from an email field) — HTML-entity encoding is correct there too, not just in element text. There's intentionally no raw/unescaped variant of these placeholders.
+
+</Update>
+
 <Update label="2026-07-30 (v1.16.116)" description="taw/core v1.16.116: fix Emailit transport being a silent no-op since it was introduced" tags={["taw-core", "fix"]}>
 
 ## July 2026 — Emailit transport: fixed a silent no-op
