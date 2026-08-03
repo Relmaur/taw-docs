@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-08-03 (pending release)" description="taw/core: block script.js CSS side-outputs are now enqueued in production" tags={["taw-core", "fix"]}>
+
+## August 2026 — BaseBlock: a script's own imported CSS now reaches production
+
+A block's `script.js` is allowed to `import '...css'` — e.g. a third-party lightbox library's stylesheet. Vite's dev server injects that CSS automatically, so it always worked under `npm run dev`. A production build behaves differently: Rollup extracts that CSS into its own file and records it on the *script's* manifest entry (`css: [...]`), not the block's `style.scss`/`style.css` entry. `BaseBlock::enqueueProdAssets()` only ever read the latter, so the script's own CSS silently never reached the page in any real production build — while looking completely fine in local dev, the one environment most developers test in.
+
+Fixed: `enqueueProdAssets()` now also reads `$manifest[$js_key]['css']` and enqueues it, using the same critical/non-critical inline-vs-async logic already used for the block's dedicated stylesheet. See [Assets and Vite integration](/taw-core-assets-vite#per-block-assets) for the updated per-block assets note.
+
+</Update>
+
 <Update label="2026-07-31 (v1.16.119)" description="taw/core v1.16.119: ViteLoader's manifest cache can no longer serve stale asset hashes after a deploy" tags={["taw-core", "fix"]}>
 
 ## July 2026 — ViteLoader: manifest cache invalidates on deploy, not on a timer

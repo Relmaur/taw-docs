@@ -98,6 +98,10 @@ Blocks/Hero/
 └── script.js    ← per-block JS (loaded as type="module")
 ```
 
+<Callout kind="tip" collapsed="false">
+  A block's `script.js` can `import '...css'` — e.g. a third-party lightbox library's stylesheet — and it's enqueued automatically alongside the script, in both dev and production. A production build extracts that CSS onto the *script's own* manifest entry (not the block's `style.scss`/`style.css` entry); `BaseBlock::enqueueProdAssets()` reads both, so no extra wiring is needed.
+</Callout>
+
 Assets are only enqueued on pages that actually use the block. Your homepage does not load your blog's scripts.
 
 ### Queueing assets before `wp_head`
