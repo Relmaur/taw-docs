@@ -53,6 +53,19 @@ TAW Core's asset strategy is designed to avoid render-blocking resources:
 - **JS** is loaded as an ES module (`type="module"`).
 - All filenames are **content-hashed** for cache-busting — no version query strings needed.
 
+### Optimizer-exclusion hardening
+
+Every module `<script>` tag (plus its `modulepreload`/`preload` `<link>`s) and every Vite-extracted stylesheet `<link>` carries `data-no-optimize="1" data-cfasync="false" data-no-defer="1" data-no-minify="1"` — standard exclusion signals that WP Rocket, Autoptimize, Perfmatters, and LiteSpeed Cache all document and honor when they hook WordPress's own `script_loader_tag`/`style_loader_tag` filters. Vite's output is already minified, hashed, and (for JS) split into ES modules that require exact, un-mangled execution order — nothing a generic optimizer does to it is safe.
+
+<Callout kind="alert" collapsed="false">
+  **This hardening does not cover every failure mode.** It only helps against optimizer plugins that hook WordPress's normal tag filters. A confirmed real incident: a host's JS optimization plugin (WPMUdev Hummingbird) rehosted a client site's compiled entry chunk onto its own CDN — one with no `Access-Control-Allow-Origin` header. Module scripts always require CORS to execute, so the browser hard-blocked the fetch (`net::ERR_FAILED`), and the entire bundle — Alpine.js and all core init logic included — silently never ran, with zero visible errors on the page. Hummingbird's CDN-rehosting feature rewrites the raw HTML output buffer directly, bypassing WordPress's filters entirely, so it never sees these attributes. Any host-level "combine/serve JS from CDN" feature must exclude the theme's own build output (`public/build/assets/`) via that plugin's own admin UI — no marker on the tag can force this.
+</Callout>
+
+**Fast diagnostic** for this failure mode — a page that looks broken with zero application-level errors:
+1. Check `window.Alpine === undefined` in the console after page load — `true` means the entry bundle never executed.
+2. Check `getComputedStyle(document.documentElement).getPropertyValue('--header-height')` — an empty string means the same thing.
+3. Check the Network tab for a cross-origin CORS block on the module script request before assuming it's an application bug.
+
 ## ViteLoader API (`TAW\Support\ViteLoader`)
 
 `ViteLoader` is the OOP Vite bridge shipped in `taw/core`. It is PSR-4 autoloaded — no explicit include needed.

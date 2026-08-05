@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-08-04 (pending release)" description="taw/core: ViteLoader now marks its module scripts and stylesheets as off-limits to third-party JS/CSS optimizers" tags={["taw-core", "feature"]}>
+
+## August 2026 — ViteLoader: optimizer-exclusion hardening
+
+Vite's compiled output is already minified, hashed, and (for JS) split into ES modules that require exact, un-mangled execution order — a generic optimization plugin re-processing it can only make things worse. `ViteLoader`'s module scripts, their `modulepreload`/`preload` `<link>` tags, and every Vite-extracted stylesheet now carry `data-no-optimize="1" data-cfasync="false" data-no-defer="1" data-no-minify="1"` — standard exclusion signals WP Rocket, Autoptimize, Perfmatters, and LiteSpeed Cache all document and honor.
+
+This is defensive hardening, not a fix for the specific incident that motivated it: a client site (mlizardo.com) hit a hard, silent failure when the host's JS optimization plugin (WPMUdev Hummingbird) CDN-rehosted the entry bundle onto a CDN with no CORS support — module scripts always require CORS, so the browser hard-blocked the fetch and the entire bundle (Alpine.js, all core init) never ran, with zero visible page errors. Hummingbird's CDN-rehosting feature rewrites the raw HTML buffer directly, bypassing WordPress's tag filters entirely, so these new markers don't help against it specifically — that class of tool still needs manual exclusion-list configuration in its own admin UI. See [Assets and Vite integration](/taw-core-assets-vite#optimizer-exclusion-hardening) for the full incident and a fast diagnostic.
+
+</Update>
+
 <Update label="2026-08-04 (pending release)" description="taw/core: SeoMeta::OUTPUT_MODE_FIELD lets a site owner manually override unreliable SEO-plugin auto-detection" tags={["taw-core", "feature"]}>
 
 ## August 2026 — SEO output mode: a manual override for unreliable plugin detection
