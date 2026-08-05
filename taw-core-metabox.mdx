@@ -363,6 +363,8 @@ Set `'readonly' => true` on any field whose value is authoritatively owned by so
 ['id' => 'case_client', 'label' => 'Client', 'type' => 'text', 'readonly' => true],
 ```
 
+A small lock icon appears next to the field's label (with a "Managed externally — read-only" tooltip), so the field reads as intentionally locked rather than as a bug in the admin UI.
+
 <Callout kind="info" collapsed="false">
   This is enforced on both ends, not just visually. No `<input>`/`<select>`/`<textarea>` is rendered — there's nothing for devtools to re-enable and submit — and `Metabox::save()` skips the field entirely, so a forged `$_POST` key is ignored regardless of what the rendered markup looked like.
 </Callout>
