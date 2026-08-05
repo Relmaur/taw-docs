@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-08-04 (pending release)" description="taw/core: SeoMeta::OUTPUT_MODE_FIELD lets a site owner manually override unreliable SEO-plugin auto-detection" tags={["taw-core", "feature"]}>
+
+## August 2026 — SEO output mode: a manual override for unreliable plugin detection
+
+`SeoMeta::isSeoPluginActive()` detects Yoast/RankMath/SmartCrawl via version constants (`WPSEO_VERSION`, `RANK_MATH_VERSION`, `WPMU_DEV_SITE_ID`) so TAW's own `<title>`/meta/OG/JSON-LD output stands down rather than duplicating a real SEO plugin's own tags. That detection is inherently best-effort — not every install of every plugin defines a stable constant. This surfaced on a real production site: SmartCrawl (WPMU DEV) was active and rendering correct, complete SEO output, but `WPMU_DEV_SITE_ID` wasn't defined for that install, so TAW never detected it and kept rendering alongside it — duplicate `og:title` (one correct, one a stale "Index" placeholder), duplicate `<link rel="canonical">`, and duplicate JSON-LD `<script>` blocks, simultaneously.
+
+Added: a new **SEO Output** setting on `Schema`'s existing "SEO Schema" admin page (`SeoMeta::OUTPUT_MODE_FIELD`) — Automatic (today's detection-based default), Always On (ignore detection, TAW's output always renders), or Always Off (TAW stands down entirely, deferring to whatever's actually installed). The settings page itself now always registers, regardless of current detection state, so the override stays reachable even when detection is currently wrong in either direction.
+
+</Update>
+
 <Update label="2026-08-04 (pending release)" description="taw/core: SeoMeta no longer prints a duplicate canonical tag, and a static front page's og:title/description no longer leak a raw internal post title" tags={["taw-core", "fix"]}>
 
 ## August 2026 — SeoMeta: canonical dedup + static front-page identity fallback
