@@ -57,7 +57,13 @@ Most field types support a shared set of options you can mix and match as needed
 
 - `conditions` — show/hide logic based on other field values, with `field`, `value`, and `operator` keys.
 
+- `readonly` — boolean flag that renders the field as non-interactive text instead of an editable control, for values an external process (a sync pipeline, a computed value) authoritatively owns.
+
 Use these common options alongside the type-specific options below.
+
+<Callout kind="tip" collapsed="false">
+  `readonly` is enforced on both ends, not just visually: no `<input>`/`<select>`/`<textarea>` is rendered at all (nothing for devtools to re-enable and submit), and `Metabox::save()` skips the field entirely — a forged `$_POST` key is ignored regardless. It composes rather than being its own field type: on a `group` field it propagates to every sub-field, and on a `repeater` field it disables Add/Remove/reorder for the whole row list (not just the sub-field values), propagating `readonly` to every sub-field in every row. Not yet enforced by `VisualEditorEndpoint` or the `fields:set`/`seo:inject` CLI commands — those are separate write paths that don't consult this flag.
+</Callout>
 
 ### Supported field types
 
@@ -919,7 +925,7 @@ new OptionsPage([
 ]);
 ```
 
-Options Page reuses the exact `TAW\Core\Metabox\Metabox` field renderer, so every field `type` behaves identically to its Metabox counterpart — the only difference is that values are read back with `OptionsPage::get()` instead of `Metabox::get()`. The same tabbed layout, `width` grid spans, validation, and `conditions` logic from metaboxes all apply.
+Options Page reuses the exact `TAW\Core\Metabox\Metabox` field renderer, so every field `type` behaves identically to its Metabox counterpart — the only difference is that values are read back with `OptionsPage::get()` instead of `Metabox::get()`. The same tabbed layout, `width` grid spans, validation, `conditions` logic, and `readonly` enforcement from metaboxes all apply.
 
 <Callout kind="info" collapsed="false">
   If you're registering this from `inc/options.php` in a `Theme::bootstrapFullSite()` scaffold, translated field labels (`__('Phone', 'taw-theme')`) are safe to use as-is — `bootstrapFullSite()` (`taw/core` v1.16.67+) defers both the textdomain load and `inc/options.php`'s own require to `after_setup_theme`, specifically to avoid WordPress 6.7+'s `_load_textdomain_just_in_time` notice. Don't call `load_theme_textdomain()` yourself in `inc/customizations.php` — it's already handled.

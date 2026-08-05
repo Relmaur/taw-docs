@@ -42,6 +42,7 @@ All field types share a base set of options:
 | `required` | `bool` | Mark field as required — validation runs on save |
 | `width` | `string` | Column width as a percentage, e.g. `'50'`, `'33.33'`. Default `'100'` |
 | `conditions` | `array` | Conditional logic — show/hide based on other field values |
+| `readonly` | `bool` | Render as non-interactive text; never written on save (see [Readonly fields](#readonly-fields)) |
 
 ## Field types
 
@@ -353,6 +354,27 @@ Fields can show or hide based on other field values. Conditions are evaluated li
 ```
 
 **Supported operators:** `==`, `!=`, `contains`, `empty`, `!empty`
+
+## Readonly fields
+
+Set `'readonly' => true` on any field whose value is authoritatively owned by something other than the wp-admin form — an external `.md`-file sync pipeline, a computed value — so the metabox stops implying it's editable there.
+
+```php
+['id' => 'case_client', 'label' => 'Client', 'type' => 'text', 'readonly' => true],
+```
+
+<Callout kind="info" collapsed="false">
+  This is enforced on both ends, not just visually. No `<input>`/`<select>`/`<textarea>` is rendered — there's nothing for devtools to re-enable and submit — and `Metabox::save()` skips the field entirely, so a forged `$_POST` key is ignored regardless of what the rendered markup looked like.
+</Callout>
+
+`readonly` composes with `group` and `repeater` rather than being its own field type:
+
+- On a `group` field, it propagates to every sub-field.
+- On a `repeater` field, it disables Add/Remove/reorder for the whole row list — not just the sub-field values — and propagates to every sub-field in every row. A synced list whose *membership* could still be edited would be just as misleading as an editable input. A `readonly` sub-field inside an otherwise-editable repeater is also supported and enforced per row.
+
+<Callout kind="alert" collapsed="false">
+  Not currently enforced by `TAW\Core\Rest\VisualEditorEndpoint` or the `fields:set`/`seo:inject` CLI commands — those are separate write paths that don't consult this flag yet.
+</Callout>
 
 ## Tabbed metaboxes
 

@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-08-05 (pending release)" description="taw/core: Metabox fields support a readonly option for values an external process authoritatively owns" tags={["taw-core", "feature"]}>
+
+## August 2026 — Metabox: readonly fields
+
+Any Metabox (and Options Page) field now accepts `'readonly' => true`, rendering it as non-interactive text instead of an editable `<input>`/`<select>`/`<textarea>` and skipping it entirely in `save()` — a forged `$_POST` key is ignored regardless of what a tampered-with rendered form contained. This closes a real gap: content synced in from an external source (e.g. a git-tracked `.md`-file pipeline) previously still rendered as an editable field in wp-admin, inviting edits that the next sync would silently overwrite.
+
+`readonly` composes with `group` (propagates to every sub-field) and `repeater` (disables Add/Remove/reorder for the whole row list, not just sub-field values, and propagates to every sub-field in every row) rather than being a field type of its own. See [Readonly fields](/taw-core-metabox#readonly-fields) for the full breakdown, including the one deliberate gap: `VisualEditorEndpoint` and the `fields:set`/`seo:inject` CLI commands are separate write paths that don't consult this flag yet.
+
+</Update>
+
 <Update label="2026-08-04 (pending release)" description="taw/core: ViteLoader now marks its module scripts and stylesheets as off-limits to third-party JS/CSS optimizers" tags={["taw-core", "feature"]}>
 
 ## August 2026 — ViteLoader: optimizer-exclusion hardening
