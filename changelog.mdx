@@ -4,6 +4,19 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-08-04 (pending release)" description="taw/core: SeoMeta no longer prints a duplicate canonical tag, and a static front page's og:title/description no longer leak a raw internal post title" tags={["taw-core", "fix"]}>
+
+## August 2026 — SeoMeta: canonical dedup + static front-page identity fallback
+
+Two related gaps in `SeoMeta`'s `<head>` output, both only visible once you check the actual rendered HTML rather than trusting the code's own docblocks:
+
+1. **Duplicate `<link rel="canonical">`.** `SeoMeta::renderHeadTags()` prints its own canonical tag on `wp_head` (priority 1), but never removed WordPress core's default `rel_canonical()` output — every page shipped two identical canonical tags.
+2. **`og:title`/`twitter:title` on a static front page could show a raw, possibly internal-only `post_title`.** A static front page (a `Page` selected under Settings → Reading) is still `is_singular()`, so it never reached the dedicated `is_front_page()`/`is_home()` fallback branch that already existed for the *dynamic* home/blog-index case — the same gap WordPress core's own `wp_get_document_title()` already closes for the real `<title>` tag, but `SeoMeta` hadn't mirrored for OG/Twitter.
+
+Fixed: `remove_action('wp_head', 'rel_canonical')` runs alongside `SeoMeta`'s own hook registration, and `singularContext()` now falls back to `get_bloginfo('name')`/`get_bloginfo('description')` for a static front page when no per-post meta title/description is set — matching the treatment the dynamic front-page/home branch already had.
+
+</Update>
+
 <Update label="2026-08-03 (pending release)" description="taw/core: block script.js CSS side-outputs are now enqueued in production" tags={["taw-core", "fix"]}>
 
 ## August 2026 — BaseBlock: a script's own imported CSS now reaches production
