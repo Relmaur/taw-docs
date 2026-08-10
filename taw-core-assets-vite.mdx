@@ -65,6 +65,21 @@ Every module `<script>` tag (plus its `modulepreload`/`preload` `<link>`s) and e
 1. Check `window.Alpine === undefined` in the console after page load — `true` means the entry bundle never executed.
 2. Check `getComputedStyle(document.documentElement).getPropertyValue('--header-height')` — an empty string means the same thing.
 3. Check the Network tab for a cross-origin CORS block on the module script request before assuming it's an application bug.
+4. Watch for the **200-but-blocked variant** too: the Network tab can show `200 OK` on the module script request yet still flag it red/CORS-blocked — the CDN served the file fine, it just omitted `Access-Control-Allow-Origin`. Don't let the 200 status rule out CORS as the cause.
+
+<Callout kind="info" collapsed="false">
+  A second confirmed occurrence hit this via Hummingbird's **"Enable WPMU DEV CDN"** file-hosting feature rather than its optimizer — same root cause, different feature. Hummingbird's CDN settings expose a working **per-file/per-handle exclusion picker** (listing `theme-app` and every `taw-block-*` handle individually) — excluding the module handles actually used on a page from the CDN is the real fix for that specific feature, unlike the optimizer's raw-buffer rewrite which has no such admin-side escape hatch.
+</Callout>
+
+### `critical.scss` must contain real content, not empty placeholders
+
+`critical.scss` is inlined in `<head>`, and `app.css` loads async (above) — meaning `critical.scss` is the *only* CSS covering the page from first paint until `app.css` finishes loading moments later. An empty or placeholder `critical.scss` produces a real flash of unstyled HTML on every page load, not just a marginally slower paint.
+
+The correct content is **hand-authored, layout-only** CSS for whatever renders above the fold (typically the header and hero/first section) — just enough geometry (flex direction, gap, padding, min-height) to prevent layout shift when `app.css`'s real utility classes take over. Full color/typography fidelity isn't necessary; a brief color flash is an accepted critical-CSS tradeoff, a layout *jump* is not.
+
+<Callout kind="alert" collapsed="false">
+  Giving `critical.scss` its own scoped Tailwind `@source` (so the utility classes actually used above the fold generate themselves, instead of being hand-copied and risking drift) looks like the obvious fix, but doesn't work in this build, for two independent reasons. First, `@source` is only honored on entries reachable from a real HTML/JS entry in Vite's module graph — `critical.scss` is a bare secondary CSS Rollup input, never associated with an HTML page, so Tailwind's content scanner never treats it as a scan root; the directives pass through as inert text. Second, even where `@source` scoping does work, `@import "tailwindcss"` unconditionally emits Tailwind's entire default theme (every stock color family, spacing scale, shadows — around 18 KB) into every independent root it's imported into, regardless of how narrow the `@source` scope is — theme tokens aren't tree-shaken the way generated utility classes are. A critical-CSS file scoped to just the header and hero blew the 14 KB budget by over 50% from the theme dump alone, before a single real utility class was counted. Hand-authored layout CSS is the practical answer until the build tooling itself changes (e.g. making `critical.scss` reachable from a real HTML entry).
+</Callout>
 
 ## ViteLoader API (`TAW\Support\ViteLoader`)
 
@@ -143,6 +158,33 @@ DOM initialization that must run on every navigation (carousels, lightboxes, ani
 ## Vite configuration
 
 Vite is configured in `vite.config.js` at the theme root. The default config handles Tailwind v4 via the official Vite plugin, SCSS compilation, and the `public/build/` output directory. Edit this file to add new entry points or adjust build targets.
+
+## Cache headers for build assets
+
+`TAW\Support\Performance::configure(['build_asset_cache_htaccess' => true])` (the default) writes a scoped `.htaccess` — inside the Vite `{dist}/assets/` directory itself, not the site root — setting `Cache-Control: max-age=31536000, public, immutable` unconditionally for every file in that directory. This is safe precisely because every file Vite writes there is content-hashed; nothing in that directory is ever a stale reference. Runs once on `after_switch_theme`, and no-ops quietly if the build hasn't run yet or the directory isn't writable.
+
+<Callout kind="alert" collapsed="false">
+  This only works on Apache — `.htaccess` is ignored entirely by nginx, and a PHP process has no equivalent way to write nginx's own config. When `build_asset_cache_htaccess` is on and the site is detected running behind nginx, a dismissible `wp-admin` notice shows a logged-in admin the exact block to paste into their server config, with the site's real theme/build path already filled in:
+
+```nginx
+location ^~ /wp-content/themes/your-theme/public/build/assets/ {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+}
+```
+</Callout>
+
+A separate, independent key — `font_cache_htaccess` — covers only font files (`woff2|woff|ttf|otf|eot`) via a root-level `.htaccess` block matched by extension. Both can run at once without conflict.
+
+## Modern image formats (AVIF/WebP)
+
+`modern_image_formats` (on by default) hooks WordPress core's own `image_editor_output_format` filter — added in WordPress 5.8, not a plugin — so newly-uploaded JPEG/PNG images generate their subsizes as AVIF, falling back to WebP, checked at runtime via `wp_image_editor_supports()`. On a host whose image library can't encode either format, this does nothing — the original format is left untouched, never assumed.
+
+<Callout kind="info" collapsed="false">
+  This is a **replace**, not a dual-format generation — WordPress core has no built-in mechanism to save both the original format and a modern-format sibling side by side, so the resulting files simply *are* AVIF/WebP. `wp_get_attachment_image_src()`, `srcset`, and everything built on them — including `Image::render()` — pick this up automatically, with no template changes required. No `<picture>`-based fallback is needed either: AVIF/WebP support has been universal in shipping browsers for years.
+</Callout>
+
+Only affects sizes generated going forward — new uploads, or a `Regenerate Thumbnails`-style regeneration — not existing media library files until they're regenerated. Animated GIFs are never in scope; the filter only ever sees `image/jpeg`/`image/png`.
 
 ## Commands
 

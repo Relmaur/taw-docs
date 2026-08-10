@@ -4,6 +4,36 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-08-10 (pending release)" description="taw/core: newly-uploaded images generate as AVIF/WebP automatically, using WordPress core's own conversion — no plugin" tags={["taw-core", "feature", "performance"]}>
+
+## August 2026 — Modern image formats (AVIF/WebP) via WordPress core
+
+`Performance::configure(['modern_image_formats' => true])` (the default) hooks WordPress core's own `image_editor_output_format` filter — added in WP 5.8, not a plugin — so newly-uploaded JPEG/PNG images generate their subsizes as AVIF, falling back to WebP, checked at runtime via `wp_image_editor_supports()` rather than assumed. Does nothing on a host whose image library can't encode either format.
+
+This is a replace, not a dual-format generation — the resulting files simply *are* AVIF/WebP, so `Image::render()` and everything else built on `wp_get_attachment_image_src()` picks this up automatically with zero template changes. Verified against a real upload on a live site, which also caught a real bug: WordPress core calls this filter with a `null` filename in some code paths, which fataled the original non-nullable signature — fixed, with a regression test locking it in. See [Modern image formats](/taw-core-assets-vite#modern-image-formats-avif-webp).
+
+</Update>
+
+<Update label="2026-08-10 (pending release)" description="taw/core: app.css now genuinely loads async, backed by hand-authored critical CSS for the header/hero" tags={["taw-core", "taw-theme", "performance"]}>
+
+## August 2026 — app.css loads async; critical.scss now carries real content
+
+`ViteLoader`'s CSS pipeline documentation always described `app.css` as loading asynchronously via the `media="print"` swap — the code didn't actually do that until now; it was synchronous and render-blocking. Fixed to match, using the same async pattern already used for non-critical block CSS.
+
+This makes `critical.scss` load-bearing rather than decorative: an empty placeholder there now produces a real flash of unstyled HTML on every page, not just a marginally slower paint. The default theme scaffold's `critical.scss` now carries real, hand-authored layout-only CSS for the header and Hero/Button markup — enough geometry to prevent layout shift, without needing full color/typography fidelity. A scoped Tailwind `@source` for `critical.scss` was tried first and doesn't work in this build (two independent reasons, written up in full) — hand-authored is the practical answer for now. See [critical.scss must contain real content](/taw-core-assets-vite#criticalscss-must-contain-real-content-not-empty-placeholders).
+
+</Update>
+
+<Update label="2026-08-10 (pending release)" description="taw/core: Vite's hashed build output gets long-lived cache headers automatically, with an nginx fallback notice" tags={["taw-core", "performance"]}>
+
+## August 2026 — Cache headers for Vite's build assets
+
+`Performance::configure(['build_asset_cache_htaccess' => true])` (the default) writes a `.htaccess` scoped to Vite's own `{dist}/assets/` directory, setting `Cache-Control: max-age=31536000, public, immutable` for every file there — safe because everything Vite writes to that directory is content-hashed. Deliberately scoped by directory rather than matched by extension in the root `.htaccess`, since `wp-content/uploads/` images share the same extensions but aren't hashed.
+
+This only works on Apache. On a site detected running behind nginx, a dismissible `wp-admin` notice now shows a logged-in admin the exact nginx config block to paste in, with the site's real theme/build path filled in — discovered live: Local by Flywheel's own default site environment runs nginx, not Apache. See [Cache headers for build assets](/taw-core-assets-vite#cache-headers-for-build-assets).
+
+</Update>
+
 <Update label="2026-08-05 (pending release)" description="taw/core: readonly Metabox fields now show a lock icon next to their label" tags={["taw-core", "enhancement"]}>
 
 ## August 2026 — Metabox: readonly fields get a lock icon
