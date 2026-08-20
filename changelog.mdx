@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-08-20 (pending release)" description="taw/core: Media Library Grid view now auto-appends new uploads to \"All Files\" again, instead of requiring a manual refresh" tags={["taw-core", "fix"]}>
+
+## August 2026 — Grid-view sidebar: fixed uploads not auto-appending
+
+The Media Folders Grid-view sidebar's `refreshGridQuery()` calls WordPress core's own `library._requery()` to force a re-fetch after a folder switch, sort change, or drag-and-drop move — but core's `_requery()` always swaps in a brand-new Backbone Query collection, and only the *original* collection (wired up once, at Grid boot) is bound to auto-append newly-completed uploads from `wp.Uploader.queue`. Since sidebar initialization itself calls `refreshGridQuery()` on every Grid-view page load (to apply the remembered file sort), that binding was getting dropped almost immediately — so a file uploaded while viewing "All Files" never appeared until a hard page reload.
+
+Fixed by re-attaching `library.observe(wp.Uploader.queue)` to the fresh collection every time `_requery()` replaces it, restoring live-append behavior after every folder/sort change, not just at initial page load.
+
+</Update>
+
 <Update label="2026-08-10 (pending release)" description="taw/core: newly-uploaded images generate as AVIF/WebP automatically, using WordPress core's own conversion — no plugin" tags={["taw-core", "feature", "performance"]}>
 
 ## August 2026 — Modern image formats (AVIF/WebP) via WordPress core
