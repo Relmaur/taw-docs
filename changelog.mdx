@@ -4,6 +4,20 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-08-23 (pending release)" description="taw/core: Form gains image/wysiwyg fields + an on_submit hook; new PagePassword API; taw-theme ships a password-gated client post-submission portal" tags={["taw-core", "taw-theme", "feature", "security"]}>
+
+## August 2026 — Form image/wysiwyg fields, on_submit hook, and PagePassword
+
+`Form` gains two new field types and a way to run custom logic after a submission. `image` renders a file input, uploads via `media_handle_upload()`, and validates the result as a genuine image server-side (`wp_attachment_is_image()` — the `accept="image/*"` attribute is a client-side hint only, not the real check). `wysiwyg` renders WordPress's own classic editor (`wp_editor()`, no media buttons) — free paste-from-Word cleanup via TinyMCE's built-in paste plugin, sanitized server-side with `wp_kses_post()`. A new `'on_submit' => callable` config key runs after a submission is saved, for anything beyond "save it and maybe email it" — most commonly, creating a real post from the submitted data.
+
+New `TAW\Core\Auth\PagePassword` gates a page template behind a single shared password, declared directly in the template before any output — not a wp-admin toggle. Fails closed (denies access) rather than gracefully degrading when misconfigured, since this is access control, not a supplementary check. See [Page Password Protection](/taw-core#page-password-protection) and [On Submit Callback](/taw-core#on-submit-callback).
+
+`taw-theme` ships a working example of both together: `page-client-submit.php`, a password-gated portal where a client fills in a title, WYSIWYG body, category, and featured image, and gets a draft post created for later review — enabled by default, gated on a `TAW_CLIENT_PORTAL_PASSWORD` constant in that site's `wp-config.php`.
+
+A dedicated security pass on both new features (prompted by explicit request, not incidentally) caught and fixed four real issues before release: neither the gate screen nor the unlocked page sent `nocache_headers()`, meaning a full-page cache/CDN could have served a cached, unlocked page to a visitor who never entered the password; the default unlock-cookie scope id was an unsalted `md5($password)`, visible as a cookie name — now `hash_hmac('sha256', $password, wp_salt('auth'))`; `on_submit`'s catch caught any `\Throwable` and echoed its message straight to an anonymous submitter, risking internal-detail leakage on an unexpected error — narrowed to `\RuntimeException` only, with anything else logged server-side and a generic message shown instead; an `image` field's upload was left permanently orphaned in the Media Library if `on_submit` subsequently rejected the submission — now cleaned up automatically. Two remaining limitations are documented rather than fixed in this pass: `PagePassword` doesn't restrict WordPress's own REST API for the underlying post, and rate-limiting relies on a client-supplied `X-Forwarded-For` header unless a trusted reverse proxy sits in front of the site.
+
+</Update>
+
 <Update label="2026-08-20 (pending release)" description="taw/core: Media Library Grid view now auto-appends new uploads to \"All Files\" again, instead of requiring a manual refresh" tags={["taw-core", "fix"]}>
 
 ## August 2026 — Grid-view sidebar: fixed uploads not auto-appending

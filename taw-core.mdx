@@ -623,6 +623,8 @@ When both `email.to_self.template` and `email.to_client.template` are set, deliv
 | `checkbox` | Boolean toggle; value is `'1'` when checked |
 | `checkbox_group` | Multiple checkboxes; pass `options`; accepts `layout`; stored as comma-separated string |
 | `date` | Native date picker; accepts `min_date` and `max_date` (ISO format `YYYY-MM-DD`) |
+| `image` | Renders `<input type="file" accept="image/*">`. Uploaded via `media_handle_upload()` on submit and verified as a real image server-side (`wp_attachment_is_image()` — the `accept` attribute is only a client-side hint). The field's value in `on_submit`'s `$data` is the resulting attachment ID (`0` when optional and omitted). Automatically adds `enctype="multipart/form-data"` to the `<form>` tag. |
+| `wysiwyg` | Renders WordPress's own classic editor (`wp_editor()`, with `media_buttons` off) — gives TinyMCE's built-in paste-from-Word cleanup for free. Sanitized server-side with `wp_kses_post()`. |
 
 Any other value (e.g. `password`, `hidden`) is passed straight through as the HTML `type` attribute.
 
@@ -864,6 +866,96 @@ add_filter('taw_form_webhook_payload', function (array $payload, string $formId,
 
 <Callout kind="info" collapsed="false">
   `taw_form_webhook_payload` runs before the HMAC signature is computed, so the signature always covers exactly what's sent — filter freely without breaking signature verification on the receiving end.
+</Callout>
+
+### On Submit Callback
+
+The `on_submit` config key runs custom logic right after a submission is saved (the `taw_submission` CPT record is guaranteed to exist first, same ordering as the email step) — the escape hatch for anything beyond "save it and maybe email it," like creating a real post from the submitted data:
+
+```php
+Form::register([
+    'id'     => 'client_post_submission',
+    'fields' => [
+        ['id' => 'post_title',     'label' => 'Title',          'type' => 'text',    'required' => true],
+        ['id' => 'post_body',      'label' => 'Body',            'type' => 'wysiwyg', 'required' => true],
+        ['id' => 'featured_image', 'label' => 'Featured Image', 'type' => 'image'],
+    ],
+    'on_submit' => function (array $data) {
+        $postId = wp_insert_post([
+            'post_title'   => $data['post_title'],
+            'post_content' => $data['post_body'],
+            'post_status'  => 'draft',
+        ], true);
+
+        if (is_wp_error($postId)) {
+            throw new \RuntimeException($postId->get_error_message());
+        }
+
+        if (!empty($data['featured_image'])) {
+            set_post_thumbnail($postId, (int) $data['featured_image']);
+        }
+    },
+]);
+```
+
+The callback's signature is `function(array $data): void`, where `$data` is the same fully-validated, sanitized field data the CPT record and webhook payload are built from.
+
+<Callout kind="alert" collapsed="false">
+  Throw a `\RuntimeException` to reject the submission with a message shown to the submitter — not any `\Throwable`. This handler runs for anonymous, unauthenticated submitters (`wp_ajax_nopriv_`), so any *other* exception type is treated as unexpected and logged server-side via `error_log()` instead, with a generic message shown to the visitor — never an arbitrary exception's own message, which could leak internal detail (file paths, query fragments, and the like).
+</Callout>
+
+If an `image` field already uploaded a file before the callback threw, that attachment is deleted automatically rather than left orphaned in the Media Library. A form with no `on_submit` behaves exactly as before this existed.
+
+{/* MARK: Page Password Protection */}
+
+## Page Password Protection
+
+`TAW\Core\Auth\PagePassword` gates a page template behind a single shared password — declared directly in the template, not a wp-admin toggle:
+
+```php
+<?php
+/**
+ * Template Name: Client Post Submission
+ *
+ * Requires TAW_CLIENT_PORTAL_PASSWORD defined in this site's wp-config.php.
+ */
+
+use TAW\Core\Auth\PagePassword;
+
+PagePassword::protect([
+    'password' => defined('TAW_CLIENT_PORTAL_PASSWORD') ? TAW_CLIENT_PORTAL_PASSWORD : '',
+    'title'    => 'Client Submission Portal',
+]);
+
+get_header();
+// ... the real template — only reached once unlocked ...
+```
+
+<Callout kind="alert" collapsed="false">
+  Must be the very first thing in the template — before `get_header()`, before any output. It needs to send a redirect and set a cookie, which requires no prior output; on a locked visit it renders its own minimal, standalone gate screen and calls `exit`, so the calling template's code below `protect()` never runs until unlocked.
+</Callout>
+
+Like `Form`'s Turnstile secret key, the password itself should live in that site's `wp-config.php` as a PHP constant, never hardcoded in a committed template file.
+
+**Config:**
+
+| Key | Default | Notes |
+| --- | --- | --- |
+| `password` | *(required)* | Empty or missing **fails closed** — the gate denies access rather than falling open, since this is access control, not a supplementary check like `Form`'s Turnstile integration. A `WP_DEBUG`-only notice flags the misconfiguration for developers. |
+| `id` | `substr(hash_hmac('sha256', $password, wp_salt('auth')), 0, 12)` | Explicit scope key for the unlock cookie. The default means two `protect()` calls sharing the same password automatically share one unlock — no config needed for "this client has several protected pages." |
+| `title` | `'Protected Page'` | Heading shown on the gate screen. |
+| `duration` | 30 days | How long the signed unlock cookie lasts once the correct password is entered. |
+
+**Security model:**
+
+- The unlock cookie is a signed, stateless token (`hash_hmac('sha256', ..., wp_salt('auth'))`, not the plaintext password) — a client can't forge one by just setting a cookie manually.
+- Password comparison uses `hash_equals()` (timing-safe).
+- Gate attempts are rate-limited per-IP via the same `TAW\Core\Form\RateLimiter` used by `Form`.
+- A correct submission redirects (POST/redirect/GET) rather than re-rendering, so a page refresh never resubmits the password.
+- Both the gate screen and the unlocked page send `nocache_headers()` — without this, a full-page cache or CDN in front of PHP could serve a cached copy of the *unlocked* page to a different visitor who never entered the password.
+
+<Callout kind="info" collapsed="false">
+  **Known limitations, by design:** `PagePassword` gates template rendering only, not WordPress's own REST API — if the underlying post's status is `publish`, its `post_content` remains readable via `wp/v2/pages/{id}` regardless of the gate. Irrelevant for a form-only page (there's no real content in `post_content` to leak), but matters if this is ever reused to gate an actual content page — keep the post `private`/`draft`, or additionally restrict REST access, if the body text itself needs to stay secret. Separately, rate limiting relies on `SubmissionsHandler::getUserIp()`, which trusts a client-supplied `X-Forwarded-For` unless a trusted reverse proxy sits in front of the site — so a strong, non-guessable password is the real defense against sustained brute-forcing, not the rate limiter alone.
 </Callout>
 
 {/* MARK: Email */}
