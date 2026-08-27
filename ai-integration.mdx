@@ -36,6 +36,10 @@ Any LLM-powered coding tool reads these on its own — no manual pointer needed:
 
 Invoked by name (`/make-metablock`, etc.) or triggered automatically by a plain-language request that matches. Live in `.claude/skills/`, synced into client sites the same way as the rest of the framework-owned scaffold.
 
+<Callout kind="info">
+  `update-theme` refreshes framework skills but never deletes a skill your site authored for its own workflows. A site-authored skill is preserved across syncs as long as its `SKILL.md` frontmatter carries `owner: site` (framework skills carry `owner: taw`). See [update-theme](#update-theme) below.
+</Callout>
+
 <Columns cols="2">
   <Card title="make-metablock" icon="package" horizontal="false">
     "add a pricing table section" → a fully wired MetaBlock: class, metabox fields, template, styles. Also accepts a pasted/attached screenshot as the design source.
@@ -54,7 +58,7 @@ Invoked by name (`/make-metablock`, etc.) or triggered automatically by a plain-
   </Card>
 
   <Card title="update-theme" icon="refresh-cw" horizontal="false">
-    "update the theme" → copies a small, precisely-delimited set of framework-owned paths (`functions.php`, `.claude/skills/`, `bin/`, CI config) from the canonical `taw-theme` repo. Direct file sync, no git merge, no shared history required — never touches your `Blocks/`, templates, or content.
+    "update the theme" → copies a small, precisely-delimited set of framework-owned paths (`functions.php`, `bin/`, CI config) from the canonical `taw-theme` repo. Direct file sync, no git merge, no shared history required — never touches your `Blocks/`, templates, or content. The skill directories (`.claude/skills/`, `.agents/skills/`) are reconciled per skill: framework skills are refreshed, retired ones removed, and any skill your site authored (`owner: site`) is left untouched.
   </Card>
 
   <Card title="project-init" icon="rocket" horizontal="false">

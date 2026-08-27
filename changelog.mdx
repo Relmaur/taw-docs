@@ -4,6 +4,30 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-08-27 (pending release)" description="taw/core: update-theme now preserves site-authored Claude/agent skills across a framework sync instead of deleting them" tags={["taw-core", "taw-theme", "feature"]}>
+
+## August 2026 — Site-authored skills survive `update-theme`
+
+`.claude/skills/` and `.agents/skills/` are framework-owned scaffold paths, so `update-theme` (and the weekly `framework-sync.yml`) used to sync them with `rsync -a --delete` — which silently destroyed any skill a client site had authored for its own workflows, since it wasn't in the canonical `taw-theme` repo.
+
+Those two paths are now reconciled one skill folder at a time instead. A skill present in the canonical repo is refreshed to the canonical copy every sync, exactly as before. A skill folder that exists **only** in your project is resolved by the `owner:` key in its `SKILL.md` YAML frontmatter:
+
+| `SKILL.md` frontmatter | What the sync does |
+|---|---|
+| `owner: site` | Preserved untouched, and named in the sync report |
+| `owner: taw` | Deleted — a framework skill that was retired upstream |
+| no `owner:` key | Preserved, but flagged in the report for a human to resolve |
+
+Every framework skill in the canonical repo now carries `owner: taw`; this is also how you tell framework and site skills apart at a glance (`grep -rl 'owner: site' .claude/skills`).
+
+<Callout kind="tip">
+  **Migrating an existing site skill:** add `owner: site` to its `SKILL.md` frontmatter and commit it to your project repo. No manifest edit and no per-site config file — the marker travels with the skill. Until it's marked, the sync reports it under a "needs a human decision" warning rather than deleting it.
+</Callout>
+
+The `skills-dir` manifest type and the `owner:` marker are declared in `taw/core`'s `resources/update-manifest.json` under `skillsReconcile`; `TAW\CLI\SyncCommand` implements the reconcile. See [AI Integration](/ai-integration#claude-code-skills).
+
+</Update>
+
 <Update label="2026-08-23 (pending release)" description="taw/core: Form gains image/wysiwyg fields + an on_submit hook; new PagePassword API; taw-theme ships a password-gated client post-submission portal" tags={["taw-core", "taw-theme", "feature", "security"]}>
 
 ## August 2026 — Form image/wysiwyg fields, on_submit hook, and PagePassword
