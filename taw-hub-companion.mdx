@@ -1,9 +1,9 @@
 ---
 title: "TAW Hub Companion"
-description: "The signed wp-json/taw-hub/v1 receiver plugin that connects a TAW site to the TAW Site Manager control hub."
+description: "The signed wp-json/taw-hub/v1 receiver plugin that connects a TAW site to the TAW Hub control hub."
 ---
 
-`taw-hub-companion` is a lightweight WordPress plugin that exposes a small, **signature-authenticated** REST surface on a TAW site so a central [TAW Site Manager](https://github.com/Relmaur/taw-site-manager) hub can check its health, run framework syncs, execute allow-listed `bin/taw` commands, and rotate its key — with no passwords.
+`taw-hub-companion` is a lightweight WordPress plugin that exposes a small, **signature-authenticated** REST surface on a TAW site so a central [TAW Hub](https://github.com/Relmaur/taw-hub) hub can check its health, run framework syncs, execute allow-listed `bin/taw` commands, and rotate its key — with no passwords.
 
 <Callout kind="info">
   This replaces the short-lived `TAW\Hub` subsystem that shipped in `taw/core` v1.20.0 and was removed in v1.20.1. `taw/core` is a theme framework; fleet management is a separate concern with its own repo (`Relmaur/taw-hub-companion`), release cadence, and wire protocol.
@@ -13,7 +13,7 @@ description: "The signed wp-json/taw-hub/v1 receiver plugin that connects a TAW 
 
 ```mermaid
 sequenceDiagram
-    participant Hub as TAW Site Manager
+    participant Hub as TAW Hub
     participant Plugin as taw-hub-companion
     participant CLI as bin/taw (theme)
     Hub->>Plugin: POST /wp-json/taw-hub/v1/framework/sync  (Ed25519-signed)
@@ -71,7 +71,7 @@ All routes are under the `taw-hub/v1` namespace and require a valid Hub signatur
 
 ## The wire protocol
 
-Every request and response is signed. The full spec is **frozen** and governed by the Hub repo — see [ADR-0003 — Wire protocol & request signatures](https://github.com/Relmaur/taw-site-manager/blob/main/docs/ADR/0003-wire-protocol-and-signatures.md) and [ADR-0005 — Companion plugin architecture](https://github.com/Relmaur/taw-site-manager/blob/main/docs/ADR/0005-companion-plugin-architecture.md).
+Every request and response is signed. The full spec is **frozen** and governed by the Hub repo — see [ADR-0003 — Wire protocol & request signatures](https://github.com/Relmaur/taw-hub/blob/main/docs/ADR/0003-wire-protocol-and-signatures.md) and [ADR-0005 — Companion plugin architecture](https://github.com/Relmaur/taw-hub/blob/main/docs/ADR/0005-companion-plugin-architecture.md).
 
 **Canonical string** (`\n`-joined, no trailing newline):
 
