@@ -4,32 +4,6 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
-<Update label="2026-08-31 (pending release)" description="taw/core: new TAW\\Hub subsystem — an authenticated wp-json/taw-hub/v1 receiver for a central management Hub (telemetry, asset deploy, block-config sync, cache flush)" tags={["taw-core", "feature", "security"]}>
-
-## August 2026 — Management Hub integration
-
-`taw/core` gains `TAW\Hub`: a headless, authenticated receiver that lets a central management Hub run telemetry, deploy Vite build assets, sync block configuration, and invalidate caches against a site over `wp-json/taw-hub/v1/`. It's wired into `Theme::boot()` as the final subsystem.
-
-**Opt-in by server config, not theme code** — there is no `enable()` call. Because it's a security boundary, the Hub is switched on only in `wp-config.php`:
-
-```php
-define('TAW_HUB_ENABLED', true);
-define('TAW_HUB_ENROLMENT_TOKEN', '…one-time token…');
-define('TAW_HUB_SECRET', '…32+ random bytes…');
-```
-
-With `TAW_HUB_ENABLED` unset — the state of every existing site and every scaffold — the integration is completely inert: no routes, no hooks, no `taw_hub_*` options or table.
-
-<Callout kind="tip">
-  Requests are signed with HMAC-SHA256 or Ed25519 over a frozen canonical string (±60s drift, single-use nonces). Pairing is a single-use enrolment-token handshake that stores only the Hub's Ed25519 public key.
-</Callout>
-
-The remote-execution surface is a **fixed allow-list** — `report-telemetry`, `flush-caches`, `sync-blocks`, `deploy-assets`, `rollback-assets` — each gated by its own `hub:*` capability, re-checked against the specific action. There is no arbitrary-command endpoint. Pushed asset archives are extracted entry-by-entry with path-traversal / symlink / extension / size / zip-bomb rejection, then swapped in by atomic `rename()` with one rollback generation. `wp taw hub run <action>` gives terminal parity over the same registry.
-
-See [Management Hub Integration](/taw-core#management-hub-integration).
-
-</Update>
-
 <Update label="2026-08-27 (pending release)" description="taw/core: update-theme now preserves site-authored Claude/agent skills across a framework sync instead of deleting them" tags={["taw-core", "taw-theme", "feature"]}>
 
 ## August 2026 — Site-authored skills survive `update-theme`
