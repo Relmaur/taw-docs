@@ -1,0 +1,99 @@
+---
+title: "TAW Hub Companion"
+description: "The signed wp-json/taw-hub/v1 receiver plugin that connects a TAW site to the TAW Site Manager control hub."
+---
+
+`taw-hub-companion` is a lightweight WordPress plugin that exposes a small, **signature-authenticated** REST surface on a TAW site so a central [TAW Site Manager](https://github.com/Relmaur/taw-site-manager) hub can check its health, run framework syncs, execute allow-listed `bin/taw` commands, and rotate its key — with no passwords.
+
+<Callout kind="info">
+  This replaces the short-lived `TAW\Hub` subsystem that shipped in `taw/core` v1.20.0 and was removed in v1.20.1. `taw/core` is a theme framework; fleet management is a separate concern with its own repo (`Relmaur/taw-hub-companion`), release cadence, and wire protocol.
+</Callout>
+
+## How it fits together
+
+```mermaid
+sequenceDiagram
+    participant Hub as TAW Site Manager
+    participant Plugin as taw-hub-companion
+    participant CLI as bin/taw (theme)
+    Hub->>Plugin: POST /wp-json/taw-hub/v1/framework/sync  (Ed25519-signed)
+    Plugin->>Plugin: verify signature (ADR-0003)
+    Plugin->>CLI: php bin/taw sync --apply --json
+    CLI-->>Plugin: JSON report
+    Plugin-->>Hub: report  (response signed with the site key)
+    Hub->>Hub: verify response signature
+```
+
+The plugin never contains fleet logic — it verifies the Hub, runs one bounded operation, signs the response, and returns.
+
+## Install
+
+<Steps>
+  <Step title="Add the plugin" icon="download">
+    Drop `taw-hub-companion/` into `wp-content/plugins/` and run `composer install` inside it (or ship it with `vendor/` bundled).
+  </Step>
+  <Step title="Configure wp-config.php" icon="settings">
+    Configuration is read from constants only — never the options table.
+
+    ```php
+    define('TAW_HUB_PUBLIC_KEY', '…base64 Ed25519 public key from the Hub…'); // required
+    define('TAW_HUB_KEY_ID',     'hub-local');                               // the Hub's key id (default: hub-local)
+    // define('TAW_HUB_ALLOWED_IPS', '203.0.113.4, 203.0.113.5');            // optional source-IP allow-list
+    // define('TAW_HUB_SITE_KEY_ID', 'site-abc123');                         // optional — override the site's own key id
+    ```
+
+    <Callout kind="alert">
+      With no `TAW_HUB_PUBLIC_KEY` the plugin is **inert**: every route returns `501` and an admin notice tells you what to define.
+    </Callout>
+  </Step>
+  <Step title="Activate" icon="power">
+    On activation the plugin generates this site's own Ed25519 keypair (secret key stored autoload-off; never leaves the site).
+  </Step>
+  <Step title="Register the site with the Hub" icon="link">
+    A signed `GET /wp-json/taw-hub/v1/health` returns `site_public_key` and `site_key_id` (also shown in an admin notice). Give those to the Hub operator so the Hub can verify this site's signed responses.
+  </Step>
+</Steps>
+
+## Routes
+
+All routes are under the `taw-hub/v1` namespace and require a valid Hub signature.
+
+| Method | Route | Body | Returns |
+|---|---|---|---|
+| `GET` | `/health` | — | `ok`, PHP / WP / `taw/core` / plugin versions, `site_public_key`, `site_key_id` |
+| `POST` | `/framework/sync` | `{ "dry_run": bool }` | the `php bin/taw sync --json` report verbatim |
+| `POST` | `/taw` | `{ "command": string, "args": string[] }` | `{ exit_code, stdout, stderr }` |
+| `POST` | `/keys/rotate` | — | `{ "public_key": "<base64>" }` — new keypair, same key id |
+
+<Callout kind="tip">
+  `/framework/sync` drives the **existing** `bin/taw sync` — the same operation `framework-sync.yml` runs — it does not reimplement per-site sync. `/taw` runs only an allow-listed subset (`sync`, `inspect`, `seo:extract`, `seo:inject`, `icons:sync`, `export:static`) through `proc_open` with an argv array — no shell. Filter `taw_hub_companion_taw_allowlist` to adjust per site.
+</Callout>
+
+## The wire protocol
+
+Every request and response is signed. The full spec is **frozen** and governed by the Hub repo — see [ADR-0003 — Wire protocol & request signatures](https://github.com/Relmaur/taw-site-manager/blob/main/docs/ADR/0003-wire-protocol-and-signatures.md) and [ADR-0005 — Companion plugin architecture](https://github.com/Relmaur/taw-site-manager/blob/main/docs/ADR/0005-companion-plugin-architecture.md).
+
+**Canonical string** (`\n`-joined, no trailing newline):
+
+```
+TAW-HUB-v1
+{METHOD}                     upper-case verb, or the literal RESPONSE
+{PATH}                       /wp-json/taw-hub/v1/…  (reconstructed from the matched route)
+{TIMESTAMP}                  unix seconds
+{NONCE}
+{lowercase hex sha256(body)}
+```
+
+**Headers:** `X-Taw-Hub-Algo` (`ed25519` or `hmac-sha256`), `X-Taw-Hub-Key-Id`, `X-Taw-Hub-Timestamp`, `X-Taw-Hub-Nonce`, `X-Taw-Hub-Signature` (base64 of the raw signature bytes).
+
+**Verification order** (mandatory): parse headers → `|now − timestamp| ≤ 60s` → resolve key by `(algo, keyId)` → cryptographic verify → consume the nonce (last, 150s TTL). Any failure → `401 {"error":"unauthorized","reason":"<code>"}` with a stable code (`malformed_signature_headers`, `timestamp_out_of_window`, `unknown_key_id`, `invalid_signature`, `replayed_nonce`).
+
+<Callout kind="info">
+  Responses are signed too, with `{METHOD}` set to the literal `RESPONSE`. The plugin's `SignatureGate`, `CanonicalString`, and signers are verified byte-for-byte against a fixture generated from the Hub's own signer (`hub-signing-vectors.json`) so the two implementations can't silently drift.
+</Callout>
+
+## Known limits
+
+- The signed `{PATH}` is rebuilt from the matched REST route, so subdirectory WordPress installs work — but a **filtered `rest_get_url_prefix()`** (≠ `wp-json`) is unsupported and raises an admin notice.
+- `/assets/sync` is not implemented — the Hub's Vite-bundle sync job is still deferred.
+- Registration is manual (activate → copy key id + public key → register with the Hub) until an enrolment endpoint exists.

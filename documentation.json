@@ -1,6 +1,6 @@
 {
-  "name": "TAW — Build with WordPress",
-  "description": "Build custom WordPress pages like assembling components — not fighting WordPress.",
+  "name": "TAW \u2014 Build with WordPress",
+  "description": "Build custom WordPress pages like assembling components \u2014 not fighting WordPress.",
   "colors": {
     "light": {
       "brand": "#F97316"
@@ -48,6 +48,11 @@
                 "title": "TAW Core",
                 "path": "taw-core",
                 "icon": "hammer"
+              },
+              {
+                "title": "TAW Hub Companion",
+                "path": "taw-hub-companion",
+                "icon": "satellite-dish"
               },
               {
                 "title": "Blocks and block registry",
