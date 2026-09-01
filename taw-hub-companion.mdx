@@ -28,9 +28,13 @@ The plugin never contains fleet logic — it verifies the Hub, runs one bounded 
 
 ## Install
 
+<Callout kind="tip">
+  On a TAW site, the fastest path is the **`hub-connect`** skill — it runs every step below interactively (installing the plugin, gathering the Hub's key, writing `wp-config.php` with confirmation, verifying, and surfacing the site key to register). Or run the primitive it wraps: `php bin/taw hub:install --activate` (requires `taw/core` ≥ v1.20.2), then do steps 2 and 4 by hand.
+</Callout>
+
 <Steps>
   <Step title="Add the plugin" icon="download">
-    Drop `taw-hub-companion/` into `wp-content/plugins/` and run `composer install` inside it (or ship it with `vendor/` bundled).
+    `php bin/taw hub:install` clones it into `wp-content/plugins/` (or add it manually and run `composer install` inside it). The plugin is **not** bundled with the theme — only fleet sites need it.
   </Step>
   <Step title="Configure wp-config.php" icon="settings">
     Configuration is read from constants only — never the options table.
