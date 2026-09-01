@@ -1740,6 +1740,69 @@ Dump::dd($value);
 Dump::log($value);
 ```
 
+<Callout kind="note">
+  `Dump` is for eyeballing a value during development. For anything that should be *recorded* — a swallowed exception, a fallback that fired, a misconfiguration a site owner needs to see — use `Logger` (below), not `Dump::log()`.
+</Callout>
+
+{/* MARK: Logging */}
+
+## Logging
+
+`TAW\Core\Log\Logger` is the framework's structured log facade. It is always on — there is no `enable()` call — and it replaces the ad-hoc `error_log('[TAW …] …')` calls the framework used internally. Theme code should use it too.
+
+```php
+use TAW\Core\Log\Logger;
+
+Logger::error('mail.emailit_send_failed', 'Emailit send failed — falling back to wp_mail().', [
+    'exception' => $e::class,
+    'error'     => $e->getMessage(),
+]);
+```
+
+Level helpers: `debug()`, `info()`, `notice()`, `warning()`, `error()`, `critical()` (PSR-3 without `alert`/`emergency`). `Logger::log($level, $code, $message, $context)` is the generic form.
+
+### Anatomy of an entry
+
+Every entry is **both** human- and machine-readable:
+
+| Field | Purpose |
+|---|---|
+| `message` | A readable sentence — what a person reads. |
+| `code` | A stable, dot-namespaced key (`subsystem.event`, e.g. `form.email_delivery_failed`). This is the contract an automated consumer — an AI agent, or the [TAW Hub](/taw-hub-companion) — filters and alerts on. Treat shipped codes as stable. |
+| `context` | An array of the concrete values involved — no string interpolation to parse back out. |
+| `ts`, `level`, `request_id` | ISO-8601 timestamp, severity, and a per-request id that ties multiple lines from one request together. |
+
+### Where entries go
+
+Two sinks are active by default:
+
+| Sink | Destination |
+|---|---|
+| `ErrorLogSink` | PHP's `error_log()` — one line: `[TAW] [ERROR] mail.emailit_send_failed: … {"context":"json"}` |
+| `JsonlFileSink` | `wp-content/taw-logs/taw.log.jsonl` — one JSON object per line, size-rotated (~5 MB, 3 backups) |
+
+<Callout kind="info">
+  The log directory lives in `wp-content/` — not the public `uploads/` — and is seeded with a deny-all `.htaccess` and an `index.php` stub on first write. Keep secrets and PII out of `context` regardless.
+</Callout>
+
+### Reading it back
+
+```bash
+php bin/taw log:tail --level=error --code=form --since=2026-09-01T00:00:00+00:00 --limit=100
+php bin/taw log:tail --json | jq   # raw entries, for piping
+```
+
+`TAW\Core\Log\LogReader` is the underlying reader (same `level` / `code`-prefix / `since` filters). On a site that has joined a fleet, the [`taw-hub-companion`](/taw-hub-companion) plugin exposes the same data over a signed `GET /wp-json/taw-hub/v1/logs` route so the Hub can report on the site without shell access.
+
+### Extending
+
+| Filter | Use |
+|---|---|
+| `taw_core_log_sinks` | Add or replace sink destinations (array of `LogSinkInterface`). |
+| `taw_core_log_entry` | Enrich every entry before it is written — e.g. tag it with a site identifier — without `taw/core` knowing what is listening. |
+
+`Logger::setSinks(...)` overrides the sinks outright; it is mainly for tests.
+
 {/* MARK: Tool Index */}
 {/* 
 ## Tool index

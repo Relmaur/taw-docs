@@ -62,12 +62,17 @@ The plugin never contains fleet logic — it verifies the Hub, runs one bounded 
 
 All routes are under the `taw-hub/v1` namespace and require a valid Hub signature.
 
-| Method | Route | Body | Returns |
+| Method | Route | Body / query | Returns |
 |---|---|---|---|
 | `GET` | `/health` | — | `ok`, PHP / WP / `taw/core` / plugin versions, `site_public_key`, `site_key_id` |
+| `GET` | `/logs` | `?limit&level&code&since` | `{ count, entries: [...] }` — the structured log `taw/core` writes (see below) |
 | `POST` | `/framework/sync` | `{ "dry_run": bool }` | the `php bin/taw sync --json` report verbatim |
 | `POST` | `/taw` | `{ "command": string, "args": string[] }` | `{ exit_code, stdout, stderr }` |
 | `POST` | `/keys/rotate` | — | `{ "public_key": "<base64>" }` — new keypair, same key id |
+
+<Callout kind="tip">
+  `/logs` serves the JSON-Lines file `taw/core`'s `TAW\Core\Log\Logger` writes to `wp-content/taw-logs/` — so the Hub can report on a site's swallowed exceptions, failed syncs, and misconfigurations without SSH. `limit` is capped at 500 (default 100); `level` is one of `debug|info|notice|warning|error|critical`; `code` is a prefix match (`form`, `mail.emailit`); `since` is an ISO-8601 timestamp. Read-only, and behind the same signature as every other route. If `taw/core` is old or has never logged, `entries` is just `[]`.
+</Callout>
 
 <Callout kind="tip">
   `/framework/sync` drives the **existing** `bin/taw sync` — the same operation `framework-sync.yml` runs — it does not reimplement per-site sync. `/taw` runs only an allow-listed subset (`sync`, `inspect`, `seo:extract`, `seo:inject`, `icons:sync`, `export:static`) through `proc_open` with an argv array — no shell. Filter `taw_hub_companion_taw_allowlist` to adjust per site.

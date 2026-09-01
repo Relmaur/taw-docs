@@ -4,6 +4,24 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-01 (pending release)" description="taw/core: a new structured Logger replacing scattered error_log() calls, plus bin/taw log:tail; taw-hub-companion gains a signed /logs route" tags={["taw-core", "taw-hub-companion", "feature"]}>
+
+## September 2026 — Structured logging for the framework
+
+`taw/core` gains `TAW\Core\Log\Logger`, an always-on structured log facade that replaces the hand-rolled `error_log('[TAW …] …')` calls the framework used internally (in `Form`, `Turnstile`, `EmailConfig`, `Svg`).
+
+Every entry carries **both** a human `message` and a machine-stable, dot-namespaced `code` (`subsystem.event` — `form.email_delivery_failed`, `mail.emailit_send_failed`, `svg.sanitizer_library_missing`, …), plus a structured `context` array. The `code` is the part an AI agent or the TAW Hub filters on; the `message` is what a person reads.
+
+Two sinks are active by default: PHP's `error_log()` (one readable line) and `wp-content/taw-logs/taw.log.jsonl` (size-rotated JSON Lines). Read it back with the new **`php bin/taw log:tail`** (`--level`, `--code`, `--since`, `--json`), or via `TAW\Core\Log\LogReader`. Level helpers are PSR-3 minus `alert`/`emergency`. Extend with the `taw_core_log_sinks` and `taw_core_log_entry` filters.
+
+Theme code (blocks, `inc/`, custom `on_submit` callbacks) should use `Logger` instead of `error_log()` from now on.
+
+**`taw-hub-companion`** adds a signed, read-only `GET /wp-json/taw-hub/v1/logs` route that serves this file to the Hub (filters: `limit` ≤ 500, `level`, `code` prefix, `since`), so fleet operators can see a site's errors without shell access.
+
+See [Logging](/taw-core#logging) and [TAW Hub Companion → Routes](/taw-hub-companion#routes).
+
+</Update>
+
 <Update label="2026-08-27 (pending release)" description="taw/core: update-theme now preserves site-authored Claude/agent skills across a framework sync instead of deleting them" tags={["taw-core", "taw-theme", "feature"]}>
 
 ## August 2026 — Site-authored skills survive `update-theme`
