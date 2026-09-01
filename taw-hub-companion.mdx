@@ -64,7 +64,7 @@ All routes are under the `taw-hub/v1` namespace and require a valid Hub signatur
 
 | Method | Route | Body / query | Returns |
 |---|---|---|---|
-| `GET` | `/health` | — | `ok`, PHP / WP / `taw/core` / plugin versions, `site_public_key`, `site_key_id` |
+| `GET` | `/health` | — | `ok`, PHP / WP / `taw/core` / plugin versions, `site_public_key`, `site_key_id`, `exec_available` |
 | `GET` | `/logs` | `?limit&level&code&since` | `{ count, entries: [...] }` — the structured log `taw/core` writes (see below) |
 | `POST` | `/framework/sync` | `{ "dry_run": bool }` | the `php bin/taw sync --json` report verbatim |
 | `POST` | `/taw` | `{ "command": string, "args": string[] }` | `{ exit_code, stdout, stderr }` |
@@ -76,6 +76,10 @@ All routes are under the `taw-hub/v1` namespace and require a valid Hub signatur
 
 <Callout kind="tip">
   `/framework/sync` drives the **existing** `bin/taw sync` — the same operation `framework-sync.yml` runs — it does not reimplement per-site sync. `/taw` runs only an allow-listed subset (`sync`, `inspect`, `seo:extract`, `seo:inject`, `icons:sync`, `export:static`) through `proc_open` with an argv array — no shell. Filter `taw_hub_companion_taw_allowlist` to adjust per site.
+</Callout>
+
+<Callout kind="alert">
+  **On `proc_open`-disabled hosts** — most managed WordPress hosting (WPMU DEV, WP Engine, Kinsta, …) — `/framework/sync` and `/taw` return `503 {"error":"exec_unavailable"}`; they shell out to `bin/taw` and cannot run. `/health` reports `"exec_available": false` so the Hub knows this up front, and `/logs` keeps working — neither spawns a subprocess. Run framework sync via the theme's own `framework-sync.yml` GitHub Action on those hosts.
 </Callout>
 
 ## The wire protocol

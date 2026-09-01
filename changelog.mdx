@@ -4,6 +4,21 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-01" description="taw-hub-companion 0.1.1–0.1.2: first live fleet enrolments (dev + production), TawRunner hardened for php-fpm and proc_open-disabled managed hosts" tags={["taw-hub-companion", "fix"]}>
+
+## September 2026 — First sites on the TAW Hub fleet
+
+Two sites enrolled end to end — a local dev site and the production `mlizardo.com` (WPMU DEV managed hosting). Signed `/health`, `/logs`, and `/framework/sync` all verified over the wire, including over the public internet through a managed host's edge layer.
+
+The rollout hardened `TawRunner` (which backs `/framework/sync` and `/taw`):
+
+- **0.1.1** — resolve a real CLI `php`. `PHP_BINARY` is `php-fpm` under the SAPI that serves the Hub's requests, so `bin/taw` never actually ran; now it resolves a CLI interpreter beside the SAPI binary / on `PATH`, override with `taw_hub_companion_php_binary`.
+- **0.1.2** — degrade cleanly where `proc_open` is disabled (most managed hosts). `/framework/sync` and `/taw` return `503 exec_unavailable`; `/health` reports `"exec_available": false`; `/health` and `/logs` keep working (they never shell out). Error responses no longer leak stack traces or server paths.
+
+See [TAW Hub Companion](/taw-hub-companion).
+
+</Update>
+
 <Update label="2026-09-01 (pending release)" description="taw/core: a new structured Logger replacing scattered error_log() calls, plus bin/taw log:tail; taw-hub-companion gains a signed /logs route" tags={["taw-core", "taw-hub-companion", "feature"]}>
 
 ## September 2026 — Structured logging for the framework
