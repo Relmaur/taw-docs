@@ -4,6 +4,18 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-02 (pending release)" description="taw/core: MetaboxOrder::lockFromTemplate() now resolves page-{slug}.php and home.php templates, not just explicitly-selected ones and front-page.php" tags={["taw-core", "fix"]}>
+
+## September 2026 — Metabox order follows the full template hierarchy
+
+`MetaboxOrder::lockFromTemplate()` derives a page's metabox order from the `BlockRegistry::render()` sequence in the template that will render it. It previously resolved only two cases: an explicitly-selected page template (`_wp_page_template`) and `front-page.php` for the static front page. Pages on WordPress's filename conventions — `page-{slug}.php` and `home.php` (the posts page) — write no template meta, so their edit screens fell back to raw metabox registration order.
+
+Resolution now mirrors WordPress's own hierarchy for all four cases, tried highest-priority first: `_wp_page_template` → `front-page.php` → `home.php` → `page-{slug}.php`. The rules live in one shared method, `Metabox::templateCandidatesForPost()`, used by both `MetaboxOrder` and the `screens` template matching in `Metabox`, so the two can no longer drift apart.
+
+Backward-compatible — pages that already ordered correctly are unaffected. See [Locking Metabox Order](/taw-core#locking-metabox-order).
+
+</Update>
+
 <Update label="2026-09-01" description="taw-hub-companion 0.1.1–0.1.2: first live fleet enrolments (dev + production), TawRunner hardened for php-fpm and proc_open-disabled managed hosts" tags={["taw-hub-companion", "fix"]}>
 
 ## September 2026 — First sites on the TAW Hub fleet

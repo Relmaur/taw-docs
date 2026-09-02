@@ -568,6 +568,34 @@ foreach ($teamMembers as $member) {
 }
 ```
 
+### Locking metabox order
+
+By default WordPress lets each user drag-and-drop metaboxes into their own order, saved per user — so the same screen looks different for every editor. `MetaboxOrder` forces one fixed order and disables dragging.
+
+```php
+use TAW\Core\Metabox\MetaboxOrder;
+
+// Explicit order.
+MetaboxOrder::lock('page', ['hero_settings', 'video_settings', 'faq_settings']);
+
+// Or derive the order per page from its template's BlockRegistry::render()
+// sequence — call once in functions.php.
+MetaboxOrder::lockFromTemplate(); // screen defaults to 'page'
+```
+
+`lockFromTemplate()` statically scans the template file that will render each page (it is never executed in wp-admin), reads the `BlockRegistry::render('block_id')` calls in source order, and maps each block to the metabox(es) it registered. Boxes not tied to a block on the page (core WordPress boxes, for example) keep their relative position and render after the ordered ones.
+
+Template resolution mirrors WordPress's own hierarchy, not just the Page Attributes dropdown. Candidates are tried highest-priority first:
+
+| Order | Template | Applies when |
+| ----- | -------- | ------------ |
+| 1 | `_wp_page_template` | A page template is explicitly selected in Page Attributes. |
+| 2 | `front-page.php` | The page is the static front page (Settings → Reading). |
+| 3 | `home.php` | The page is the posts page (Settings → Reading). |
+| 4 | `page-{slug}.php` | A template file matches the page slug. |
+
+Cases 2–4 write no post meta — WordPress applies them by convention. Pages matching none are left unordered. This resolution and the `screens` template matching in `Metabox` share one method, `Metabox::templateCandidatesForPost()`, so they cannot drift apart.
+
 {/* MARK: Forms */}
 
 ## Forms&#x20;
