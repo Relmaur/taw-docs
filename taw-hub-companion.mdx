@@ -58,6 +58,17 @@ The plugin never contains fleet logic — it verifies the Hub, runs one bounded 
   </Step>
 </Steps>
 
+## Updating
+
+From `0.2.0` the plugin self-updates from its **GitHub releases** (`Relmaur/taw-hub-companion`) — there is no per-site zip upload and no SSH step.
+
+- Every site shows the standard **"Update available"** row in *Plugins*, and `wp plugin update taw-hub-companion` works.
+- Unless `TAW_HUB_COMPANION_AUTO_UPDATE` is set to `false` in `wp-config.php`, the plugin opts itself into WordPress's **background auto-update cron** — a tagged release reaches the whole fleet within a cron cycle (~12 h) with nobody clicking anything.
+
+<Callout kind="info">
+  Releasing is `git tag vX.Y.Z && git push origin vX.Y.Z`: a CI workflow builds the plugin zip (dev files stripped, no `vendor/` — the plugin has an autoload fallback) and publishes it as the release asset the updater points at. The tag must match both the `Version:` header and `TAW_HUB_COMPANION_VERSION`. A site on a pre-`0.2.0` build has no updater — bring it to `0.2.0` once by hand, and it self-maintains after that.
+</Callout>
+
 ## Routes
 
 All routes are under the `taw-hub/v1` namespace and require a valid Hub signature.

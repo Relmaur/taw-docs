@@ -4,6 +4,25 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-03 (pending release)" description="taw-hub-companion 0.2.0: the plugin now self-updates from its GitHub releases — 'Update available' on every site, plus opt-out background auto-updates, so fleet-wide companion updates need no SSH or per-site zip upload" tags={["taw-hub-companion", "feature"]}>
+
+## September 2026 — The companion keeps itself current
+
+Every companion release used to mean building a plugin zip and uploading it to each fleet site by hand — the managed hosts have no shell and no `proc_open`, so the CLI update path didn't reach them.
+
+`taw-hub-companion` 0.2.0 adds a self-updater (`src/Update/Updater.php`, self-contained — no `taw/core`, mirrors `TAW\Core\Theme\ThemeUpdater`). It feeds WordPress's plugin-update transient from the plugin's own **GitHub releases**:
+
+- Every site shows the standard **"Update available"** row; `wp plugin update taw-hub-companion` works.
+- Unless `TAW_HUB_COMPANION_AUTO_UPDATE` is `false` in `wp-config.php`, the plugin opts itself into WordPress's **background auto-update cron** — a tagged release reaches the whole fleet within a cron cycle (~12 h), no clicking.
+
+Releases are now tagged (`vX.Y.Z`). A CI workflow builds the plugin zip (`git archive`, dev files stripped via `.gitattributes`, no `vendor/`) and publishes it as the release asset the updater points at; the tag must match both the `Version:` header and `TAW_HUB_COMPANION_VERSION`. A site on a pre-0.2.0 build has no updater and needs one manual bump to 0.2.0, then self-maintains.
+
+The Hub-driven "push this update to the fleet now" route is a separate follow-up.
+
+See [TAW Hub Companion](/taw-hub-companion).
+
+</Update>
+
 <Update label="2026-09-03 (pending release)" description="taw/core v1.23.0: new php bin/taw hub:enroll command — one-shot site enrolment into a TAW Hub fleet, with cryptographic verification of the Hub's signed reply" tags={["taw/core", "feature"]}>
 
 ## September 2026 — One-command fleet enrolment
