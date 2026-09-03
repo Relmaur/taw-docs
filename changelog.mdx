@@ -4,7 +4,7 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
-<Update label="2026-09-03 (pending release)" description="taw-hub-companion 0.1.6: two new signed routes — GET /vulnerabilities (surfaces the site's own scanner findings, no paid feed) and GET /inventory/checksums (per-component file manifest for integrity + backdoor-on-update diffing)" tags={["taw-hub-companion", "feature"]}>
+<Update label="2026-09-03 (pending release)" description="taw-hub-companion 0.1.7: two new signed routes — GET /vulnerabilities (surfaces the site's own scanner findings from Defender or Wordfence, no paid feed) and GET /inventory/checksums (per-component file manifest for integrity + backdoor-on-update diffing)" tags={["taw-hub-companion", "feature"]}>
 
 ## September 2026 — Fleet vulnerabilities and file integrity
 
@@ -14,7 +14,12 @@ Two more slices of the fleet-security work, both on the companion side.
 
 ADR-0013 slice 2 was going to have the Hub call a paid vulnerability API (WPScan). It doesn't need to: **every fleet site already runs a security scanner** — Defender Pro on the WPMU DEV sites, Wordfence elsewhere — matching core, plugins and themes against a vulnerability database continuously, with severity and CVSS.
 
-`GET /wp-json/taw-hub/v1/vulnerabilities` — signed, read-only, DB-read-only. A per-scanner read adapter (`src/Security/`) reads the scanner's *stored results* (it never triggers a scan) and normalizes them; `ScannerRegistry` picks whichever scanner the site runs. Ships a **Wordfence** adapter (reads the `wfIssues` table — known vulnerabilities, abandoned plugins, directory removals; reports `last_scan_at` so the Hub can spot a stale scanner; verified against Wordfence 8.2.x). A **Defender Pro** adapter is pending a real Pro install and will take priority once built.
+`GET /wp-json/taw-hub/v1/vulnerabilities` — signed, read-only, DB-read-only. A per-scanner read adapter (`src/Security/`) reads the scanner's *stored results* (it never triggers a scan) and normalizes them; `ScannerRegistry` picks whichever scanner the site runs.
+
+- **Defender / Defender Pro** — reads the `defender_scan` / `defender_scan_item` tables: `vulnerability` items (one finding per bug, with CVSS), plugins closed on wp.org (→ `removed`), and abandoned plugins (→ `abandoned`). Verified against Defender 6.2.4. Checked first — it's the fleet standard.
+- **Wordfence** — reads the `wfIssues` table for known vulnerabilities, abandoned plugins, and directory removals; reports `last_scan_at` so the Hub can spot a stale scanner. Verified against Wordfence 8.2.x.
+
+Both adapters degrade to an empty list on any schema change.
 
 Each finding: `{ component_type, slug, installed_version, severity, cvss_score, kind, link, detected_at }`, where `kind` separates a live `vulnerability` from the weaker `abandoned` / `removed` / `outdated` signals. Plain "update available" stays out — that's `/inventory`'s job.
 
