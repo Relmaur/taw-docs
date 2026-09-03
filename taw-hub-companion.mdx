@@ -53,8 +53,8 @@ The plugin never contains fleet logic — it verifies the Hub, runs one bounded 
   <Step title="Activate" icon="power">
     On activation the plugin generates this site's own Ed25519 keypair (secret key stored autoload-off; never leaves the site).
   </Step>
-  <Step title="Register the site with the Hub" icon="link">
-    A signed `GET /wp-json/taw-hub/v1/health` returns `site_public_key` and `site_key_id` (also shown in an admin notice). Give those to the Hub operator so the Hub can verify this site's signed responses.
+  <Step title="Enrol the site with the Hub" icon="link">
+    With `taw/core` ≥ v1.23.0, mint a one-time enrolment token on the Hub (`php artisan fleet:enrol-token`) and run `php bin/taw hub:enroll --token=enrol_…` on the site — it `POST`s the site's identity to the Hub's `POST /api/fleet/enroll`, verifies the Hub's signed reply against `TAW_HUB_PUBLIC_KEY`, and reports the assigned `site_id`. On older `taw/core`, a signed `GET /wp-json/taw-hub/v1/health` returns `site_public_key` and `site_key_id` (also shown in an admin notice) — give those to the Hub operator to register by hand.
   </Step>
 </Steps>
 
@@ -124,4 +124,4 @@ TAW-HUB-v1
 
 - The signed `{PATH}` is rebuilt from the matched REST route, so subdirectory WordPress installs work — but a **filtered `rest_get_url_prefix()`** (≠ `wp-json`) is unsupported and raises an admin notice.
 - `/assets/sync` is not implemented — the Hub's Vite-bundle sync job is still deferred.
-- Registration is manual (activate → copy key id + public key → register with the Hub) until an enrolment endpoint exists.
+- Enrolment needs a one-time token minted on the Hub. `php bin/taw hub:enroll` (`taw/core` ≥ v1.23.0) automates the round trip and verifies the signed reply; on older `taw/core` the operator registers the site's key by hand from `GET /health`.

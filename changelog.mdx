@@ -4,6 +4,22 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-03 (pending release)" description="taw/core v1.23.0: new php bin/taw hub:enroll command — one-shot site enrolment into a TAW Hub fleet, with cryptographic verification of the Hub's signed reply" tags={["taw/core", "feature"]}>
+
+## September 2026 — One-command fleet enrolment
+
+Joining a site to a [TAW Hub](https://github.com/Relmaur/taw-hub) fleet used to end with a manual step: read the site's public key and key id, then register them on the Hub by hand. `php bin/taw hub:enroll` closes that gap.
+
+It reads the identity the `taw-hub-companion` plugin generated on activation (`taw_hub_companion_public_key` / `_key_id`), the Hub URL (`TAW_HUB_URL`), and a **one-time enrolment token** minted on the Hub (`--token`, or `TAW_HUB_ENROLMENT_TOKEN`), and `POST`s them to the Hub's `POST /api/fleet/enroll` ([taw-hub ADR-0011](https://github.com/Relmaur/taw-hub/blob/main/docs/ADR/0011-site-enrolment.md)).
+
+That endpoint isn't signature-guarded — the Hub doesn't know the site yet, so the token is the credential (single-use, 30-minute TTL, hashed at rest). But every response **is** signed with the Hub's Ed25519 identity, and `hub:enroll` verifies that signature against `TAW_HUB_PUBLIC_KEY` before trusting the reply. A signed `409 site_already_enrolled` counts as idempotent success (a dropped connection after the Hub consumed the token); a signature-verification failure is a hard stop — enrolment is reported as **not** confirmed.
+
+`--base-url` sets the URL the Hub reaches the site at (`home_url()` is often wrong behind a proxy or Herd's `:80`), `--dry-run` prints the request without sending, `--insecure` skips TLS verification for a local self-signed Hub. The `hub-connect` skill now runs this automatically on `taw/core` ≥ v1.23.0.
+
+See [TAW Hub Companion](/taw-hub-companion).
+
+</Update>
+
 <Update label="2026-09-03 (pending release)" description="taw-hub-companion 0.1.7: two new signed routes — GET /vulnerabilities (surfaces the site's own scanner findings from Defender or Wordfence, no paid feed) and GET /inventory/checksums (per-component file manifest for integrity + backdoor-on-update diffing)" tags={["taw-hub-companion", "feature"]}>
 
 ## September 2026 — Fleet vulnerabilities and file integrity
