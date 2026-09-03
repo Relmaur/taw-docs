@@ -4,7 +4,7 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
-<Update label="2026-09-03 (pending release)" description="taw-hub-companion 0.1.5: two new signed routes — GET /vulnerabilities (surfaces the site's own scanner findings, no paid feed) and GET /inventory/checksums (per-component file manifest for integrity + backdoor-on-update diffing)" tags={["taw-hub-companion", "feature"]}>
+<Update label="2026-09-03 (pending release)" description="taw-hub-companion 0.1.6: two new signed routes — GET /vulnerabilities (surfaces the site's own scanner findings, no paid feed) and GET /inventory/checksums (per-component file manifest for integrity + backdoor-on-update diffing)" tags={["taw-hub-companion", "feature"]}>
 
 ## September 2026 — Fleet vulnerabilities and file integrity
 
@@ -22,7 +22,7 @@ Each finding: `{ component_type, slug, installed_version, severity, cvss_score, 
 
 `GET /wp-json/taw-hub/v1/inventory/checksums` — a per-component SHA-256 file manifest. Ground truth for the Hub to detect a webshell dropped into a plugin folder, diff one version of a component against the next on update (the "quiet backdoor on update" signal from the overview — new phone-home, new application passwords, a new drop-in), and dedupe fleet-wide analysis by `(slug, version, tree_hash)`.
 
-Summary mode (no `slug`) returns just `tree_hash` + `file_count` per active component — a cheap "did anything change" poll; detail mode (`?slug=`) adds the full `relpath → sha256` map. Only executable / script file types are hashed; `node_modules` and `.git` are skipped; symlinks are not followed.
+Summary mode (no `slug`) returns just `tree_hash` + `file_count` per active component — a cheap "did anything change" poll; detail mode (`?slug=`) adds the full `relpath → sha256` map. Only executable / script file types are hashed; `node_modules` and `.git` are skipped; symlinks are not followed. `tree_hash` has a pinned canonical form (byte-sorted `"<relpath>:<sha256>\n"` lines, sha256'd) so the Hub can recompute it from a wordpress.org release zip and compare.
 
 Both routes are subprocess-free and work on every host. The Hub-side ingest, storage, `security.vuln.detected` event, dashboards and version-diff analysis land under ADR-0013.
 
