@@ -4,6 +4,32 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-03 (pending release)" description="taw-hub-companion 0.1.5: two new signed routes — GET /vulnerabilities (surfaces the site's own scanner findings, no paid feed) and GET /inventory/checksums (per-component file manifest for integrity + backdoor-on-update diffing)" tags={["taw-hub-companion", "feature"]}>
+
+## September 2026 — Fleet vulnerabilities and file integrity
+
+Two more slices of the fleet-security work, both on the companion side.
+
+### Vulnerabilities, without a paid feed
+
+ADR-0013 slice 2 was going to have the Hub call a paid vulnerability API (WPScan). It doesn't need to: **every fleet site already runs a security scanner** — Defender Pro on the WPMU DEV sites, Wordfence elsewhere — matching core, plugins and themes against a vulnerability database continuously, with severity and CVSS.
+
+`GET /wp-json/taw-hub/v1/vulnerabilities` — signed, read-only, DB-read-only. A per-scanner read adapter (`src/Security/`) reads the scanner's *stored results* (it never triggers a scan) and normalizes them; `ScannerRegistry` picks whichever scanner the site runs. Ships a **Wordfence** adapter (reads the `wfIssues` table — known vulnerabilities, abandoned plugins, directory removals; reports `last_scan_at` so the Hub can spot a stale scanner; verified against Wordfence 8.2.x). A **Defender Pro** adapter is pending a real Pro install and will take priority once built.
+
+Each finding: `{ component_type, slug, installed_version, severity, cvss_score, kind, link, detected_at }`, where `kind` separates a live `vulnerability` from the weaker `abandoned` / `removed` / `outdated` signals. Plain "update available" stays out — that's `/inventory`'s job.
+
+### File integrity and backdoor-on-update diffing
+
+`GET /wp-json/taw-hub/v1/inventory/checksums` — a per-component SHA-256 file manifest. Ground truth for the Hub to detect a webshell dropped into a plugin folder, diff one version of a component against the next on update (the "quiet backdoor on update" signal from the overview — new phone-home, new application passwords, a new drop-in), and dedupe fleet-wide analysis by `(slug, version, tree_hash)`.
+
+Summary mode (no `slug`) returns just `tree_hash` + `file_count` per active component — a cheap "did anything change" poll; detail mode (`?slug=`) adds the full `relpath → sha256` map. Only executable / script file types are hashed; `node_modules` and `.git` are skipped; symlinks are not followed.
+
+Both routes are subprocess-free and work on every host. The Hub-side ingest, storage, `security.vuln.detected` event, dashboards and version-diff analysis land under ADR-0013.
+
+See [TAW Hub Companion](/taw-hub-companion).
+
+</Update>
+
 <Update label="2026-09-02 (pending release)" description="taw-hub-companion 0.1.3: new signed GET /inventory route — a security-focused SBOM the Hub polls for fleet vulnerability correlation and abandoned-plugin detection" tags={["taw-hub-companion", "feature"]}>
 
 ## September 2026 — Fleet inventory: `/inventory` on the companion
