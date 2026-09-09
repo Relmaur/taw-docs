@@ -40,6 +40,10 @@ Call `TAW\Core\Theme::boot()` once from your theme to wire up block loading, Vit
   Media Folders is opt-in at the `taw/core` level, but this theme's `inc/customizations.php` scaffold calls `MediaFolders::enable()` by default, so every new taw-theme site has nestable Media Library folders active out of the box. See [Media Folders](/taw-core#media-folders).
 </Callout>
 
+<Callout kind="info" collapsed="false">
+  The scaffold ships a site-owned `inc/security.php` (required from `inc/customizations.php`, never touched by `update-theme`) that locks down user enumeration: it calls `Hardening::hideUsersEndpoint()` and redirects logged-out `?author=N` probes. Edit or trim it per site. See [Security / Hardening](/taw-core#security--hardening).
+</Callout>
+
 ## Recommended bootstrap flow
 
 Set up your theme by booting TAW Core and then configuring performance. Use this flow in your `functions.php` (or equivalent) entry point.

@@ -4,6 +4,24 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-09 (pending release)" description="taw/core v1.24.0: user-enumeration hardening — the public /wp/v2/users REST routes are now hidden from anonymous requests by default, closing the ?rest_route=/wp/v2/users leak that host WAFs miss. The taw-theme scaffold gains a site-owned inc/security.php." tags={["taw/core", "taw-theme", "security"]}>
+
+## September 2026 — User-enumeration lockdown
+
+A client-site incident surfaced a gap that host WAFs and “hide users endpoint” plugins routinely leave open: they match only the `/wp-json/wp/v2/users` path form, so `GET /?rest_route=/wp/v2/users` (the query-routed REST form) still returns `200` and leaks `id`, `name`, and the author `slug` (≈ login name) for every user on the site.
+
+**`taw/core` v1.24.0** adds `TAW\Core\Security\Hardening::hideUsersEndpoint()`, wired into `Theme::boot()` by default. It filters at `rest_endpoints` — REST dispatch, after the route is resolved — so one filter closes every routing form at once: `/wp-json/`, `?rest_route=`, and `/batch/v1`.
+
+- Only **anonymous** requests are affected. Any logged-in user keeps the full API, so the block editor's `/wp/v2/users?who=authors` author selector still works for Editors (who lack `list_users`).
+- `/wp/v2/users/me` always stays available — the mobile apps, Jetpack, and the block editor need the authenticated self-lookup, and it already returns `401` without a login.
+- Escape hatch for headless / integration sites: `add_filter('taw_security_hide_users_endpoint', '__return_false')`.
+
+**taw-theme scaffold** gains `inc/security.php` — site-owned (never touched by `update-theme`, same as `inc/performance.php`), required from `inc/customizations.php`. It calls the new core helper and adds a `parse_request` handler that 301-redirects logged-out `?author=N` probes to the home page. That redirect stays scaffold-level on purpose: it is site policy, it kills author-archive query URLs, and it overlaps with security-plugin behavior.
+
+See [Security / Hardening](/taw-core#security--hardening).
+
+</Update>
+
 <Update label="2026-09-03 (pending release)" description="taw-hub-companion 0.2.0: the plugin now self-updates from its GitHub releases — 'Update available' on every site, plus opt-out background auto-updates, so fleet-wide companion updates need no SSH or per-site zip upload" tags={["taw-hub-companion", "feature"]}>
 
 ## September 2026 — The companion keeps itself current

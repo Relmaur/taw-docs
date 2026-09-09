@@ -1728,6 +1728,36 @@ Nestable Media Library folders, built on a single hierarchical taxonomy (`taw_me
 
 A folder's position in the tree is its only "category" — one folder per attachment (`wp_set_object_terms()`), with no separate tagging layer on top.
 
+{/* MARK: Security */}
+
+## Security / Hardening
+
+`TAW\Core\Security\Hardening` collects opinionated hardening helpers. Unlike the opt-in subsystems above, these are wired into `Theme::boot()` **by default** — they are authentication-gated, their failure mode is minimal, and each carries an `apply_filters()` escape hatch so a headless or integration site can restore stock WordPress behavior without editing framework code.
+
+### `Hardening::hideUsersEndpoint()` — user-enumeration lockdown
+
+Removes the public `/wp/v2/users` REST collection and the single-user `/wp/v2/users/(?P<id>[\d]+)` route for **anonymous** requests. `/wp/v2/users/me` and every logged-in request are left untouched.
+
+```php
+// Already called for you by Theme::boot(). To opt a site back out —
+// in inc/customizations.php or a plugin:
+add_filter('taw_security_hide_users_endpoint', '__return_false');
+```
+
+The filter runs at `rest_endpoints` (REST dispatch), *after* the request has been resolved to a route — so one filter closes every routing form at once:
+
+| Request form | Covered by a typical host WAF / "hide users" plugin | Covered here |
+| --- | --- | --- |
+| `/wp-json/wp/v2/users` | Usually | Yes |
+| `/?rest_route=/wp/v2/users` | Rarely — most rules match only the `/wp-json/` path prefix, so this still returns `200` and leaks `id`, `name`, and author `slug` (≈ login name) for every user | Yes |
+| `/batch/v1` sub-request wrapping a users call | No | Yes |
+
+<Callout kind="tip">
+  The gate is `is_user_logged_in()`, not a capability check. The block editor's author selector fetches `/wp/v2/users?who=authors` for Editors too, who lack `list_users` — gating on authentication keeps that (and the mobile apps, Jetpack, etc.) working while still closing the hole for logged-out visitors. `/wp/v2/users/me` already returns `401` without a valid login, so it is not an enumeration vector.
+</Callout>
+
+The classic `?author=N` → `/author/{slug}/` redirect probe is **not** handled here — it is site policy (it also kills author-archive query URLs) and overlaps with security-plugin behavior, so it lives in the `taw-theme` scaffold's `inc/security.php`, not in the framework.
+
 {/* MARK: Helpers */}
 
 ## Helpers
