@@ -4,6 +4,29 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-10 (pending release)" description="taw/core v1.26.0: Content Interchange becomes a whole-site state migration path — post authorship, opt-in users / comments / environment settings, a --migrate shorthand, Metabox-backed CPT auto-export, and a slug-less-draft fix." tags={["taw/core", "taw-theme", "feature"]}>
+
+## September 2026 — Content Interchange → whole-site state migration
+
+[Content Interchange](/content-interchange) now moves a site's **state**, not just its content. All new behaviour is opt-in and backward compatible; the importer accepts schema `1.0` and `1.1`. Landed via [`Relmaur/taw-core#8`](https://github.com/Relmaur/taw-core/pull/8) (closes `#7`), tagged **v1.26.0**, with a paired `taw-theme` release.
+
+**Acceptance criterion:** `content:export --migrate` then `content:import --yes` against the *same* site reports **0 created / 0 updated / 0 deleted**.
+
+- **Post authorship.** Every exported post now carries `author` (`{login, email}` — never a numeric ID) plus `comment_status` / `ping_status`. On import the author resolves by login, then email, then falls back to the importing user with a warning.
+- **`--with-users`** exports a `users[]` section (`login`, `email`, `display_name`, `roles[]`, profile meta, `user_registered`). Password hashes only with the separate `--with-user-passwords`. Import matches by login → email, creates if absent, and **sanitises roles against the roles the target site actually defines** — a role the target lacks is never granted.
+- **`--with-comments`** exports comments on the exported posts with `parent_ref` threading; import remaps them to their post by slug, rebuilds `comment_parent`, and recomputes counts.
+- **`--with-settings`** exports a *second*, opt-in option allowlist for environment settings — `permalink_structure`, `timezone_string`, `sticky_posts` (as slugs), `date_format`, and more — plus a `taw_content_export_settings_options` filter. These are **import-gated too**: `content:import` skips them unless you also pass `--with-settings`.
+- **`content:export --migrate`** = `--with-users --with-settings --all-media --include-drafts` (not passwords or comments — those stay explicit). The automatic rollback snapshot is now maximal-scope, so undoing a `--migrate` import is complete.
+- **Slug-less drafts no longer duplicate on re-import.** `draft` / `pending` / `auto-draft` posts are excluded by default; `--include-drafts` re-adds them and matches slug-less posts on a composite `(type, sha1(title|date_gmt))` key.
+- **Metabox-backed CPTs auto-export.** Any post type with a `TAW\Core\Metabox\Metabox` attached is now included even when `public => false`. Sites that added a manual `taw_content_export_post_types` filter just for a content CPT (for example FSSPX's `activity` Mass schedule) can drop it.
+- **`--all-media`** also exports attachments not referenced by any post/field; media records now carry `title` / `description`, set on the sideloaded attachment.
+- **Import ordering** is deterministic and dependency-first: users → terms → media → posts → comments → settings.
+- **`content:diff`** diffs the new `users` and `comments` sections.
+- The `Tools → TAW Data` export screen gains checkboxes for the new scopes (passwords / comments behind an "Advanced" disclosure). `GET /wp-json/taw/v1/content/export` stays **content-only** — no user or settings export over REST.
+- **Downstream:** the `taw-theme` scaffold `bin/taw` already registers `content:*`. Any site keeping an `owner: site` content-sync skill should update its `pull` / `push` sections for the new `--with-*` / `--migrate` flags.
+
+</Update>
+
 <Update label="2026-09-10 (pending release)" description="taw/core v1.25.1: content-interchange round-trip fixes — content:import (and content:diff) no longer print nothing, and export → import of the same site is now a verified no-op." tags={["taw/core", "taw-theme", "bugfix"]}>
 
 ## September 2026 — Content interchange round-trip fixes

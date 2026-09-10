@@ -1762,40 +1762,16 @@ The classic `?author=N` → `/author/{slug}/` redirect probe is **not** handled 
 
 ## Content Interchange
 
-A first-class way to move content — posts / CPT entries, `_taw_*` metabox values, `_taw_*` options, terms, and referenced media — between environments, or to hand it to a code agent to transform. The same **serialize → review → apply** loop as `seo:extract`/`seo:inject`, generalized to whole-site content. WXR (`wp export`) doesn't understand TAW meta; a full DB copy is all-or-nothing and needs SSH.
+Moving a TAW site's **state** — posts / CPT entries, `_taw_*` fields and options, terms, media, and optionally authorship, users, comments and environment settings — between environments as one reviewable, diffable, rollback-able JSON file. `content:export` / `content:import` / `content:diff`, a **Tools → TAW Data** admin screen, and `GET /wp-json/taw/v1/content/export`.
 
 ```bash
-php bin/taw content:export --output=/tmp/site.json          # build a snapshot
-php bin/taw content:import /tmp/site.json                   # dry-run: field-level diff, writes nothing
-php bin/taw content:import /tmp/site.json --yes             # apply (rollback snapshot written first)
-php bin/taw content:diff before.json after.json --out=changes.json
+php bin/taw content:export --migrate --output=/tmp/site.json
+php bin/taw content:import /tmp/site.json --yes
 ```
 
-In wp-admin: **Tools → TAW Data** (Export button + Import-with-review), and `GET /wp-json/taw/v1/content/export` (capability `export`).
-
-### The snapshot
-
-`TAW\Core\Content\Exporter::snapshot($scope)` — a plain array, ready for `json_encode`. Schema version starts at `"1.0"` (`resources/schema/content-interchange-1.0.json` in the package).
-
-| Section | Contents |
-| --- | --- |
-| `meta` | `schema`, `generated_at`, `source` (url, `taw/core` version, theme), `registry_fingerprint` (block IDs + `field_id → type` map) so the importer can warn on drift |
-| `options` | every `_taw_*` option (repeater / files **decoded to arrays**), plus an allowlisted core set — `blogname`, `blogdescription`, `show_on_front`, and `page_on_front` / `page_for_posts` **resolved to slugs** |
-| `terms` | per public taxonomy (except `nav_menu`): `{ slug, name, description, parent (by slug), meta }` |
-| `posts` | `page` / `post` + every public CPT except `taw_submission`. Per post: `type, slug, status, title, excerpt, content, menu_order, date, parent (by slug), template, terms, featured_media (filename), fields` — `fields` decodes every `_taw_*` meta key by its registered type |
-| `media` | every referenced attachment: `{ id, ref (filename), url, alt, caption, mime }` |
-
-Never exported: users, revisions, comments, transients, non-allowlisted core/plugin options, `nav_menu` / `nav_menu_item`. Scope flags: `--types=`, `--since=`, `--posts=` (IDs or slugs), `--no-media`.
-
-### Import — dry-run mandatory, rollback automatic
-
-`TAW\Core\Content\Importer` accepts a snapshot **or** a change-set (`{ taw_changeset, operations: [...] }`, which `content:diff` emits). Records match by natural key — posts by `(type, slug)`, options by key, terms by `(taxonomy, slug)` — **never by numeric ID**.
-
-- **Media**: matched to an existing attachment by filename, or sideloaded from `url`. An `old ID → new ID` map is applied to `wp-image-N` / `"id":N` / `"ids":[…]` in `post_content` and to `image` / `files` field values **before** anything is written.
-- The exporter's portable forms are reversed on import: `page_on_front` / `page_for_posts` and `post.parent` (slugs) and `featured_media` (filename) all resolve back to the local ID before the diff and the write. A clean **export → import of the same site is a verified no-op** — `plan()` reports zero changes, and `apply()` skips every record the dry-run shows unchanged, so re-running an import doesn't churn `post_modified` dates.
-- `Importer::plan()` builds the field-level diff (`unchanged` / `changed old→new` / `new` / `would-delete`) and writes nothing. Both sides of every comparison run through the same decode path, so `""` ↔ missing ↔ `null` ↔ `[]`, `"1"` ↔ `true`, and `"[…]"` ↔ the decoded array all compare equal. `content:import` without `--yes` stops there; the admin screen renders it as a review table with an explicit "Apply N changes" button.
-- **Apply** writes a full `Exporter` snapshot to `wp-content/uploads/taw-private/` (an `.htaccess`-denied directory) first, then writes: posts via `wp_insert_post` / `wp_update_post`; **meta via `Metabox::writeMeta()`** — the same sanitize + `wp_slash` path an admin metabox save uses; options via `update_option`; terms via `wp_insert_term` / `wp_update_term`. Per-record conflict policy `update` (overwrite) / `create` (only new) / `skip`.
-- **Report**: created / updated / skipped / deleted / media sideloaded / warnings (registry drift, unresolved parent slug, missing media) / rollback path.
+<Card title="Content Interchange" href="/content-interchange" icon="arrow-left-right" horizontal="false">
+  The snapshot format, the carried / not-carried table, every `--with-*` flag and filter, import ordering and rollback, workflow recipes, and the admin screen — on its own page.
+</Card>
 
 ### REST-registered field meta
 

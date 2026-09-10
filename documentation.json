@@ -55,6 +55,11 @@
                 "icon": "satellite-dish"
               },
               {
+                "title": "Content Interchange",
+                "path": "content-interchange",
+                "icon": "arrow-left-right"
+              },
+              {
                 "title": "Blocks and block registry",
                 "path": "taw-core-blocks",
                 "icon": "package"

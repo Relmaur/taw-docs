@@ -1,0 +1,255 @@
+---
+title: Content Interchange
+description: >-
+  TAW's native tool for moving site state between environments — posts, fields,
+  options, terms, media, and optionally users, comments and settings — as one
+  reviewable, diffable, rollback-able JSON file.
+---
+
+## Move site state, not a database dump
+
+Content Interchange is TAW's native way to move a site's **state** between environments — a
+snapshot you can read, diff, review, and roll back, instead of a `.wpress` black box or a
+400 MB `.sql`.
+
+It works because a disciplined TAW site keeps everything in `_taw_` fields and options
+instead of a plugin stack: no page builders, no ACF, menus in code, forms as runtime
+`taw_submission` entries. What a generic migration tool has to haul — dozens of plugin
+tables, serialized builder blobs, orphaned option rows — simply isn't there. So the site's
+real state fits in a single JSON file that a person (or a code agent) can open and understand.
+
+```bash
+php bin/taw content:export --migrate --output=/tmp/site.json   # whole-site state
+php bin/taw content:import /tmp/site.json                       # dry-run: what would change
+php bin/taw content:import /tmp/site.json --yes                 # apply (rollback snapshot first)
+```
+
+<Callout kind="tip">
+  **Migrate state, deploy code.** Content Interchange never touches theme or plugin PHP, or
+  the database's binary internals. Code travels through git and your deploy pipeline; this
+  tool moves the content and configuration that lives *in* the database. Single-site only —
+  multisite is out of scope.
+</Callout>
+
+## When to use what
+
+| You want to… | Use |
+| --- | --- |
+| First clone of a site · new host · disaster recovery · stand up staging from nothing | A full-site tool (Duplicator, All-in-One WP Migration, WP Migrate, WPMU DEV Shipper) or `content-sync pull --strategy=db` |
+| Keep two existing TAW installs' **content** in step — and, with `--migrate`, their config too | **Content Interchange** |
+| Promote specific pages / options from staging to production | **Content Interchange** (`--posts=`, `--types=`, or a change-set) |
+| Editorial sandbox → live | **Content Interchange** |
+| Agent-mediated bulk edits (export → transform → diff → review → apply) | **Content Interchange** |
+| Seed a brand-new TAW site with a starter content set | **Content Interchange** |
+
+The dividing line: a **full-site tool** clones an entire WordPress install, database and
+uploads and all, and is the right call when there's no site there yet or you're recovering
+one. **Content Interchange** moves the reviewable delta between two installs that already
+exist and already run the TAW stack.
+
+## What's in a snapshot
+
+`TAW\Core\Content\Exporter::snapshot($scope)` produces a plain array, `json_encode`-ready.
+`schema` is `"1.1"`; the importer also accepts `"1.0"`. Full JSON Schema:
+`resources/schema/content-interchange-1.1.json` in the `taw/core` package.
+
+| Section | Always carried | Contents |
+| --- | --- | --- |
+| `meta` | yes | `schema`, `generated_at`, `source` (URL, `taw/core` version, theme), and a `registry_fingerprint` (block IDs + `field_id → type`) so the importer can warn when the target's registry has drifted |
+| `options` | yes | Every `_taw_*` option (repeater / files **decoded to arrays**), plus a core allowlist — `blogname`, `blogdescription`, `show_on_front`, `page_on_front` / `page_for_posts` (**as slugs**) |
+| `terms` | yes | Per public taxonomy except `nav_menu`: `slug`, `name`, `description`, `parent` (by slug), `meta` |
+| `posts` | yes | `page` / `post`, every **public** CPT, **and every CPT with a `Metabox` attached** — except `taw_submission` and framework-internal types. Per post: `type`, `slug`, `status`, `title`, `excerpt`, `content`, `menu_order`, `date`, `author` (`{login, email}`), `comment_status`, `ping_status`, `parent` (by slug), `template`, `terms`, `featured_media` (filename), `fields` (each `_taw_*` value decoded by its registered type) |
+| `media` | yes | Every referenced attachment: `id`, `ref` / `filename`, `url`, `title`, `description`, `alt`, `caption`, `mime` |
+| `users` | **opt-in** — `--with-users` | `login`, `email`, `display_name`, `roles[]`, `meta` (`first_name`, `last_name`, `description`, `nickname`, `locale`), `user_registered`. Password hashes **only** with the separate `--with-user-passwords` |
+| `comments` | **opt-in** — `--with-comments` | Comments on exported posts: `post_ref` (slug), author fields, `content`, `date_gmt`, `approved`, `type`, `parent_ref` (in-file id for threading) |
+
+**Never carried:** revisions, transients, non-allowlisted core / plugin options,
+`nav_menu` / `nav_menu_item` (code-owned in TAW themes), non-`_taw_` post meta. Drafts are
+excluded unless `--include-drafts`.
+
+### Scope flags
+
+| Flag | Effect |
+| --- | --- |
+| `--types=page,post` | Limit to these post types |
+| `--since=2026-01-01` | Only posts dated on or after this date |
+| `--posts=12,about` | Only these posts (IDs or slugs) |
+| `--no-media` | Omit the `media` section |
+| `--all-media` | Also export attachments not referenced by any exported post / field |
+| `--include-drafts` | Include `draft` / `pending` posts (slug-less ones get a composite match key) |
+| `--with-users` | Add the `users` section (no password hashes) |
+| `--with-user-passwords` | Include portable password hashes (implies `--with-users`) |
+| `--with-comments` | Add the `comments` section |
+| `--with-settings` | Add the environment-settings option allowlist (see below) |
+| `--migrate` | `= --with-users --with-settings --all-media --include-drafts` |
+
+### Filters
+
+Each of these belongs in the theme's `inc/customizations.php`.
+
+```php
+// Add a non-content CPT to the export (rarely needed — a CPT with a Metabox
+// attached is auto-included as of taw/core v1.26.0).
+add_filter('taw_content_export_post_types', fn (array $types) => [...$types, 'event']);
+
+// Extend the always-on core option allowlist.
+add_filter('taw_content_export_core_options', fn (array $keys) => [...$keys, 'my_theme_accent']);
+
+// Extend the --with-settings environment allowlist.
+add_filter('taw_content_export_settings_options', fn (array $keys) => [...$keys, 'rss_use_excerpt']);
+```
+
+<Callout kind="info">
+  Sites that added a manual `taw_content_export_post_types` filter just to export a
+  `public => false` content CPT (for example FSSPX's `activity` Mass schedule) can **drop
+  that filter** once running `taw/core` v1.26.0 — any CPT with a `Metabox` attached is
+  auto-included.
+</Callout>
+
+### The `--with-settings` allowlist
+
+A *second*, opt-in allowlist — separate from the always-on core one — for environment-ish
+settings a full migration wants but a routine content sync must never touch:
+`permalink_structure`, `timezone_string`, `gmt_offset`, `date_format`, `time_format`,
+`start_of_week`, `sticky_posts` (exported as slugs), `blog_public`,
+`default_comment_status`, `default_ping_status`, `WPLANG`.
+
+These are **import-gated as well** — `content:import` skips them unless you also pass
+`--with-settings` (or tick the box on the admin screen).
+
+## Import — dry-run mandatory, rollback automatic
+
+`TAW\Core\Content\Importer` consumes a snapshot **or** a change-set
+(`{ taw_changeset, operations: [...] }`, which `content:diff` emits). Records match by
+**natural key**, never by numeric ID:
+
+- posts by `(type, slug)`, or `(type, match_key)` for a slug-less draft
+- options by key · terms by `(taxonomy, slug)`
+- users by login, then email · comments by a content hash
+
+### Apply order
+
+Dependency-first and deterministic:
+
+```
+users → terms → media (sideload + build old→new ID map) → posts → comments → settings
+```
+
+### What happens on apply
+
+1. **Rollback first.** A full, **maximal-scope** `Exporter` snapshot (users, settings, all
+   media, drafts) is written to `wp-content/uploads/taw-private/` — an `.htaccess`-denied
+   directory — and its path is named in the report. Restore with
+   `content:import <that-file>.json --yes`.
+2. **Media** is matched to an existing attachment by filename, or sideloaded from `url` with
+   its title / description / alt / caption. The `old → new` ID map is applied to
+   `wp-image-N`, `"id":N` and `"ids":[…]` in `post_content` and to `image` / `files` field
+   values before anything is written.
+3. **Portable transforms are reversed.** `page_on_front` / `page_for_posts` / `sticky_posts`
+   (slugs), `post.parent` (slug), `featured_media` (filename) and `author` (`{login,email}`)
+   all resolve back to a local ID before the diff and the write.
+4. **Posts** via `wp_insert_post` / `wp_update_post`; **field meta via `Metabox::writeMeta()`**
+   — the same sanitize + `wp_slash` path an admin metabox save uses. Author resolves
+   login → email → the importing user (with a warning).
+5. **Users** via `wp_insert_user` / `wp_update_user`. Roles are **sanitised against the roles
+   the target site actually defines** — a role the target doesn't have is never granted.
+   New accounts get a random password unless a portable hash was exported.
+6. **Comments** are recreated, remapped to their post by slug, threading rebuilt from
+   `parent_ref`, counts recomputed.
+7. **Settings** options — only if `--with-settings`.
+
+A clean **`--migrate` export → `import --yes` against the same site reports 0 created /
+0 updated / 0 deleted.** `plan()` reports zero changes and `apply()` skips every record the
+dry-run shows unchanged, so re-running an import never churns `post_modified` dates.
+
+### Conflict policy
+
+Per-record `update` (overwrite) / `create` (only new) / `skip` — global default via
+`--policy=` or the admin selector.
+
+## Workflow recipes
+
+<Steps>
+  <Step title="Refresh a local dev site from production" titleType="h3">
+    On production (or via the REST route from CI):
+
+    ```bash
+    php bin/taw content:export --migrate --output=prod.json
+    ```
+
+    On the local site:
+
+    ```bash
+    php bin/taw content:import prod.json            # review the diff
+    php bin/taw content:import prod.json --yes --with-settings
+    ```
+  </Step>
+
+  <Step title="Promote specific pages from staging to production" titleType="h3">
+    ```bash
+    # on staging
+    php bin/taw content:export --posts=pricing,features --output=promo.json
+    # on production
+    php bin/taw content:import promo.json --yes
+    ```
+  </Step>
+
+  <Step title="Editorial sandbox → live" titleType="h3">
+    Export the sandbox, import to live with `--policy=update`. Media referenced by the
+    edited posts sideloads automatically; nothing else on live is touched.
+  </Step>
+
+  <Step title="Agent-mediated bulk edit" titleType="h3">
+    ```bash
+    php bin/taw content:export --output=before.json
+    cp before.json after.json          # agent rewrites fields in after.json
+    php bin/taw content:diff before.json after.json --out=changes.json
+    php bin/taw content:import changes.json           # review
+    php bin/taw content:import changes.json --yes     # apply just the change-set
+    ```
+  </Step>
+
+  <Step title="Full TAW-site move" titleType="h3">
+    ```bash
+    php bin/taw content:export --migrate --with-comments --output=site.json
+    # stand up the new install with the theme deployed via git, then:
+    php bin/taw content:import site.json --yes --with-settings
+    ```
+
+    Deploy the theme and any plugins through your normal pipeline — this file carries state,
+    not code.
+  </Step>
+</Steps>
+
+## The admin screen — Tools → TAW Data
+
+For non-CLI use, `Tools → TAW Data` (capability `export`; import needs `taw_import_content`,
+granted to anyone with `manage_options`).
+
+- **Export** — a button plus checkboxes mirroring the CLI flags: referenced media,
+  unreferenced media, drafts, users, environment settings. Password hashes and comments sit
+  behind an **Advanced** disclosure with a warning. Streams
+  `taw-content-<host>-<timestamp>.json`.
+- **Import** — upload a snapshot or change-set → a **mandatory** review table
+  (per record, per field: unchanged / changed / new / would-delete) with a conflict-policy
+  selector and an "also apply environment settings" checkbox → an explicit **"Apply N
+  changes"** button. There is no one-click apply.
+- Every apply writes the rollback snapshot to `uploads/taw-private/` first and links it in
+  the result notice.
+
+<Image src="/images/taw-data-export.png" width="720" height="420" alt="Tools → TAW Data export screen with scope checkboxes" />
+
+<Image src="/images/taw-data-review.png" width="720" height="420" alt="Import review table showing per-field changes before applying" />
+
+## REST export
+
+`GET /wp-json/taw/v1/content/export` — the same snapshot the Export button produces, for CI
+or a headless build step. Capability `export`. Parameters: `types`, `since`,
+`include_media`, `include_drafts`.
+
+<Callout kind="alert">
+  The REST route is **content-only** — it never returns `users`, `comments` or settings, and
+  there is no REST *write* route. User and settings export, and every import, happen on the
+  CLI or the admin screen, where the migration intent is unmistakable and the dry-run and
+  rollback live.
+</Callout>

@@ -45,7 +45,7 @@ Call `TAW\Core\Theme::boot()` once from your theme to wire up block loading, Vit
 </Callout>
 
 <Callout kind="info" collapsed="false">
-  `bin/taw` includes `content:export` / `content:import` / `content:diff` for moving posts, TAW fields, options, terms and referenced media between environments, and wp-admin gets a **Tools → TAW Data** screen. Import is always a dry-run first, with an automatic rollback snapshot. See [Content Interchange](/taw-core#content-interchange).
+  `bin/taw` includes `content:export` / `content:import` / `content:diff` for moving a site's state — posts, TAW fields, options, terms, media, and optionally authorship, users, comments and settings — between environments, and wp-admin gets a **Tools → TAW Data** screen. Import is always a dry-run first, with an automatic rollback snapshot. `content:export --migrate` plus `content:import --yes` is a full TAW-site state transfer. See [Content Interchange](/content-interchange).
 </Callout>
 
 ## Recommended bootstrap flow
@@ -470,6 +470,10 @@ TAW Core is distributed as a Composer package (`taw/core`). To update the framew
 ```bash
 composer update taw/core
 ```
+
+<Callout kind="info">
+  Adopting a new minor can add `bin/taw` commands. After `composer update taw/core`, run your scaffold's `bin/taw` sync (or copy the current `bin/taw` from the [taw-theme scaffold](https://github.com/Relmaur/taw-theme)) so new commands — for example `content:export` / `content:import` / `content:diff` for [Content Interchange](/content-interchange) — are registered.
+</Callout>
 
 ## Static analysis
 
