@@ -4,6 +4,22 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-10 (pending release)" description="taw/core v1.25.1: content-interchange round-trip fixes — content:import (and content:diff) no longer print nothing, and export → import of the same site is now a verified no-op." tags={["taw/core", "taw-theme", "bugfix"]}>
+
+## September 2026 — Content interchange round-trip fixes
+
+Three bugs in the v1.25.0 [Content Interchange](/taw-core#content-interchange), all reproduced live against a populated site and regression-tested. Landed via [`Relmaur/taw-core#6`](https://github.com/Relmaur/taw-core/pull/6) (closes `#5`), tagged **v1.25.1**.
+
+- **`content:import` printed nothing** (exit 0, no plan table, no "no changes" line). `ContentImportCommand` references a `TAW\Core\Content\*` class before `require wp-load.php`; that autoloaded the class file, whose `if (!defined('ABSPATH')) exit;` guard fired (WordPress not booted yet) and silently killed the process. The guard is removed from the six `Content\*` classes the `content:*` commands load before boot — they are pure class definitions, like `TAW\Helpers\Framework` / `TAW\CLI\WpLoader`, which already omit it. This also fixes **`content:diff`**, which was silent for the same reason.
+- **`page_on_front` / `page_for_posts` broke the round-trip.** The exporter renders them as page slugs (portable); the importer compared the slug against the stored integer ID → a false "changed", and an apply would have written the slug into `page_on_front`, breaking the static front page. The importer now resolves these back to the local post ID before both the diff and the write. `post.parent` (slug) and `featured_media` (filename) were audited — already resolved on write; `featured_media` is now also diffed by filename.
+- **Empty / default values showed as changes.** A field stored as `""` (or absent, or at its default) compared unequal to the same empty value in the snapshot. Both sides now normalize through `FieldCodec::decode` plus a canonical key that collapses `""` / `null` / `[]` / `false` / missing to one token, and aligns `"1"` ↔ `true`, `"[…]"` ↔ the decoded array, `"42"` ↔ 42.
+
+Also: `Importer::apply()` now **skips records the dry-run shows unchanged**, so a clean export → import writes nothing and re-running an import doesn't churn `post_modified` dates; a stray "Undefined array key policy" warning is gone; and `content:import --json` no longer trails the "Dry run" note after the JSON.
+
+**taw-theme** picks up `taw/core` v1.25.1 (v1.9.1).
+
+</Update>
+
 <Update label="2026-09-10 (pending release)" description="taw/core v1.25.0: portable content interchange — a Content Exporter/Importer, a Tools → TAW Data screen, bin/taw content:export | content:import | content:diff, and REST-registered field meta for headless integrations." tags={["taw/core", "taw-theme", "feature"]}>
 
 ## September 2026 — Portable content interchange
