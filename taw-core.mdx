@@ -1758,6 +1758,56 @@ The filter runs at `rest_endpoints` (REST dispatch), *after* the request has bee
 
 The classic `?author=N` → `/author/{slug}/` redirect probe is **not** handled here — it is site policy (it also kills author-archive query URLs) and overlaps with security-plugin behavior, so it lives in the `taw-theme` scaffold's `inc/security.php`, not in the framework.
 
+{/* MARK: Content Interchange */}
+
+## Content Interchange
+
+A first-class way to move content — posts / CPT entries, `_taw_*` metabox values, `_taw_*` options, terms, and referenced media — between environments, or to hand it to a code agent to transform. The same **serialize → review → apply** loop as `seo:extract`/`seo:inject`, generalized to whole-site content. WXR (`wp export`) doesn't understand TAW meta; a full DB copy is all-or-nothing and needs SSH.
+
+```bash
+php bin/taw content:export --output=/tmp/site.json          # build a snapshot
+php bin/taw content:import /tmp/site.json                   # dry-run: field-level diff, writes nothing
+php bin/taw content:import /tmp/site.json --yes             # apply (rollback snapshot written first)
+php bin/taw content:diff before.json after.json --out=changes.json
+```
+
+In wp-admin: **Tools → TAW Data** (Export button + Import-with-review), and `GET /wp-json/taw/v1/content/export` (capability `export`).
+
+### The snapshot
+
+`TAW\Core\Content\Exporter::snapshot($scope)` — a plain array, ready for `json_encode`. Schema version starts at `"1.0"` (`resources/schema/content-interchange-1.0.json` in the package).
+
+| Section | Contents |
+| --- | --- |
+| `meta` | `schema`, `generated_at`, `source` (url, `taw/core` version, theme), `registry_fingerprint` (block IDs + `field_id → type` map) so the importer can warn on drift |
+| `options` | every `_taw_*` option (repeater / files **decoded to arrays**), plus an allowlisted core set — `blogname`, `blogdescription`, `show_on_front`, and `page_on_front` / `page_for_posts` **resolved to slugs** |
+| `terms` | per public taxonomy (except `nav_menu`): `{ slug, name, description, parent (by slug), meta }` |
+| `posts` | `page` / `post` + every public CPT except `taw_submission`. Per post: `type, slug, status, title, excerpt, content, menu_order, date, parent (by slug), template, terms, featured_media (filename), fields` — `fields` decodes every `_taw_*` meta key by its registered type |
+| `media` | every referenced attachment: `{ id, ref (filename), url, alt, caption, mime }` |
+
+Never exported: users, revisions, comments, transients, non-allowlisted core/plugin options, `nav_menu` / `nav_menu_item`. Scope flags: `--types=`, `--since=`, `--posts=` (IDs or slugs), `--no-media`.
+
+### Import — dry-run mandatory, rollback automatic
+
+`TAW\Core\Content\Importer` accepts a snapshot **or** a change-set (`{ taw_changeset, operations: [...] }`, which `content:diff` emits). Records match by natural key — posts by `(type, slug)`, options by key, terms by `(taxonomy, slug)` — **never by numeric ID**.
+
+- **Media**: matched to an existing attachment by filename, or sideloaded from `url`. An `old ID → new ID` map is applied to `wp-image-N` / `"id":N` / `"ids":[…]` in `post_content` and to `image` / `files` field values **before** anything is written.
+- `Importer::plan()` builds the field-level diff (`unchanged` / `changed old→new` / `new` / `would-delete`) and writes nothing. `content:import` without `--yes` stops there; the admin screen renders it as a review table with an explicit "Apply N changes" button.
+- **Apply** writes a full `Exporter` snapshot to `wp-content/uploads/taw-private/` (an `.htaccess`-denied directory) first, then writes: posts via `wp_insert_post` / `wp_update_post`; **meta via `Metabox::writeMeta()`** — the same sanitize + `wp_slash` path an admin metabox save uses; options via `update_option`; terms via `wp_insert_term` / `wp_update_term`. Per-record conflict policy `update` (overwrite) / `create` (only new) / `skip`.
+- **Report**: created / updated / skipped / deleted / media sideloaded / warnings (registry drift, unresolved parent slug, missing media) / rollback path.
+
+### REST-registered field meta
+
+`Theme::boot()` also exposes every registered TAW field over the REST API (`TAW\Core\Rest\FieldMetaRegistrar`), on each post type its metabox attaches to:
+
+- **scalar fields** → `register_post_meta()` with `show_in_rest`, the field's own sanitizer, and an `auth_callback` gated on `edit_post` for that post.
+- **repeater / files / post_select** (stored as JSON strings) → the raw meta stays a string, and a `register_rest_field()` computed field `taw_<id>` exposes the decoded object/array shape (and re-encodes on write), so `Metabox::get_repeater()`'s physical storage is untouched.
+- OptionsPage fields → `register_setting(..., 'show_in_rest' => …)`.
+
+<Callout kind="info">
+  This exposes field values over `wp/v2` for **headless front-ends and external integrations**. It does not add a mobile-app editing UI — classic metaboxes stay desktop-only; on-phone editing is the [Visual Editor](/taw-core#visual-editor). Opt out with `add_filter('taw_register_meta_in_rest', '__return_false')`.
+</Callout>
+
 {/* MARK: Helpers */}
 
 ## Helpers

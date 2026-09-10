@@ -4,6 +4,28 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-10 (pending release)" description="taw/core v1.25.0: portable content interchange — a Content Exporter/Importer, a Tools → TAW Data screen, bin/taw content:export | content:import | content:diff, and REST-registered field meta for headless integrations." tags={["taw/core", "taw-theme", "feature"]}>
+
+## September 2026 — Portable content interchange
+
+TAW sites had no first-class way to move content between environments or to hand it to a code agent. `wp export` (WXR) doesn't understand `_taw_*` meta; a full DB copy is all-or-nothing and needs SSH. **`taw/core` v1.25.0** generalizes TAW's own serialize → review → apply pattern (`seo:extract`/`inject`, `fields:get`/`set`) to whole-site content.
+
+**`TAW\Core\Content\Exporter`** builds a portable JSON snapshot: `meta` (schema `1.0` + source + a block/field `registry_fingerprint` for drift warnings), `options` (every `_taw_*` decoded, plus an allowlisted core set with `page_on_front`/`page_for_posts` resolved to slugs), `terms`, `posts` (pages/posts + public CPTs except `taw_submission`; every `_taw_*` field decoded by its registered type), and `media` (referenced attachments, keyed by filename). Users, revisions, comments, transients and `nav_menu` are never exported. Scope with `--types` / `--since` / `--posts` / `--no-media`.
+
+**`TAW\Core\Content\Importer`** consumes a snapshot or a change-set (`content:diff` emits one). Records match by natural key — never numeric ID. Media is matched by filename or sideloaded, and the `old → new` ID map is rewritten into `post_content` and `image`/`files` values before any write. `plan()` is a **mandatory dry-run** (field-level diff, zero writes); `apply()` writes a full rollback snapshot to `wp-content/uploads/taw-private/` first, then writes meta through the new `Metabox::writeMeta()` primitive. Per-record conflict policy `update` / `create` / `skip`.
+
+**wp-admin:** Tools → **TAW Data** — an Export button and an Import flow that shows the dry-run diff as a review table with an explicit "Apply N changes" (no one-click apply). Plus `GET /wp-json/taw/v1/content/export` (capability `export`).
+
+**REST-registered field meta:** `Theme::boot()` now exposes every TAW field over `wp/v2` — `register_post_meta()` for scalars (with the field's sanitizer and an `edit_post` `auth_callback`), `register_rest_field()` for the decoded repeater/files/post_select shapes, and `register_setting(… show_in_rest)` for OptionsPage fields. This unblocks headless front-ends and external tooling. It does **not** add a mobile editing UI. Opt out with `add_filter('taw_register_meta_in_rest', '__return_false')`.
+
+Also: `Metabox::writeMeta()` / `sanitizeForStorage()` — one shared meta-write primitive (sanitize + `wp_slash` + `update_post_meta`, matching `Metabox::save()`); `fields:set` moved onto it, fixing a latent bug where a repeater value containing `"` or `\` was corrupted by `update_post_meta`'s internal `wp_unslash`.
+
+**taw-theme** picks up `taw/core` v1.25.0 and registers the three `content:*` commands in `bin/taw` (v1.9.0). Landed via [`Relmaur/taw-core#4`](https://github.com/Relmaur/taw-core/pull/4) (closes `#3`).
+
+See [Content Interchange](/taw-core#content-interchange).
+
+</Update>
+
 <Update label="2026-09-09 (pending release)" description="taw/core v1.24.0: user-enumeration hardening — the public /wp/v2/users REST routes are now hidden from anonymous requests by default, closing the ?rest_route=/wp/v2/users leak that host WAFs miss. The taw-theme scaffold gains a site-owned inc/security.php." tags={["taw/core", "taw-theme", "security"]}>
 
 ## September 2026 — User-enumeration lockdown
