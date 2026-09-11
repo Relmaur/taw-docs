@@ -4,6 +4,28 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-11" description="taw/core v1.28.0: Sovereign Hybrid-RAG Chatbot — content-agnostic knowledge bases. Upload any .sqlite file in wp-admin; a single search_knowledge_base tool answers from it, the site's own content, or both." tags={["taw/core", "taw-theme", "feature"]}>
+
+## September 2026 — Sovereign Hybrid-RAG Chatbot: content-agnostic knowledge bases
+
+A visitor-facing chat widget that answers from any number of named **knowledge bases** — the site's own WordPress content, plus any `.sqlite` file an admin uploads from wp-admin — with an OpenAI-compatible LLM doing semantic search across whichever one a question calls for. Landed via [`Relmaur/taw-core#12`](https://github.com/Relmaur/taw-core/pull/12) (closes `#11`), tagged **v1.28.0**, with a paired `taw-theme` release ([`Relmaur/taw-theme#3`](https://github.com/Relmaur/taw-theme/pull/3)).
+
+<Callout kind="info">
+  This supersedes **v1.27.0** ([`#10`](https://github.com/Relmaur/taw-core/pull/10), tagged the same day), which shipped the same chat widget and REST endpoint but with the reference-data layer hardcoded to two specific schemas (`lookup_bible`/`lookup_catechism`). On review that was the wrong shape — v1.27.0 was superseded before any real consumer integrated against it. If you're on v1.27.0, upgrade straight to v1.28.0; there's no migration path from the old schema-specific tools, only a clean replacement.
+</Callout>
+
+- **Content-agnostic by design.** No particular schema is assumed or required of an uploaded `.sqlite` file — every table is scanned, every column with SQLite TEXT affinity is extracted, chunked, embedded, and made searchable. A table with no text column is skipped.
+- **`Settings → TAW Chatbot → Knowledge Bases`** — upload a `.sqlite` file with a name and description; that's the entire setup. Ingestion runs via WP-Cron, never on the upload request. The upload handler validates the SQLite magic-byte header before accepting a file.
+- **The site's own content is just another knowledge base** — a built-in, non-deletable `wp-content` entry, unified into the same registry and the same search tool as uploaded ones, rather than a separate dedicated tool.
+- **One tool, not three.** `search_knowledge_base(knowledge_base, query)` replaces the old `lookup_bible`/`lookup_catechism`/`search_unstructured_archive` trio. Its `knowledge_base` enum is built fresh from the registry on every request, so a newly-uploaded knowledge base is searchable the moment ingestion finishes.
+- **`Settings → TAW Chatbot`** — LLM base URL/model, indexed post types for the site's own content, chunk size/overlap, max tool-call iterations, and whether anonymous visitors can chat. The LLM API key is wp-config-constant-only (`TAW_RAG_API_KEY`), never an options-table field.
+- **`POST /wp-json/taw/v1/chat`** — public by default, defended by unconditional rate limiting (20 requests/10 min per IP) rather than a login requirement.
+- **`Blocks/Chatbot`** (taw-theme) — a site-wide floating widget, unchanged by this redesign since it only depends on the `/taw/v1/chat` request/response shape. Markdown replies render via `marked`, sanitized with `DOMPurify`.
+
+**Downstream:** `content:import-reference` is gone (upload replaces it); `content:reindex-kb <id>` is the new manual re-ingestion escape hatch for one uploaded knowledge base, alongside the existing `content:reindex` for the site's own content.
+
+</Update>
+
 <Update label="2026-09-10 (pending release)" description="taw/core v1.26.0: Content Interchange becomes a whole-site state migration path — post authorship, opt-in users / comments / environment settings, a --migrate shorthand, Metabox-backed CPT auto-export, and a slug-less-draft fix." tags={["taw/core", "taw-theme", "feature"]}>
 
 ## September 2026 — Content Interchange → whole-site state migration

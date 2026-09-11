@@ -1474,6 +1474,7 @@ TAW Core registers the following REST endpoints automatically via `Theme::boot()
 | `POST` | `/taw/v1/visual-editor/save` | Save Visual Editor changes. Requires `edit_posts`. |
 | `GET` | `/taw/v1/visual-editor/fields` | Load all registered fields and current values for the editor panel. Requires `edit_posts`. |
 | `GET` | `/taw/v1/icons` | Lucide icon search powering the `icon` field type. Requires `edit_posts`. Only registered when `Lucide::enable()` was called — see [Icon System](#icon-system). |
+| `POST` | `/taw/v1/chat` | Hybrid-RAG chatbot — see [Sovereign Hybrid-RAG Chatbot](#sovereign-hybrid-rag-chatbot). Public by default, rate-limited. |
 
 ### search-posts
 
@@ -1530,6 +1531,43 @@ Example responses:
 <ParamField query="exclude" param-type="string" required="false" deprecated="false">
   Comma-separated post IDs to exclude from results.
 </ParamField>
+
+### chat
+
+`TAW\Core\Rest\RagChatEndpoint` runs a tool-calling chat turn against one or more named knowledge bases — see [Sovereign Hybrid-RAG Chatbot](#sovereign-hybrid-rag-chatbot) for the full picture.
+
+```bash
+POST /wp-json/taw/v1/chat
+Content-Type: application/json
+
+{"message": "Do you have anything about return policies?"}
+```
+
+<CodeGroup tabs="200 OK,429 Too Many Requests">
+  ```json
+  {
+    "message": "Yes — according to our policy page, items can be returned within 30 days..."
+  }
+  ```
+
+  ```json
+  {
+    "error": "Too many requests. Please try again shortly."
+  }
+  ```
+</CodeGroup>
+
+<ParamField body="message" param-type="string" required="true" deprecated="false">
+  The user's message. 1–4000 characters.
+</ParamField>
+
+<ParamField body="history" param-type="array" required="false" deprecated="false">
+  Prior turns of the conversation: `[{"role": "user"|"assistant", "content": "..."}, ...]`. Capped to the most recent 10 turns.
+</ParamField>
+
+<Callout kind="info">
+  Public by default (`RagSettings::publicChatEnabled()`) — WordPress's cookie-auth nonce check only protects logged-in callers, so anonymous requests are defended by unconditional rate limiting (20 requests / 10 minutes per IP) instead, regardless of the public/logged-in-only setting.
+</Callout>
 
 ### icons
 
@@ -1784,6 +1822,61 @@ php bin/taw content:import /tmp/site.json --yes
 <Callout kind="info">
   This exposes field values over `wp/v2` for **headless front-ends and external integrations**. It does not add a mobile-app editing UI — classic metaboxes stay desktop-only; on-phone editing is the [Visual Editor](/taw-core#visual-editor). Opt out with `add_filter('taw_register_meta_in_rest', '__return_false')`.
 </Callout>
+
+{/* MARK: Sovereign Hybrid-RAG Chatbot */}
+
+## Sovereign Hybrid-RAG Chatbot
+
+A visitor-facing chat widget that answers from any number of named **knowledge bases** — the site's own WordPress content, plus any `.sqlite` file an admin uploads — with an OpenAI-compatible LLM doing semantic search across whichever one a question calls for. Content-agnostic by design: no particular schema is assumed or required of an uploaded file. Wired unconditionally in `Theme::boot()`, no `enable()` call needed.
+
+<Callout kind="tip">
+  "Sovereign" describes data ownership, not hosting. The LLM endpoint is admin-configurable (**Settings → TAW Chatbot**), defaulting to OpenAI's cloud API but swappable to any OpenAI-compatible endpoint — self-hosted Ollama, vLLM, and similar all work. Your SQLite files and WordPress database never leave the site either way.
+</Callout>
+
+<Callout kind="info">
+  Strict separation of concerns: every piece of this — SQLite connections, embeddings, LLM orchestration, REST — lives in `taw/core`. The consuming theme (`taw-theme`) owns only the chat widget's Alpine.js/Tailwind presentation and talks exclusively to `POST /taw/v1/chat` — no LLM base URL or API key ever reaches the browser.
+</Callout>
+
+### Knowledge bases
+
+**Settings → TAW Chatbot → Knowledge Bases** (`TAW\Core\Rag\KnowledgeBase\KnowledgeBaseAdminScreen`) — upload any `.sqlite` file with a name and description; that's the entire setup. On ingestion, every table is scanned and every column whose declared SQLite type has TEXT affinity (`CHAR`/`CLOB`/`TEXT`, or no declared type at all) is extracted as `"column: value"` lines per row, chunked, embedded, and written into a `taw_rag_chunks` table **inside that same file** — one file per knowledge base, not two. A table with no text-affinity column is skipped; nothing schema-specific is assumed about what you upload.
+
+<Callout kind="tip">
+  The site's own WordPress content is always present as a built-in, non-deletable `wp-content` knowledge base — it isn't stored anywhere new, since it's fully derived from the chatbot's post-type/chunking settings and the existing content-ingestion pipeline.
+</Callout>
+
+```bash
+php bin/taw content:reindex --post-type=post,page --batch=20   # backfill/refresh the wp-content knowledge base
+php bin/taw content:reindex-kb kb-a1b2c3d4                     # re-run ingestion for one uploaded knowledge base
+```
+
+<Callout kind="alert">
+  Uploading a knowledge base is wp-admin only, by design — there's no CLI import step. The upload handler validates the SQLite magic-byte header before accepting a file, and ingestion always runs via WP-Cron rather than on the upload request itself.
+</Callout>
+
+### Settings
+
+**Settings → TAW Chatbot** (`TAW\Core\Rag\RagSettings`) exposes the API base URL, embedding/chat model names, indexed post types for the `wp-content` knowledge base, chunk size/overlap, max tool-call iterations, and whether anonymous visitors can chat.
+
+<Callout kind="alert">
+  The LLM API key is deliberately **not** one of these fields — OptionsPage fields are REST-readable by anyone with `edit_posts`, which makes the options table the wrong place for a secret. Define it in `wp-config.php` instead:
+
+  ```php
+  define('TAW_RAG_API_KEY', 'sk-...');
+  ```
+</Callout>
+
+### Vector search
+
+Every knowledge base's `taw_rag_chunks` table is searched with pure-PHP cosine similarity by default (`TAW\Core\Rag\Vector\VectorRepository`) — the [sqlite-vec](https://github.com/asg017/sqlite-vec) loadable extension isn't installed on most PHP hosts, and `PDO::loadExtension()` only exists on PHP 8.4+'s `Pdo\Sqlite` driver subclass in the first place, not on a plain `PDO` connection on any version. `VectorCapability::sqliteVecAvailable()` detects it at runtime and search falls back to the brute-force path on any failure — it is never a hard dependency.
+
+### The chat tool
+
+The orchestrator (`TAW\Core\Rag\Orchestrator\ChatOrchestrator`) runs an OpenAI-compatible tool-calling loop, capped at the configured max iterations, against a single tool:
+
+- **`search_knowledge_base(knowledge_base, query)`** (`TAW\Core\Rag\Tools\SearchKnowledgeBaseTool`) — semantic search over one named knowledge base. Its `knowledge_base` parameter is an enum built fresh from the current registry on every request, so a newly-uploaded knowledge base is searchable the moment ingestion finishes — no redeploy needed.
+
+See [`POST /taw/v1/chat`](#chat) under REST API for the request/response shape.
 
 {/* MARK: Helpers */}
 

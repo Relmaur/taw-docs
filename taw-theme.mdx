@@ -463,6 +463,25 @@ Edit the strings directly in `Blocks/Menu/index.php`:
   The Menu block pulls `primary` navigation from the location registered in `functions.php` via `register_nav_menus()`. Make sure a menu is assigned to the `primary` location in **WordPress Admin → Appearance → Menus** before rendering.
 </Callout>
 
+### Chatbot — site-wide Hybrid-RAG chat widget
+
+`Blocks/Chatbot/` is a plain (presentational) `Block`, mounted site-wide rather than per-page — `header.php` enqueues its assets, `footer.php` renders it:
+
+```php
+// header.php — before wp_head()
+use TAW\Blocks\Chatbot\Chatbot;
+(new Chatbot())->enqueueAssets();
+
+// footer.php — before wp_footer()
+(new Chatbot())->render();
+```
+
+It talks only to `POST /wp-json/taw/v1/chat` — see [Sovereign Hybrid-RAG Chatbot](/taw-core#sovereign-hybrid-rag-chatbot) in the `taw-core` reference for the full backend picture (content-agnostic SQLite knowledge bases, embeddings, LLM tool-calling). Markdown replies are rendered with `marked` and sanitized with `DOMPurify` before any `x-html` binding.
+
+<Callout kind="tip">
+  All configuration — LLM base URL/model, which knowledge bases exist, and whether anonymous visitors can chat — lives in wp-admin under **Settings → TAW Chatbot** (and its **Knowledge Bases** sub-page, where any `.sqlite` file can be uploaded). Nothing about the chatbot's behavior is configured in this theme.
+</Callout>
+
 ## Framework updates
 
 TAW Core is distributed as a Composer package (`taw/core`). To update the framework to the latest version, run:
