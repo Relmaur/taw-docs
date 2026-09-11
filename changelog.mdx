@@ -4,6 +4,22 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-11" description="taw/core v1.29.0: Bible Reader Corpus — a framework-level, developer-installed reference-corpus subsystem (storage, CLI install, a Straubinger-schema Bible reader, and a rate-limited REST surface), built for the fsspx-taw client site's Bible reader." tags={["taw/core", "feature"]}>
+
+## September 2026 — Bible Reader Corpus
+
+A read-only REST surface over a developer-installed reference corpus — currently a Straubinger-translation Spanish Catholic Bible, built for the fsspx-taw client site's Bible reader (theme-side page/Block shipping separately) but framework-level and reusable at the storage layer. Landed via [`Relmaur/taw-core#16`](https://github.com/Relmaur/taw-core/pull/16) (closes `#15`), tagged **v1.29.0**.
+
+- **`TAW\Core\Storage\ProtectedSqlite`** — the RAG chatbot's "protected uploads directory + exception-mode PDO open + magic-byte SQLite validation" plumbing, extracted and shared rather than duplicated for this new subsystem.
+- **`TAW\Core\Corpus\Storage`** — `wp-content/uploads/taw-private/corpus/`, deliberately separate from the RAG chatbot's `taw-private/rag/`: a reference corpus meant for direct reading and a RAG knowledge base meant for chatbot embedding are different concerns that happen to share storage mechanics.
+- **`php bin/taw corpus:install <path> <filename>`** — CLI-only, not a wp-admin upload form. A curated dataset a developer places once per environment, not end-user content.
+- **`TAW\Core\Corpus\Bible\BibleReader`** — books grouped by testament/division, per-chapter verses + overlapping section headings + overlapping notes, and FTS5 search over verses or notes. Not `final` — subclassable so a theme can point at a different installed filename or override read behavior.
+- **`GET /taw/v1/bible/books`, `.../books/{slug}/chapters/{n}`, `.../search`** — opt-in (`BibleEndpoint::enable()`), public (no auth — this is public Scripture text), rate-limited regardless. The endpoint resolves its reader through `apply_filters('taw_corpus_bible_reader', ...)`.
+
+See [Bible Reader Corpus](/taw-core#bible-reader-corpus) for the full reference, and `docs/adr/0001-reference-corpus-storage.md` in `taw-core` for the architectural reasoning behind each of these decisions.
+
+</Update>
+
 <Update label="2026-09-11" description="taw/core v1.28.1 / taw-theme v1.11.1: fix — a post that lost RAG eligibility (unpublished, trashed, password-protected) after being indexed stayed searchable via the chatbot indefinitely. It's now de-indexed immediately." tags={["taw/core", "taw-theme", "bugfix"]}>
 
 ## September 2026 — RAG chatbot: de-index posts that become ineligible

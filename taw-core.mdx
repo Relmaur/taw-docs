@@ -1475,6 +1475,9 @@ TAW Core registers the following REST endpoints automatically via `Theme::boot()
 | `GET` | `/taw/v1/visual-editor/fields` | Load all registered fields and current values for the editor panel. Requires `edit_posts`. |
 | `GET` | `/taw/v1/icons` | Lucide icon search powering the `icon` field type. Requires `edit_posts`. Only registered when `Lucide::enable()` was called — see [Icon System](#icon-system). |
 | `POST` | `/taw/v1/chat` | Hybrid-RAG chatbot — see [Sovereign Hybrid-RAG Chatbot](#sovereign-hybrid-rag-chatbot). Public by default, rate-limited. |
+| `GET` | `/taw/v1/bible/books` | Bible reader — see [Bible Reader Corpus](#bible-reader-corpus). Opt-in, public, rate-limited. |
+| `GET` | `/taw/v1/bible/books/{slug}/chapters/{n}` | Bible reader — one chapter's verses/sections/notes. |
+| `GET` | `/taw/v1/bible/search` | Bible reader — FTS5 search over verses or notes. |
 
 ### search-posts
 
@@ -1567,6 +1570,61 @@ Content-Type: application/json
 
 <Callout kind="info">
   Public by default (`RagSettings::publicChatEnabled()`) — WordPress's cookie-auth nonce check only protects logged-in callers, so anonymous requests are defended by unconditional rate limiting (20 requests / 10 minutes per IP) instead, regardless of the public/logged-in-only setting.
+</Callout>
+
+### bible
+
+`TAW\Core\Rest\BibleEndpoint` — read-only routes over an installed reference corpus. See [Bible Reader Corpus](#bible-reader-corpus) for the full picture. Only registered when `BibleEndpoint::enable()` has been called; all three routes `404` with `{"error": "No Bible corpus is installed."}` until `bin/taw corpus:install` has been run.
+
+```bash
+GET /wp-json/taw/v1/bible/books
+GET /wp-json/taw/v1/bible/books/genesis/chapters/1
+GET /wp-json/taw/v1/bible/search?q=en+el+principio&scope=verses&limit=20
+```
+
+<ParamField query="slug" param-type="string" required="true" deprecated="false">
+  Book slug (path parameter on the chapter route), e.g. `genesis`, `iohannes`.
+</ParamField>
+
+<ParamField query="q" param-type="string" required="true" deprecated="false">
+  Search query — treated as one literal phrase (internal quotes are escaped), not raw FTS5 `MATCH` syntax.
+</ParamField>
+
+<ParamField query="scope" param-type="string" required="false" deprecated="false">
+  `verses` (default) or `notes`.
+</ParamField>
+
+<ParamField query="limit" param-type="integer" required="false" deprecated="false">
+  Results to return. Clamped to `1`–`50`. Defaults to `20`.
+</ParamField>
+
+<CodeGroup tabs="200 OK,404 Not Found">
+  ```json
+  {
+    "book": {
+      "id": 1, "slug": "genesis", "name": "Génesis", "testament": "Antiguo Testamento",
+      "division": "Pentateuco", "canon": "protocanonical", "book_order": 1, "chapter_count": 50
+    },
+    "chapter_number": 1,
+    "verses": [
+      {"id": 1, "verse_number": 1, "verse_label": "1", "text": "Al principio creó Dios el cielo y la tierra.", "is_editorial_addition": false}
+    ],
+    "sections": [
+      {"id": 1, "kind": "pericope", "heading": "La creación del cielo y de la tierra", "start_chapter": 1, "start_verse": 1, "end_chapter": 1, "end_verse": 1, "position": 1001}
+    ],
+    "notes": [
+      {"id": 1, "type": "commentary", "marker": "1", "body": "1. Al principio, es decir...", "start_chapter": 1, "start_verse": 1, "end_chapter": 1, "end_verse": 1, "position": 0}
+    ]
+  }
+  ```
+
+  ```json
+  {"error": "Chapter not found."}
+  ```
+</CodeGroup>
+
+<Callout kind="info">
+  Public — this is public Scripture text, no auth required — but every route is still rate limited the same way `/taw/v1/chat` is: 120 requests / 10 minutes per IP for `books`/chapter reads, 30 / 10 minutes for `search` (a heavier query and a more attractive scraping target).
 </Callout>
 
 ### icons
@@ -1877,6 +1935,61 @@ The orchestrator (`TAW\Core\Rag\Orchestrator\ChatOrchestrator`) runs an OpenAI-c
 - **`search_knowledge_base(knowledge_base, query)`** (`TAW\Core\Rag\Tools\SearchKnowledgeBaseTool`) — semantic search over one named knowledge base. Its `knowledge_base` parameter is an enum built fresh from the current registry on every request, so a newly-uploaded knowledge base is searchable the moment ingestion finishes — no redeploy needed.
 
 See [`POST /taw/v1/chat`](#chat) under REST API for the request/response shape.
+
+{/* MARK: Bible Reader Corpus */}
+
+## Bible Reader Corpus
+
+A read-only REST surface over a developer-installed reference corpus — currently a Straubinger-translation Spanish Catholic Bible (`books`/`chapters`/`verses`/`sections`/`notes`, plus FTS5 full-text search), built for the fsspx-taw client site's Bible reader but framework-level and reusable: the schema itself is fixed (this isn't a generic query layer — see [Sovereign Hybrid-RAG Chatbot](#sovereign-hybrid-rag-chatbot)'s knowledge bases for that), but the storage/install/REST plumbing generalizes to any future reference corpus the same shape describes.
+
+<Callout kind="tip">
+  Opt-in — call `TAW\Core\Rest\BibleEndpoint::enable()` in the theme's `customizations.php` before `Theme::boot()`, same posture as `Lucide::enable()`/`RagSettings::enable()`. Nothing here registers on a site that doesn't call it.
+</Callout>
+
+### Installing the corpus file
+
+A reference corpus is a curated, developer-placed dataset, not end-user content — installed via CLI, not a wp-admin upload form:
+
+```bash
+php bin/taw corpus:install /path/to/bible_straubinger.sqlite bible-straubinger.sqlite
+```
+
+`TAW\CLI\CorpusInstallCommand` validates the SQLite magic-byte header (the same check the RAG chatbot's knowledge-base upload handler uses), then copies it into a protected uploads subdirectory: `TAW\Core\Corpus\Storage`, `wp-content/uploads/taw-private/corpus/`.
+
+<Callout kind="info">
+  Deliberately a separate directory from the RAG chatbot's `taw-private/rag/` — a reference corpus meant for direct structured reading and a RAG knowledge base meant for chatbot semantic search are different concerns that happen to share storage mechanics (protected directory + read-only PDO, extracted into `TAW\Core\Storage\ProtectedSqlite` and shared by both rather than duplicated). Keeping them apart means the RAG ingestion pipeline — which writes a `taw_rag_chunks` table directly into whatever `.sqlite` file it ingests — can never mistake a corpus file for a knowledge base upload.
+</Callout>
+
+The installed filename is fixed and versionless — the file's own `meta` table carries `release_channel`/`generated_at`/`source_revision`, so reader code never needs to know which build is installed. Re-running `corpus:install` against an updated source file is always safe.
+
+### Reading the corpus
+
+`TAW\Core\Corpus\Bible\BibleReader` — plain PDO, no WordPress dependency beyond resolving the uploads directory, opened via `Storage::openReadOnly()` (`PRAGMA query_only = 1` — a reference corpus is never written to at runtime):
+
+```php
+$reader = new TAW\Core\Corpus\Bible\BibleReader();
+
+$reader->books();                          // every book, grouped by testament then division, canonical order
+$reader->chapter('genesis', 1);            // verses + any overlapping section headings + any overlapping notes
+$reader->searchVerses('en el principio');  // FTS5 phrase search over verse text, <mark>-highlighted excerpt
+$reader->searchNotes('creación');          // FTS5 phrase search over Straubinger's own footnote commentary
+```
+
+`chapter()` returns `verses`/`sections`/`notes` as three flat, chapter-scoped lists rather than an interleaved rendering shape — where a heading sits relative to a verse, or how a note marker anchors into verse text, is presentation, and stays the consuming theme's decision.
+
+<Callout kind="tip">
+  `BibleReader` is not `final` on purpose — every internal fetch method is `protected`, and `FILENAME` is overridable — so a theme can subclass it (different installed filename, different fetch behavior) without a taw-core fork. `TAW\Core\Rest\BibleEndpoint` resolves which reader it queries through a filter:
+
+  ```php
+  add_filter('taw_corpus_bible_reader', function () {
+      return new MyThemeBibleReader();
+  });
+  ```
+
+  No `BibleReaderInterface` exists yet — one real consumer doesn't justify a formal contract; the endpoint narrows the filter's return via `instanceof BibleReader` and falls back to the default reader if a filter callback returns something else.
+</Callout>
+
+See [`bible`](#bible) under REST API for the full request/response shape of all three routes.
 
 {/* MARK: Helpers */}
 
