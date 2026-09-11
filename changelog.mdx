@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-11" description="taw/core v1.31.1 / taw-theme v1.11.5: fix — MySQL FULLTEXT boolean-mode search silently dropped words shorter than innodb_ft_min_token_size (default 3), so any Spanish query containing de/la/el/en/un/... returned zero results. Confirmed against a real MySQL server." tags={["taw/core", "taw-theme", "bugfix"]}>
+
+## September 2026 — MySQL FULLTEXT search ignored short/unindexed words
+
+Verified against a real MySQL server (fsspx-taw theme session): `books()`/`chapter()`/full corpus import all confirmed byte-for-byte correct, but `+amor +de +Dios` returned zero results even though three verses genuinely contain all three words — `+amor +Dios` (dropping "de") returned the correct three. Landed via [`Relmaur/taw-core#25`](https://github.com/Relmaur/taw-core/pull/25) (closes `#24`), tagged **v1.31.1**, with a paired `taw-theme` release tagged **v1.11.5**.
+
+InnoDB's FULLTEXT indexer never indexes a word shorter than `innodb_ft_min_token_size` (default 3) at all — a required `+word` term for a word that was never indexed can never match, so any AND query containing a short word (Spanish is full of them: `de`/`la`/`el`/`en`/`un`/...) returned nothing regardless of whether the rest of the query genuinely matched. Not fixable via server config on managed hosting (a global `my.cnf` setting requiring a restart and full index rebuild). `MysqlBibleReader::significantWords()` now reads the actual configured `innodb_ft_min_token_size` at query time and drops any word shorter than it from the required set before searching — the same "silently ignore, don't exclude everything" handling a real search engine applies to short/stop words.
+
+</Update>
+
 <Update label="2026-09-11" description="taw/core v1.31.0 / taw-theme v1.11.4: MySQL-backed fallback for the Bible Reader Corpus when pdo_sqlite isn't available (confirmed absent on real WPMUdev managed hosting) — corpus:export produces a portable JSON export, corpus:install now accepts either format, BibleEndpoint resolves the right backend transparently." tags={["taw/core", "taw-theme", "feature"]}>
 
 ## September 2026 — MySQL-backed fallback for the Bible Reader Corpus
