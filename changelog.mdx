@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-11" description="taw/core v1.31.2 / taw-theme v1.11.6: fix — MysqlBibleInstaller could report a clean success even when the MySQL import actually wrote nothing, since every $wpdb->query() call went unchecked and the CLI's success message was built from the input file's own row counts rather than anything read back from MySQL." tags={["taw/core", "taw-theme", "bugfix"]}>
+
+## September 2026 — MysqlBibleInstaller could report false success
+
+A production install against WPMUdev/MariaDB 10.6.23 once printed a clean `[OK] Imported 73 books, 1334 chapters...` while `GET /wp-json/taw/v1/bible/books` kept 404ing with "No Bible corpus is installed" — the table didn't exist at all. A second run genuinely succeeded. The transient root cause was never pinned down, but the reporting bug was real and deterministic regardless: the success message was built from the **input** JSON's own row counts, never anything read back from MySQL, and every `$wpdb->query()` call ran unchecked — `$wpdb->query()` returns `false` on failure and doesn't throw, so a silently-failed statement just fell through to a normal return. Landed via [`Relmaur/taw-core#27`](https://github.com/Relmaur/taw-core/pull/27) (closes `#26`), tagged **v1.31.2**, with a paired `taw-theme` release tagged **v1.11.6**.
+
+Every query in `MysqlBibleInstaller` now throws (with `$wpdb->last_error`) on a `false` result, and `install()` returns row counts read back via `COUNT(*)` *after* the import — `corpus:install` reports those, catching a real failure as a clean CLI error instead of a false success or a raw stack trace. Also documented: `TRUNCATE TABLE` is DDL on InnoDB/MariaDB and causes an implicit commit, so the transaction wrapping around the five-table reload was never a true cross-table atomicity guarantee — the loud-failure behavior is the real safety net now, not the transaction.
+
+</Update>
+
 <Update label="2026-09-11" description="taw/core v1.31.1 / taw-theme v1.11.5: fix — MySQL FULLTEXT boolean-mode search silently dropped words shorter than innodb_ft_min_token_size (default 3), so any Spanish query containing de/la/el/en/un/... returned zero results. Confirmed against a real MySQL server." tags={["taw/core", "taw-theme", "bugfix"]}>
 
 ## September 2026 — MySQL FULLTEXT search ignored short/unindexed words
