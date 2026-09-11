@@ -4,6 +4,17 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-11" description="taw/core v1.28.1 / taw-theme v1.11.1: fix — a post that lost RAG eligibility (unpublished, trashed, password-protected) after being indexed stayed searchable via the chatbot indefinitely. It's now de-indexed immediately." tags={["taw/core", "taw-theme", "bugfix"]}>
+
+## September 2026 — RAG chatbot: de-index posts that become ineligible
+
+`PostIndexer::onSavePost()` only ever handled the "should this post be indexed" path — a post that lost eligibility *after* being indexed (unpublished, moved to draft/private, trashed, or password-protected) stayed searchable through `search_knowledge_base` indefinitely, since the method just returned without touching its existing vectors. A real privacy gap, not just a staleness one. Landed via [`Relmaur/taw-core#13`](https://github.com/Relmaur/taw-core/pull/13), tagged **v1.28.1**, with a matching `taw-theme` v1.11.1 (`composer.lock` only — no theme code changed).
+
+- Eligibility now also excludes password-protected posts outright (`post_password === ''`), not just publish status + indexed post type.
+- Any post that isn't (or is no longer) eligible has its vectors removed **immediately, inline** — unlike the embed-on-publish path, a delete has no external API call to avoid blocking on, so there's no reason to defer it to WP-Cron.
+
+</Update>
+
 <Update label="2026-09-11" description="taw/core v1.28.0: Sovereign Hybrid-RAG Chatbot — content-agnostic knowledge bases. Upload any .sqlite file in wp-admin; a single search_knowledge_base tool answers from it, the site's own content, or both." tags={["taw/core", "taw-theme", "feature"]}>
 
 ## September 2026 — Sovereign Hybrid-RAG Chatbot: content-agnostic knowledge bases
