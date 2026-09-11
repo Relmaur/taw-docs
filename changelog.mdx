@@ -4,6 +4,23 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-11" description="taw/core v1.31.0 / taw-theme v1.11.4: MySQL-backed fallback for the Bible Reader Corpus when pdo_sqlite isn't available (confirmed absent on real WPMUdev managed hosting) — corpus:export produces a portable JSON export, corpus:install now accepts either format, BibleEndpoint resolves the right backend transparently." tags={["taw/core", "taw-theme", "feature"]}>
+
+## September 2026 — MySQL-backed fallback for the Bible Reader Corpus
+
+`bin/taw corpus:install` against the real ~18MB Straubinger corpus file on a live client site (WPMUdev managed hosting) fataled with `PDOException: could not find driver` — `pdo_sqlite`/`sqlite3` are missing from both PHP-FPM and CLI on that host, on two PHP versions, and WPMUdev declined to add them. `$wpdb` (`mysqli`) is guaranteed on every WordPress host since WP core itself can't function without it; `pdo_sqlite` is not guaranteed anywhere. Landed via [`Relmaur/taw-core#23`](https://github.com/Relmaur/taw-core/pull/23) (closes `#22`), tagged **v1.31.0**, with a paired `taw-theme` release tagged **v1.11.4**.
+
+- **`ProtectedSqlite::isAvailable()`** — real capability detection: `extension_loaded('pdo_sqlite')` *and* a real `sqlite::memory:` connection attempt, since a loaded extension isn't always functional on every host build.
+- **`TAW\Core\Corpus\Bible\BibleReaderInterface`** extracted (deferred in the original design until a second implementation existed to shape it against — that point has arrived); `BibleReader` implements it with zero internal changes, so every host where `pdo_sqlite` already works sees no behavior change at all.
+- **`MysqlBibleReader`** — an independent, MySQL-backed mirror of the same read contract: `books()`/`chapter()` via `$wpdb` joins, `searchVerses()`/`searchNotes()` via MySQL boolean-mode `FULLTEXT` (`+word1 +word2`, translating the same AND-of-words semantics the SQLite search fix already established) with hand-built `<mark>` excerpts (MySQL has no `snippet()`).
+- **`bin/taw corpus:export <sqlite-path> <json-path>`** — dumps a corpus to portable JSON on a machine that has `pdo_sqlite`, for installing on a target host that doesn't.
+- **`bin/taw corpus:install`** — now content-sniffs `.sqlite` vs. portable JSON and routes to the matching backend; a `.sqlite` source on a host without `pdo_sqlite` now fails with a clear message pointing at `corpus:export`, instead of a bare `PDOException`.
+- **`BibleEndpoint`** resolves SQLite first (unconditionally, whenever available and installed), MySQL otherwise.
+
+See [Bible Reader Corpus](/taw-core#bible-reader-corpus) for the full reference, and `docs/adr/0002-corpus-mysql-fallback.md` in `taw-core` for the architectural reasoning. `Rag\Storage`'s vector chunks remain `pdo_sqlite`-only — a MySQL-backed vector store is a plausible follow-up, flagged as separate, harder scope (continuous writes from ongoing post saves don't fit the export-once-to-JSON approach this fix relies on).
+
+</Update>
+
 <Update label="2026-09-11" description="taw/core v1.30.0 / taw-theme v1.11.3: the RAG chatbot is now opt-in (RagSettings::enable()), matching every other optional subsystem — settings page, knowledge bases, WP-content ingestion, and POST taw/v1/chat all stay off by default." tags={["taw/core", "taw-theme", "feature"]}>
 
 ## September 2026 — RAG chatbot becomes opt-in
