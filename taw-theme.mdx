@@ -48,6 +48,14 @@ Call `TAW\Core\Theme::boot()` once from your theme to wire up block loading, Vit
   `bin/taw` includes `content:export` / `content:import` / `content:diff` for moving a site's state — posts, TAW fields, options, terms, media, and optionally authorship, users, comments and settings — between environments, and wp-admin gets a **Tools → TAW Data** screen. Import is always a dry-run first, with an automatic rollback snapshot. `content:export --migrate` plus `content:import --yes` is a full TAW-site state transfer. See [Content Interchange](/content-interchange).
 </Callout>
 
+<Callout kind="info" collapsed="false">
+  The Sovereign Hybrid-RAG Chatbot is opt-in (since `taw/core` v1.30.0) — call `RagSettings::enable()` in `inc/customizations.php` before `Theme::boot()` (commented out by default, since it needs an LLM endpoint + `TAW_RAG_API_KEY` most sites won't have). This theme's `Blocks/Chatbot` widget checks `RagSettings::isEnabled()` before enqueuing/rendering itself, so it stays off automatically until enabled. See [Sovereign Hybrid-RAG Chatbot](/taw-core#sovereign-hybrid-rag-chatbot).
+</Callout>
+
+<Callout kind="info" collapsed="false">
+  The Bible Reader Corpus is opt-in — call `BibleEndpoint::enable()` in `inc/customizations.php` before `Theme::boot()`. A developer-installed reference corpus (`bin/taw corpus:install`), not bundled with the theme scaffold. See [Bible Reader Corpus](/taw-core#bible-reader-corpus).
+</Callout>
+
 ## Recommended bootstrap flow
 
 Set up your theme by booting TAW Core and then configuring performance. Use this flow in your `functions.php` (or equivalent) entry point.
@@ -465,21 +473,31 @@ Edit the strings directly in `Blocks/Menu/index.php`:
 
 ### Chatbot — site-wide Hybrid-RAG chat widget
 
-`Blocks/Chatbot/` is a plain (presentational) `Block`, mounted site-wide rather than per-page — `header.php` enqueues its assets, `footer.php` renders it:
+`Blocks/Chatbot/` is a plain (presentational) `Block`, mounted site-wide rather than per-page — `header.php` enqueues its assets, `footer.php` renders it, both gated on the backend actually being enabled:
 
 ```php
 // header.php — before wp_head()
 use TAW\Blocks\Chatbot\Chatbot;
-(new Chatbot())->enqueueAssets();
+use TAW\Core\Rag\RagSettings;
+if (RagSettings::isEnabled()) {
+    (new Chatbot())->enqueueAssets();
+}
 
 // footer.php — before wp_footer()
-(new Chatbot())->render();
+use TAW\Core\Rag\RagSettings;
+if (RagSettings::isEnabled()) {
+    (new Chatbot())->render();
+}
 ```
 
 It talks only to `POST /wp-json/taw/v1/chat` — see [Sovereign Hybrid-RAG Chatbot](/taw-core#sovereign-hybrid-rag-chatbot) in the `taw-core` reference for the full backend picture (content-agnostic SQLite knowledge bases, embeddings, LLM tool-calling). Markdown replies are rendered with `marked` and sanitized with `DOMPurify` before any `x-html` binding.
 
+<Callout kind="alert">
+  **Opt-in** (since `taw/core` v1.30.0) — the widget only enqueues/renders once `RagSettings::enable()` has been called (commented out by default in `inc/customizations.php`, since the chatbot needs an LLM endpoint + `TAW_RAG_API_KEY` most sites won't have). Without it, `RagSettings::isEnabled()` returns `false` and the widget correctly stays off rather than rendering something that POSTs to a REST route that isn't registered.
+</Callout>
+
 <Callout kind="tip">
-  All configuration — LLM base URL/model, which knowledge bases exist, and whether anonymous visitors can chat — lives in wp-admin under **Settings → TAW Chatbot** (and its **Knowledge Bases** sub-page, where any `.sqlite` file can be uploaded). Nothing about the chatbot's behavior is configured in this theme.
+  Once enabled, all further configuration — LLM base URL/model, which knowledge bases exist, and whether anonymous visitors can chat — lives in wp-admin under **Settings → TAW Chatbot** (and its **Knowledge Bases** sub-page, where any `.sqlite` file can be uploaded). Nothing about the chatbot's behavior is configured in this theme.
 </Callout>
 
 ## Framework updates

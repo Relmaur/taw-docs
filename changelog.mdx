@@ -4,6 +4,30 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-11" description="taw/core v1.30.0 / taw-theme v1.11.3: the RAG chatbot is now opt-in (RagSettings::enable()), matching every other optional subsystem — settings page, knowledge bases, WP-content ingestion, and POST taw/v1/chat all stay off by default." tags={["taw/core", "taw-theme", "feature"]}>
+
+## September 2026 — RAG chatbot becomes opt-in
+
+`Theme::boot()` unconditionally wired the entire Sovereign Hybrid-RAG Chatbot subsystem — every TAW site got the Settings → TAW Chatbot page, WP-content ingestion, and the public `POST taw/v1/chat` endpoint whether or not the developer wanted it. `Lucide`, `MediaFolders`, and the [Bible Reader Corpus](/taw-core#bible-reader-corpus)'s `BibleEndpoint` all follow an explicit `enable()` opt-in flag; the chatbot — arguably the subsystem with the highest bar to actually need (an LLM endpoint + `TAW_RAG_API_KEY`) — was the one exception. Landed via [`Relmaur/taw-core#20`](https://github.com/Relmaur/taw-core/pull/20) (closes `#19`), tagged **v1.30.0**, with a paired `taw-theme` release (`Relmaur/taw-theme` main, tagged **v1.11.3**).
+
+- **`RagSettings::enable()`/`isEnabled()`** — same shape as `Lucide::enable()`/`MediaFolders::enable()`/`BibleEndpoint::enable()`. Call it in `inc/customizations.php` before `Theme::boot()`.
+- **`taw-theme`'s `Blocks/Chatbot` widget** now checks `RagSettings::isEnabled()` in both `header.php` (asset enqueue) and `footer.php` (render) — previously it always rendered and would have `POST`ed to a REST route that no longer registers on a site that hasn't opted in.
+- **`inc/customizations.php`** gets a commented-out `RagSettings::enable();` line, matching the Lucide/`icon` field type's posture (off by default, one line to turn on).
+
+</Update>
+
+<Update label="2026-09-11" description="taw/core v1.29.3 / taw-theme v1.11.2: two bugs found running bin/taw corpus:install on a live client site — ProtectedSqlite/Corpus\Storage silently killed pre-boot CLI usage, and corpus:install was never registered in taw-theme's bin/taw. Also fixed: Bible search required an exact phrase match." tags={["taw/core", "taw-theme", "bugfix"]}>
+
+## September 2026 — corpus:install pre-boot fix, bin/taw registration, and Bible search matching
+
+Two bugs found running `bin/taw corpus:install` against the real ~18MB Straubinger corpus file on a live client site (fsspx-taw), plus one more found while fixing them. Landed via [`Relmaur/taw-core#18`](https://github.com/Relmaur/taw-core/pull/18) (closes `#17`), tagged **v1.29.3**; `bin/taw` registration landed directly on `taw-theme` main, tagged **v1.11.2**.
+
+- **`ProtectedSqlite`/`Corpus\Storage` silently killed pre-boot CLI usage.** Both carried `if (!defined('ABSPATH')) exit;`, but `CorpusInstallCommand::execute()` calls `ProtectedSqlite::looksLikeSqliteFile()` before `require $wpLoad` — so the guard fired and exited the whole process with zero output. The exact pitfall this repo's own `CLAUDE.md` already documents for `Content\*` (v1.25.1). Fixed by dropping the guard from both, matching `Content\*`'s precedent — neither class has a WordPress dependency of its own. A subprocess regression test (`Storage\PreBootAutoloadTest`, mirroring `Content\PreBootAutoloadTest`) now runs with no `ABSPATH` defined at all, the one test shape that can actually catch this.
+- **`corpus:install` was never wired into `bin/taw`.** The command class shipped in `taw-core` v1.29.0's `src/CLI/`, but canonical `taw-theme`'s `bin/taw` never got the matching registration (compare `content:reindex-kb`, which got both a class and a registration when it shipped) — the command was unreachable from any fresh checkout.
+- **Bible search required an exact contiguous phrase.** `BibleReader::escapeFtsPhrase()` wrapped the whole query as one FTS5 literal phrase, so `searchVerses('Dios amor')` silently returned nothing unless those words were adjacent in that exact order — which fails for almost any realistic multi-word search. Every word is now quoted independently and ANDed together.
+
+</Update>
+
 <Update label="2026-09-11" description="taw/core v1.29.0: Bible Reader Corpus — a framework-level, developer-installed reference-corpus subsystem (storage, CLI install, a Straubinger-schema Bible reader, and a rate-limited REST surface), built for the fsspx-taw client site's Bible reader." tags={["taw/core", "feature"]}>
 
 ## September 2026 — Bible Reader Corpus

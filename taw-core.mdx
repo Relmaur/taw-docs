@@ -1587,7 +1587,7 @@ GET /wp-json/taw/v1/bible/search?q=en+el+principio&scope=verses&limit=20
 </ParamField>
 
 <ParamField query="q" param-type="string" required="true" deprecated="false">
-  Search query — treated as one literal phrase (internal quotes are escaped), not raw FTS5 `MATCH` syntax.
+  Search query — every whitespace-separated word is matched individually and ANDed together (a row must contain every word, in any order or position), not raw FTS5 `MATCH` syntax and not one exact contiguous phrase.
 </ParamField>
 
 <ParamField query="scope" param-type="string" required="false" deprecated="false">
@@ -1885,7 +1885,7 @@ php bin/taw content:import /tmp/site.json --yes
 
 ## Sovereign Hybrid-RAG Chatbot
 
-A visitor-facing chat widget that answers from any number of named **knowledge bases** — the site's own WordPress content, plus any `.sqlite` file an admin uploads — with an OpenAI-compatible LLM doing semantic search across whichever one a question calls for. Content-agnostic by design: no particular schema is assumed or required of an uploaded file. Wired unconditionally in `Theme::boot()`, no `enable()` call needed.
+A visitor-facing chat widget that answers from any number of named **knowledge bases** — the site's own WordPress content, plus any `.sqlite` file an admin uploads — with an OpenAI-compatible LLM doing semantic search across whichever one a question calls for. Content-agnostic by design: no particular schema is assumed or required of an uploaded file.
 
 <Callout kind="tip">
   "Sovereign" describes data ownership, not hosting. The LLM endpoint is admin-configurable (**Settings → TAW Chatbot**), defaulting to OpenAI's cloud API but swappable to any OpenAI-compatible endpoint — self-hosted Ollama, vLLM, and similar all work. Your SQLite files and WordPress database never leave the site either way.
@@ -1893,6 +1893,17 @@ A visitor-facing chat widget that answers from any number of named **knowledge b
 
 <Callout kind="info">
   Strict separation of concerns: every piece of this — SQLite connections, embeddings, LLM orchestration, REST — lives in `taw/core`. The consuming theme (`taw-theme`) owns only the chat widget's Alpine.js/Tailwind presentation and talks exclusively to `POST /taw/v1/chat` — no LLM base URL or API key ever reaches the browser.
+</Callout>
+
+<Callout kind="alert">
+  **Opt-in** (since v1.30.0) — same posture as `Lucide::enable()`/`MediaFolders::enable()`/`BibleEndpoint::enable()`. The settings page, knowledge-base uploads, WP-content ingestion, and `POST /taw/v1/chat` all stay off — no admin menu, no hooks, no REST route registered — until a theme calls:
+
+  ```php
+  // In the theme's inc/customizations.php, before Theme::boot():
+  TAW\Core\Rag\RagSettings::enable();
+  ```
+
+  `taw-theme`'s `Blocks/Chatbot` widget checks `RagSettings::isEnabled()` before enqueuing/rendering itself, so it correctly stands down on a site that hasn't opted in rather than rendering a widget that POSTs to a REST route that doesn't exist.
 </Callout>
 
 ### Knowledge bases
@@ -1971,11 +1982,11 @@ $reader = new TAW\Core\Corpus\Bible\BibleReader();
 
 $reader->books();                          // every book, grouped by testament then division, canonical order
 $reader->chapter('genesis', 1);            // verses + any overlapping section headings + any overlapping notes
-$reader->searchVerses('en el principio');  // FTS5 phrase search over verse text, <mark>-highlighted excerpt
-$reader->searchNotes('creación');          // FTS5 phrase search over Straubinger's own footnote commentary
+$reader->searchVerses('en el principio');  // FTS5 search over verse text, <mark>-highlighted excerpt
+$reader->searchNotes('creación');          // FTS5 search over Straubinger's own footnote commentary
 ```
 
-`chapter()` returns `verses`/`sections`/`notes` as three flat, chapter-scoped lists rather than an interleaved rendering shape — where a heading sits relative to a verse, or how a note marker anchors into verse text, is presentation, and stays the consuming theme's decision.
+`chapter()` returns `verses`/`sections`/`notes` as three flat, chapter-scoped lists rather than an interleaved rendering shape — where a heading sits relative to a verse, or how a note marker anchors into verse text, is presentation, and stays the consuming theme's decision. `searchVerses()`/`searchNotes()` quote every whitespace-separated word of the query individually and AND them together — a row must contain every word, in any order or position — rather than requiring the whole query as one exact contiguous phrase (which would silently return nothing for almost any realistic multi-word search) or exposing raw FTS5 `MATCH` operator syntax.
 
 <Callout kind="tip">
   `BibleReader` is not `final` on purpose — every internal fetch method is `protected`, and `FILENAME` is overridable — so a theme can subclass it (different installed filename, different fetch behavior) without a taw-core fork. `TAW\Core\Rest\BibleEndpoint` resolves which reader it queries through a filter:
