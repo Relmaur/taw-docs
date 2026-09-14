@@ -908,25 +908,28 @@ Form::register([
         ['id' => 'post_body',      'label' => 'Body',            'type' => 'wysiwyg', 'required' => true],
         ['id' => 'featured_image', 'label' => 'Featured Image', 'type' => 'image'],
     ],
-    'on_submit' => function (array $data) {
-        $postId = wp_insert_post([
+    'on_submit' => function (array $data, int|false $submissionId) {
+        // $submissionId is the taw_submission record's own post ID — this
+        // callback creates a *different*, unrelated post from the submitted
+        // data, so it uses its own $newPostId rather than reusing it.
+        $newPostId = wp_insert_post([
             'post_title'   => $data['post_title'],
             'post_content' => $data['post_body'],
             'post_status'  => 'draft',
         ], true);
 
-        if (is_wp_error($postId)) {
-            throw new \RuntimeException($postId->get_error_message());
+        if (is_wp_error($newPostId)) {
+            throw new \RuntimeException($newPostId->get_error_message());
         }
 
         if (!empty($data['featured_image'])) {
-            set_post_thumbnail($postId, (int) $data['featured_image']);
+            set_post_thumbnail($newPostId, (int) $data['featured_image']);
         }
     },
 ]);
 ```
 
-The callback's signature is `function(array $data): void`, where `$data` is the same fully-validated, sanitized field data the CPT record and webhook payload are built from.
+The callback's signature is `function(array $data, int|false $postId): void` — `$data` is the same fully-validated, sanitized field data the CPT record and webhook payload are built from, and the second parameter is the `taw_submission` post `SubmissionsHandler::saveSubmission()` just created (`false` if that save itself failed — check before relying on it as a real ID). Name it whatever fits the callback; a callback that doesn't need it can omit the second parameter entirely — PHP silently ignores extra arguments passed to a closure declaring fewer, so every existing `on_submit` callback written against the old one-argument signature keeps working unchanged.
 
 <Callout kind="alert" collapsed="false">
   Throw a `\RuntimeException` to reject the submission with a message shown to the submitter — not any `\Throwable`. This handler runs for anonymous, unauthenticated submitters (`wp_ajax_nopriv_`), so any *other* exception type is treated as unexpected and logged server-side via `error_log()` instead, with a generic message shown to the visitor — never an arbitrary exception's own message, which could leak internal detail (file paths, query fragments, and the like).

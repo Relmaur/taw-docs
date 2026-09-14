@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-14" description="taw/core v1.33.0 / taw-theme v1.11.8: on_submit callbacks now receive the new submission's post ID as a second, optional argument; SubmissionsHandler::saveSubmission() also records a _taw_user_agent meta key." tags={["taw/core", "taw-theme", "feature"]}>
+
+## September 2026 — on_submit callbacks now receive the submission's post ID
+
+`Form::process()` called `SubmissionsHandler::saveSubmission()` but discarded its return value entirely, so an `on_submit` callback only ever received the submitted `$data` — never the ID of the `taw_submission` record just created for it, with no way to correlate a callback's own side effects back to that record without re-querying by form ID and a timestamp guess. Tagged **v1.33.0**, with a paired `taw-theme` release tagged **v1.11.8**.
+
+The callback's signature is now `function(array $data, int|false $postId): void` — `false` if the save itself failed. Every existing `on_submit` callback written against the old one-argument signature keeps working unchanged: PHP silently ignores extra arguments passed to a closure declaring fewer parameters than it's invoked with. Also new: `saveSubmission()` now records a `_taw_user_agent` meta key from `$_SERVER['HTTP_USER_AGENT']`, alongside the existing `_taw_user_ip`/`_taw_page_url` — generic technical context useful for any form submission, not specific to one theme.
+
+</Update>
+
 <Update label="2026-09-14" description="taw/core v1.32.1 / taw-theme v1.11.7: fix — rich-text metabox/options-page values left raw HTML entities (e.g. &quot;) for the browser to decode back into JS-breaking characters inside Alpine's x-data JSON; also adds the Catechism Reader Corpus (v1.32.0) to README.md." tags={["taw/core", "taw-theme", "bugfix"]}>
 
 ## September 2026 — rich-text metabox values left raw HTML entities for the browser to decode
