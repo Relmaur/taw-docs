@@ -4,6 +4,26 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-14" description="taw/core v1.32.1 / taw-theme v1.11.7: fix — rich-text metabox/options-page values left raw HTML entities (e.g. &quot;) for the browser to decode back into JS-breaking characters inside Alpine's x-data JSON; also adds the Catechism Reader Corpus (v1.32.0) to README.md." tags={["taw/core", "taw-theme", "bugfix"]}>
+
+## September 2026 — rich-text metabox values left raw HTML entities for the browser to decode
+
+`Metabox::render()`'s and `OptionsPage::render_repeater_row()`'s Alpine `x-data` seed values came straight from `get_post_meta()`/`get_option()` — for a `wysiwyg` (or any rich-text) field, that value already carries HTML entities baked in (a literal `"` saved as `&quot;`). `esc_attr()` left that `&quot;` in the rendered markup, and the browser HTML-decoded it right back into a raw, JSON-breaking `"` inside `x-data` — a silent Alpine initialization failure on any block with a rich-text field. Tagged **v1.32.1**, which also documents the [Catechism Reader Corpus](/taw-core#catechism-reader-corpus) (v1.32.0, below) in README.md; a paired `taw-theme` release tagged **v1.11.7** picks up both.
+
+Fixed by decoding entities (`html_entity_decode(..., ENT_QUOTES | ENT_HTML5, 'UTF-8')`) before seeding both metabox and options-page repeater initial values, so the `x-data` JSON sees the raw value a `<textarea>`/`<input>` would actually expose via `.value`.
+
+</Update>
+
+<Update label="2026-09-14" description="taw/core v1.32.0: new Catechism Reader Corpus — edition-parameterized part→section→chapter→question/answer reader mirroring the Bible corpus's SQLite/MySQL dual-backend architecture, applying every lesson from that corpus's production incidents from day one." tags={["taw/core", "feature"]}>
+
+## September 2026 — Catechism Reader Corpus, edition-parameterized from day one
+
+A generic `TAW\Core\Corpus\Catechism\*` namespace mirroring [Bible Reader Corpus](/taw-core#bible-reader-corpus)'s architecture one hierarchy level deeper — part → section → chapter → numbered question/answer, matching a catechism's own structure. Landed via [`Relmaur/taw-core#28`](https://github.com/Relmaur/taw-core/pull/28), tagged **v1.32.0**.
+
+Every reader/installer/endpoint method takes an `$edition` slug (registered in `CatechismEditions`, currently just `pius-x` — the Catechism of Saint Pius X) rather than assuming a single installed catechism, unlike the Bible corpus's single-corpus design — adding a second edition later (Saint John Paul II's, say) needs one new registry entry plus an installed file, no new code. The MySQL fallback ships alongside SQLite from the start this time, rather than arriving as a follow-up after a production incident: `innodb_ft_min_token_size` short-word filtering and checked `$wpdb` queries with real post-import row counts are both built in from day one. One genuine improvement over the Bible installer: since Catechism's MySQL tables are shared across editions (`edition` + `source_id` columns), reloading one edition uses a scoped `DELETE` rather than `TRUNCATE` — DML, not DDL, so the transaction wrapping around a reload is a real cross-table atomicity guarantee, not just a best-effort one.
+
+</Update>
+
 <Update label="2026-09-11" description="taw/core v1.31.2 / taw-theme v1.11.6: fix — MysqlBibleInstaller could report a clean success even when the MySQL import actually wrote nothing, since every $wpdb->query() call went unchecked and the CLI's success message was built from the input file's own row counts rather than anything read back from MySQL." tags={["taw/core", "taw-theme", "bugfix"]}>
 
 ## September 2026 — MysqlBibleInstaller could report false success
