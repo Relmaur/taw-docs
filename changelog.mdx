@@ -4,6 +4,25 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-15" description="taw/core v1.37.0 / taw-theme v1.11.10: fields:set/fields:get gain an 'options' scope for site-wide OptionsPage fields, plus two new field types — gradient_text (multi-segment gradient headings) and hubspot_form (HubSpot embed config)." tags={["taw/core", "taw-theme", "feature"]}>
+
+## September 2026 — OptionsPage support for fields:set/get, plus gradient_text and hubspot_form
+
+`fields:set`/`fields:get` only ever accepted a numeric post ID and wrote via `update_post_meta()` — there was no CLI path to write a site-wide `OptionsPage` field, despite the CLI's own docs claiming Metabox/OptionsPage support. Tagged **v1.37.0**, with a paired `taw-theme` release tagged **v1.11.10**.
+
+Pass the literal `options` in place of the post ID to target a site-wide field instead — resolved via new `OptionsPage::getFieldConfig()` (a bare-id lookup) and written via new `OptionsPage::writeOption()` (`update_option()`, sanitized through the same `Metabox::sanitizeForStorage()` `Content\Importer` already uses for options-registry values):
+
+```bash
+php bin/taw fields:set options company_phone "555-1234"
+```
+
+Also two new field types, wired into both `Metabox` and `OptionsPage`:
+
+- **`gradient_text`** — an ordered list of `{text, highlighted}` segments, replacing the old convention of a plain `heading` field plus a single always-trailing `highlight` field (which can't express a heading like "How can **we help**?", where the highlighted run isn't last). Render with `Metabox::renderGradientText($segments, $highlightClass)`.
+- **`hubspot_form`** — `{portal_id, form_id, region}`, rendered via new `TAW\Core\Integrations\Hubspot::render()`/`isConfigured()`, for a HubSpot embed with a fallback to the site's native `Form` block when unconfigured.
+
+</Update>
+
 <Update label="2026-09-14" description="taw/core v1.33.1 / taw-theme v1.11.9: new taw_critical_css_entry filter on ViteLoader's critical CSS inlining, so a full-page CPT template with its own above-the-fold hero can swap in a different critical file per request." tags={["taw/core", "taw-theme", "feature"]}>
 
 ## September 2026 — per-request override for critical CSS via taw_critical_css_entry

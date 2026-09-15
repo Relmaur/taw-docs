@@ -382,6 +382,60 @@ Each field below uses a `type` value that maps directly to the metabox renderer.
       </Step>
     </Steps>
   </Expandable>
+
+  <Expandable title="Gradient Text" default-open="false">
+    Ordered list of `{text, highlighted}` segments — for a gradient heading where the highlighted run isn't always the trailing segment (e.g. "How can **we help**?"). The admin UI is a lightweight Alpine-only segment editor (add/remove/toggle); reach for a real `repeater` instead if row reordering matters.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'heading', 'label' => 'Heading', 'type' => 'gradient_text']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $segments = Metabox::get_gradient_text($postId, 'heading');
+        echo Metabox::renderGradientText(
+            $segments,
+            'bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-blue-500'
+        );
+        ```
+      </Step>
+    </Steps>
+
+    <Callout kind="tip">
+      `renderGradientText()`'s highlight class is entirely up to the caller — the actual gradient is a per-theme design decision this framework method has no business hard-coding.
+    </Callout>
+  </Expandable>
+
+  <Expandable title="HubSpot Form" default-open="false">
+    HubSpot embed config — `{portal_id, form_id, region}` — for a block offering a HubSpot embed with a fallback to the site's own [Forms](#forms) system when unconfigured.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'hubspot_form', 'label' => 'HubSpot Form', 'type' => 'hubspot_form']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        use TAW\Core\Integrations\Hubspot;
+
+        $config = Metabox::get($postId, 'hubspot_form');
+
+        if (Hubspot::isConfigured($config)) {
+            echo Hubspot::render($config);
+        } else {
+            // render the site's own Form block instead
+        }
+        ```
+      </Step>
+    </Steps>
+
+    <Callout kind="tip">
+      No `enable()` gate — unlike `icon`'s bundled Lucide set, there's no asset here to opt into. `region` defaults to `na1` when blank.
+    </Callout>
+  </Expandable>
 </ExpandableGroup>
 
 A full metabox fields configuration looks like this:
@@ -1377,6 +1431,44 @@ Each field below uses a `type` value that maps directly to the Options Page rend
         use TAW\Core\Icons\Lucide;
 
         echo Lucide::render(OptionsPage::get('brand_icon'), ['class' => 'w-6 h-6']);
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="Gradient Text" default-open="false">
+    Ordered list of `{text, highlighted}` segments — same shape and admin UI as the Metabox `gradient_text` field above, backed by `wp_options` instead of post meta.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'site_tagline', 'label' => 'Tagline', 'type' => 'gradient_text']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        $segments = json_decode(OptionsPage::get('site_tagline', '_taw_', '[]'), true);
+        echo Metabox::renderGradientText($segments, 'bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-blue-500');
+        ```
+      </Step>
+    </Steps>
+  </Expandable>
+
+  <Expandable title="HubSpot Form" default-open="false">
+    HubSpot embed config — `{portal_id, form_id, region}` — same shape as the Metabox `hubspot_form` field above, for a site-wide default embed rather than a per-post one.
+
+    <Steps>
+      <Step title="Declaration" icon="code" title-type="p">
+        ```php
+        ['id' => 'default_hubspot_form', 'label' => 'Default HubSpot Form', 'type' => 'hubspot_form']
+        ```
+      </Step>
+      <Step title="Usage" icon="play" title-type="p">
+        ```php
+        use TAW\Core\Integrations\Hubspot;
+
+        $config = OptionsPage::get('default_hubspot_form');
+        echo Hubspot::render($config);
         ```
       </Step>
     </Steps>

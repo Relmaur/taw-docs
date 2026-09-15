@@ -333,6 +333,40 @@ All field types share a base set of options:
     echo Lucide::render(Metabox::get($postId, 'feature_icon'), ['class' => 'w-6 h-6']);
     ```
   </Expandable>
+
+  <Expandable title="gradient_text" default-open="false">
+    Ordered list of `{text, highlighted}` segments — for a gradient heading where the highlighted run isn't always the trailing segment. Alpine-only admin segment editor, no drag-reorder — use `repeater` instead when row order matters.
+
+    ```php
+    ['id' => 'heading', 'label' => 'Heading', 'type' => 'gradient_text']
+    ```
+
+    ```php
+    $segments = Metabox::get_gradient_text($postId, 'heading');
+    echo Metabox::renderGradientText($segments, 'bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-blue-500');
+    ```
+  </Expandable>
+
+  <Expandable title="hubspot_form" default-open="false">
+    HubSpot embed config — `{portal_id, form_id, region}`.
+
+    <Callout kind="tip">
+      No `enable()` gate needed. `region` defaults to `na1` when blank. Full reference: `taw-core` README § "HubSpot Form".
+    </Callout>
+
+    ```php
+    ['id' => 'hubspot_form', 'label' => 'HubSpot Form', 'type' => 'hubspot_form']
+    ```
+
+    ```php
+    use TAW\Core\Integrations\Hubspot;
+
+    $config = Metabox::get($postId, 'hubspot_form');
+    if (Hubspot::isConfigured($config)) {
+        echo Hubspot::render($config);
+    }
+    ```
+  </Expandable>
 </ExpandableGroup>
 
 ## Conditional fields
