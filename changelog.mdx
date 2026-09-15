@@ -4,6 +4,22 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-14" description="taw/core v1.33.1 / taw-theme v1.11.9: new taw_critical_css_entry filter on ViteLoader's critical CSS inlining, so a full-page CPT template with its own above-the-fold hero can swap in a different critical file per request." tags={["taw/core", "taw-theme", "feature"]}>
+
+## September 2026 — per-request override for critical CSS via taw_critical_css_entry
+
+`enqueueThemeAssets()`'s call to `ViteLoader::inlineCriticalCss()` hardcoded `resources/scss/critical.scss` with no way to override it — a client theme building full-page event-invite microsites with three distinct visual templates, each needing its own correctly-styled above-the-fold hero, had no way to load a different critical file without one site-wide `critical.scss` covering every template's layout at once. Tagged **v1.33.1**, with a paired `taw-theme` release tagged **v1.11.9**.
+
+The call site now resolves through `apply_filters('taw_critical_css_entry', 'resources/scss/critical.scss')` — purely additive, unhooked behavior unchanged. A theme can now do:
+
+```php
+add_filter('taw_critical_css_entry', function (string $entry) {
+    return is_singular('event_invite') ? 'resources/scss/critical-event-invite.scss' : $entry;
+});
+```
+
+</Update>
+
 <Update label="2026-09-14" description="taw/core v1.33.0 / taw-theme v1.11.8: on_submit callbacks now receive the new submission's post ID as a second, optional argument; SubmissionsHandler::saveSubmission() also records a _taw_user_agent meta key." tags={["taw/core", "taw-theme", "feature"]}>
 
 ## September 2026 — on_submit callbacks now receive the submission's post ID
