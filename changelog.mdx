@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-15" description="taw/core v1.37.1 / taw-theme v1.11.11: fix — gradient_text destroyed the word-boundary space around a highlighted phrase sitting mid-sentence, its primary use case." tags={["taw/core", "taw-theme", "bugfix"]}>
+
+## September 2026 — gradient_text destroyed word-boundary whitespace
+
+`sanitizeGradientTextValue()` ran each segment's text through `sanitize_text_field()`, whose own `trim()` silently ate a segment's leading/trailing space — exactly where it sits whenever a highlighted phrase is mid-sentence rather than the trailing segment, gradient_text's primary use case (e.g. "**Three ways** we help you own more and rent less."). `renderGradientText()` concatenates segments with no separator of its own, so the words rendered smashed together with no space at all. Tagged **v1.37.1**, with a paired `taw-theme` release tagged **v1.11.11**. Reported (with a clean repro) while migrating real heading+highlight pairs on a client site to `gradient_text` — no content had shipped on the buggy behavior yet.
+
+Fixed by restoring a single boundary space wherever the original segment text had one — never anything else from the original string, so the fix can't reopen anything `sanitize_text_field()` just closed.
+
+</Update>
+
 <Update label="2026-09-15" description="taw/core v1.37.0 / taw-theme v1.11.10: fields:set/fields:get gain an 'options' scope for site-wide OptionsPage fields, plus two new field types — gradient_text (multi-segment gradient headings) and hubspot_form (HubSpot embed config)." tags={["taw/core", "taw-theme", "feature"]}>
 
 ## September 2026 — OptionsPage support for fields:set/get, plus gradient_text and hubspot_form
