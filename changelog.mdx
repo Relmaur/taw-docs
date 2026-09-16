@@ -4,6 +4,25 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-15" description="taw/core v1.39.0 / taw-theme v1.11.12: Form::register() gains a submit_icon option — a Lucide icon name or raw SVG/HTML rendered after the submit button's label." tags={["taw/core", "taw-theme", "feature"]}>
+
+## September 2026 — submit_icon on Form::register()
+
+`Form::renderSubmitButton()` hardcoded its markup to a spinner + label span, with no slot for an icon — any site wanting a non-default submit button icon had to fork `Form.php`. Tagged **v1.39.0**, with a paired `taw-theme` release tagged **v1.11.12**. Flagged while pixel-matching a Contact form's submit button (a trailing "send" icon) against a Figma spec.
+
+```php
+Form::register([
+    'id'           => 'contact',
+    'submit_label' => 'Send message',
+    'submit_icon'  => 'send',
+    'fields'       => [...],
+]);
+```
+
+`submit_icon` accepts a Lucide icon name (rendered via `Lucide::render()` — no `Lucide::enable()` needed, same as any direct template call to it) or raw `'<svg>...</svg>'`/HTML, printed as-is inside a decorative `<span class="taw-btn-icon" aria-hidden="true">`, after the label. Nothing renders when unset, empty, or an unrecognized icon name.
+
+</Update>
+
 <Update label="2026-09-15" description="taw/core v1.37.1 / taw-theme v1.11.11: fix — gradient_text destroyed the word-boundary space around a highlighted phrase sitting mid-sentence, its primary use case." tags={["taw/core", "taw-theme", "bugfix"]}>
 
 ## September 2026 — gradient_text destroyed word-boundary whitespace
