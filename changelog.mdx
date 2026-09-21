@@ -4,6 +4,18 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-20" description="taw/core v1.41.0 / taw-theme v1.11.14: fix — the documented Metabox 'tabs' option never rendered; a tabbed metabox now shows its tab UI instead of a flat field list." tags={["taw/core", "taw-theme", "bugfix"]}>
+
+## September 2026 — Metabox tabs now render
+
+`Metabox` accepted a `tabs` config (documented in the README and on the Metabox pages), but `render()` never called `render_tabs()` — it was dead code, so a tabbed metabox silently rendered as a flat field list. Tagged **v1.41.0**, with a paired `taw-theme` release tagged **v1.11.14**.
+
+`render()` now resolves each tab's fields and renders the tab UI. Fields no tab lists stay visible above the tab bar rather than being dropped (saving walks every field, so an unposted field would be blanked); a tab whose `fields` match nothing is skipped, and a metabox with no usable tab renders flat. Every tab's inputs stay in the DOM — only the active panel is shown — so the metabox still saves as one form and conditional fields keep working.
+
+**Behavior note:** a site whose Metabox already carried a `tabs` config now gets the tab UI it configured instead of a flat list.
+
+</Update>
+
 <Update label="2026-09-20" description="taw/core v1.40.0 / taw-theme v1.11.13: Form::register() gains per-form 'class' / 'button_class' options and emits field width as a --taw-span custom property instead of an inline grid-column. taw-theme: new figma-fidelity and figma-image-crop-fix skills." tags={["taw/core", "taw-theme", "feature"]}>
 
 ## September 2026 — Form styling hooks + Figma fidelity skills
