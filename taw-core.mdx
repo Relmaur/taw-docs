@@ -727,6 +727,28 @@ Form::register([
   The icon renders inside its own `<span class="taw-btn-icon" aria-hidden="true">` — decorative, since the button's accessible name already comes from the label. Nothing renders when `submit_icon` is unset, empty, or an icon name `Lucide::render()` doesn't recognize.
 </Callout>
 
+### Styling hooks
+
+Per-form styling without an ancestor wrapper or `!important` (taw/core ≥ v1.40.0):
+
+```php
+Form::register([
+    'id'           => 'contact',
+    'class'        => 'contact-form',
+    'button_class' => 'btn-black',
+    'fields'       => [
+        ['id' => 'first', 'label' => 'First name', 'type' => 'text', 'width' => 50],
+        ['id' => 'last',  'label' => 'Last name',  'type' => 'text', 'width' => 50],
+    ],
+]);
+```
+
+`class` is appended to the `<form>`'s `taw-form`; `button_class` is appended to `taw-btn taw-btn-primary` on the submit button (and Next, on a multi-step form). Both **add to** the built-in classes rather than replacing them, so a theme overrides only what it needs, scoped to that one form — `.contact-form .taw-input { … }`. Blank or non-string values are ignored.
+
+<Callout kind="info">
+  A field's `width` is emitted as the `--taw-span` custom property (1–12 grid columns), which `form.css` turns into `grid-column: span N`. Unlike the inline `grid-column` it replaced, this leaves `grid-column` free to override with an ordinary selector — e.g. `.contact-form .taw-form-field { grid-column: 1 / -1; }` — no `!important`. Every grid cell (fields, `html`, `heading`, `divider`) now collapses to full width below 640px.
+</Callout>
+
 ### Security
 
 Every form has CSRF (nonce) protection and honeypot spam filtering by default — no configuration needed.

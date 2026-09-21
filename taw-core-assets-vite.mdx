@@ -44,6 +44,10 @@ TAW Core bridges Vite and WordPress through `TAW\Support\ViteLoader`, a PSR-4 au
   Third-party CSS that is needed globally (e.g. PhotoSwipe) should be imported in `resources/css/app.css`, not inside JavaScript files. This keeps it as a genuine stylesheet in both dev and production — no HMR injection conflicts, no edge cases when multiple entry points import the same file.
 </Callout>
 
+<Callout kind="alert" collapsed="false">
+  `critical.scss` is inlined as plain, **unlayered** CSS, while Tailwind v4 emits utilities inside `@layer utilities` — and unlayered rules beat layered ones regardless of specificity or source order. Any element `critical.scss` also styles (typically the Hero's inner column: `padding`, `max-width`) will silently ignore a conflicting utility such as `pb-0` or `md:max-w-*`. To vary an above-the-fold block per page or state, define **modifier classes in `critical.scss`** (`.hero__inner--inner-page`) and toggle them from the template instead of using utilities.
+</Callout>
+
 ## How production assets are loaded
 
 TAW Core's asset strategy is designed to avoid render-blocking resources:
