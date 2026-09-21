@@ -4,11 +4,11 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
-<Update label="2026-09-20 (pending release)" description="taw/core: Form::register() gains per-form 'class' / 'button_class' options and emits field width as a --taw-span custom property instead of an inline grid-column. taw-theme: new figma-fidelity and figma-image-crop-fix skills." tags={["taw/core", "taw-theme", "feature"]}>
+<Update label="2026-09-20" description="taw/core v1.40.0 / taw-theme v1.11.13: Form::register() gains per-form 'class' / 'button_class' options and emits field width as a --taw-span custom property instead of an inline grid-column. taw-theme: new figma-fidelity and figma-image-crop-fix skills." tags={["taw/core", "taw-theme", "feature"]}>
 
 ## September 2026 — Form styling hooks + Figma fidelity skills
 
-Flagged while pixel-matching a Figma Contact form: the submit button was hardcoded `taw-btn taw-btn-primary` with no per-form hook, and per-field width was an inline `grid-column: span N` that no stylesheet rule could beat without `!important`.
+Tagged **v1.40.0**, with a paired `taw-theme` release tagged **v1.11.13**. Flagged while pixel-matching a Figma Contact form: the submit button was hardcoded `taw-btn taw-btn-primary` with no per-form hook, and per-field width was an inline `grid-column: span N` that no stylesheet rule could beat without `!important`.
 
 ```php
 Form::register([
