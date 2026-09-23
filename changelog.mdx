@@ -4,6 +4,25 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-23" description="taw-create 0.1.0: one command starts either TAW theme. composer create-project taw/create asks for taw-theme or taw-gutenberg." tags={["taw-create", "taw-gutenberg", "feature"]}>
+
+## September 2026 — One installer for both TAW themes
+
+**taw-create 0.1.0** is a new installer package. Composer can't pass arguments to a project's scripts, so the choice comes from a prompt, or from `TAW_STARTER` when there's no terminal:
+
+```bash
+cd wp-content/themes
+composer create-project taw/create my-theme \
+  --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-create"}'
+```
+
+- **Pick a theme:** `taw-theme` (classic, the default when non-interactive) or `taw-gutenberg` (block theme). `TAW_STARTER=theme|gutenberg` skips the question, and `TAW_STARTER_VERSION` pins a version.
+- **Safe by design:** it never touches a folder that already has other files in it. A failed install leaves your folder as it was, and no shell is involved.
+- **TAW Gutenberg** is now tagged **v0.1.0**, with a GitHub Release, so it installs as a stable version.
+- The direct commands (`composer create-project taw/theme …`, `taw/gutenberg …`) still work.
+
+</Update>
+
 <Update label="2026-09-23" description="taw/core v1.44.0 / taw-theme v1.12.0 / taw-gutenberg 0.1.0: define your data model as JSON in taw-schema/, validate it without WordPress, and meet TAW Gutenberg, the new block theme." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature"]}>
 
 ## September 2026 — JSON schema definitions, and TAW Gutenberg

@@ -106,18 +106,16 @@ TAW has two block types. Pick the one that fits your use case.
 
 <Steps>
   <Step title="Install the theme" icon="download" title-type="p">
-    Scaffold a new TAW Theme project inside your WordPress `wp-content/themes` directory using Composer, then install PHP and JS dependencies.
+    Run the TAW installer inside your WordPress `wp-content/themes` directory. It asks which TAW theme to start from and installs it, with its PHP and JS dependencies, in `my-theme/`.
 
     ```bash
     cd wp-content/themes
 
-    composer create-project taw/theme my-theme \
-      --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-theme"}'
-
-    cd my-theme
-    composer install
-    npm install
+    composer create-project taw/create my-theme \
+      --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-create"}'
     ```
+
+    Pick **taw-theme** for the classic theme described below, or **taw-gutenberg** for the block theme ([TAW Gutenberg](/taw-gutenberg)). In scripts, skip the question with `TAW_STARTER=theme` or `TAW_STARTER=gutenberg`.
   </Step>
 
   <Step title="Start the dev server" icon="zap" title-type="p">

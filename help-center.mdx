@@ -62,11 +62,12 @@ Make sure you called `BlockRegistry::queue('block-id')` before `get_header()` in
 Confirm `npm run dev` is running and that your `vite.config.js` points to the correct WordPress URL. The Vite bridge in `taw/core` reads the dev server manifest at runtime — if the manifest is missing, it falls back to the production build.
 
 **`composer create-project` fails**
-The `--repository` flag is required since TAW Theme is a private VCS package. Use the exact command from the [Quickstart](/quickstart):
+The `--repository` flag is required, because the TAW packages aren't on Packagist. Use the exact command from the [Quickstart](/quickstart):
 ```bash
-composer create-project taw/theme my-theme \
-  --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-theme"}'
+composer create-project taw/create my-theme \
+  --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-create"}'
 ```
+If the installer says **"Refusing to replace"**, the folder already had files in it. Pick a new folder name: the installer never deletes files it didn't create. If it says **"Unknown TAW starter"**, `TAW_STARTER` must be `theme` or `gutenberg`.
 
 **Emails are not being delivered**
 `Mailer` uses `wp_mail()` under the hood. Make sure your WordPress site is configured with a working mail provider (SMTP plugin or transactional service). Use **Tools → Test Emails** to test templates without a real form submission.
