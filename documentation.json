@@ -145,6 +145,11 @@
                 "title": "Contact form with MJML email",
                 "path": "tutorials/contact-form-mjml",
                 "icon": "mail"
+              },
+              {
+                "title": "Live post search with Reactiph",
+                "path": "tutorials/reactiph-post-search",
+                "icon": "search"
               }
             ]
           }
