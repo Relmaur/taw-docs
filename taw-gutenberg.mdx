@@ -1,0 +1,71 @@
+---
+title: TAW Gutenberg — the TAW block theme
+description: >-
+  TAW Gutenberg is TAW's block (full site editing) theme. Presentation is plain Gutenberg, and the
+  data layer (post types, taxonomies, fields, options) comes from taw/core.
+---
+
+## What it is
+
+TAW Gutenberg is the TAW theme for **block-editor sites**. It splits the work cleanly:
+
+- **Presentation is plain Gutenberg:** `theme.json`, `templates/*.html` and `parts/*.html`, all
+  editable in the Site Editor. There are no PHP templates and no JS build.
+- **Data comes from taw/core:** post types, taxonomies, fieldsets and options pages defined as JSON in
+  `taw-schema/`, booted with `\TAW\Core\Boot::data()`. See the [Data layer](/data-layer) page.
+
+Use [TAW Theme](/taw-theme) for classic, component-built sites (PHP blocks, Vite, Tailwind, Alpine),
+and TAW Gutenberg when the site is built in the block editor. Both themes read the same data the same
+way.
+
+<Callout kind="info">
+  TAW Gutenberg requires PHP 8.2+ and WordPress 6.6+. It's developed against WordPress 7.1.
+</Callout>
+
+## Install
+
+<Steps>
+  <Step title="Clone and install dependencies" icon="download" title-type="p">
+    ```bash
+    cd wp-content/themes
+    git clone https://github.com/Relmaur/taw-gutenberg.git
+    cd taw-gutenberg
+    composer install --no-dev
+    ```
+  </Step>
+
+  <Step title="Activate the theme" icon="play" title-type="p">
+    Activate **TAW Gutenberg** in **Appearance → Themes**. If `composer install` hasn't run yet, the site still renders, and administrators see a notice asking for it.
+  </Step>
+
+  <Step title="Define your data" icon="database" title-type="p">
+    Edit the JSON files in `taw-schema/`. The theme ships a working example (a `book` post type, a `genre` taxonomy and a `book_details` fieldset). Check your changes without WordPress:
+
+    ```bash
+    php bin/taw schema:validate
+    ```
+  </Step>
+</Steps>
+
+## How it's built
+
+| Path | Purpose |
+|---|---|
+| `theme.json`, `templates/`, `parts/` | All presentation |
+| `functions.php` | Loads Composer and registers the theme's services |
+| `app/Setup/TawData.php` | Calls `\TAW\Core\Boot::data()` at `after_setup_theme` |
+| `taw-schema/*.json` | Your content model |
+| `bin/taw` | `schema:validate` |
+
+Every service implements a small `Bootable` contract whose `register()` only adds WordPress hooks.
+That keeps the theme unit-testable without WordPress. CI runs PHPStan at level max, the unit tests,
+and `schema:validate`.
+
+<Callout kind="tip">
+  Namespace your field ids by entity (`book_author`, not `author`). taw/core's field registry is keyed by bare id, so two fields both named `author` would collide.
+</Callout>
+
+## What's next
+
+Block Bindings (bind core blocks to taw fields in templates), a loop block, and per-post-type
+editing policies are on the taw/core roadmap. TAW Gutenberg adopts each one first.

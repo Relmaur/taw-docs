@@ -20,7 +20,9 @@ These tools fall into two groups:
 
 ## How TAW Core boots into the theme
 
-The theme template boots TAW Core via the `TAW\Core\Theme::boot()` entrypoint. You can then adjust performance behavior with `Theme::performance([...])`.
+The classic TAW Theme boots TAW Core via the `TAW\Core\Theme::boot()` entrypoint (through `Theme::bootstrapFullSite()`). You can then adjust performance behavior with `Theme::performance([...])`.
+
+A block theme such as [TAW Gutenberg](/taw-gutenberg) boots only the data layer with `\TAW\Core\Boot::data()`. It gets post types, fields, options, REST meta and content interchange, but no blocks, Vite, or performance tweaks. See [Data layer](/data-layer).
 
 This boot process wires TAW Core tools into WordPress so that CLI commands, block registration, metaboxes, and other helpers are available within your theme.
 

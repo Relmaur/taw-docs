@@ -1,0 +1,160 @@
+---
+title: Data layer — schema, JSON definitions and Boot::data()
+description: >-
+  Define post types, taxonomies, fieldsets and options pages in PHP or JSON, and use taw/core's
+  data layer from both TAW themes — the classic taw-theme and the block theme taw-gutenberg.
+---
+
+## One data layer, two TAW themes
+
+`taw/core` is TAW's data layer. It defines your content model (post types, taxonomies, fields,
+options pages), stores values as post meta and options, exposes them over the REST API, and moves
+them between environments with [Content Interchange](/content-interchange). You don't need ACF,
+Carbon Fields or any other plugin.
+
+Two themes consume it:
+
+| Theme | Kind | Boots |
+|---|---|---|
+| [TAW Theme](/taw-theme) | Classic, with PHP blocks, Vite, Tailwind and Alpine | `Theme::bootstrapFullSite()` — the data layer **plus** the classic-theme toolkit |
+| [TAW Gutenberg](/taw-gutenberg) | Block (full site editing) theme | `\TAW\Core\Boot::data()` — the data layer **only** |
+
+<Callout kind="info">
+  `taw/core` is built for TAW sites only (taw-theme, taw-gutenberg and their child themes). It isn't a general-purpose plugin API for third-party themes.
+</Callout>
+
+## Boot the data layer
+
+A classic TAW theme already gets it: `Theme::boot()` calls `Boot::data()` itself. A data-only theme
+calls it directly, after requiring the Composer autoloader:
+
+```php functions.php
+require_once __DIR__ . '/vendor/autoload.php';
+
+\TAW\Core\Boot::data();
+```
+
+`Boot::data()` registers the Tools → TAW Data import/export screen, the content export REST route,
+REST-registered field meta, and the schema registry described below. It adds **nothing to the front
+end**: no Vite, no Alpine, and no performance tweaks, so a block theme keeps Gutenberg's block CSS.
+Calling it more than once is harmless.
+
+<Callout kind="alert">
+  Since `taw/core` v1.42.0, the Performance optimizations (which dequeue the block library CSS, among other things) register only when `Theme::boot()` or `Theme::bootstrapFullSite()` runs, not when the autoloader loads. If a setup relied on the old behavior without ever calling `boot()`, add `define('TAW_PERFORMANCE_AUTOLOAD', true);` to `wp-config.php`.
+</Callout>
+
+## Define data in PHP
+
+Hook into `taw_schema_register`. It fires on `init`, so translation functions are safe:
+
+```php
+use TAW\Core\Schema\{Field, Registry, Schema};
+
+add_action('taw_schema_register', function (Registry $schema): void {
+    $schema->add(Schema::postType('book')->labels('Book', 'Books')->args(['menu_icon' => 'dashicons-book']));
+    $schema->add(Schema::taxonomy('genre')->for('book')->labels('Genre', 'Genres'));
+    $schema->add(
+        Schema::fieldset('book_details')->title('Book details')->on('book')->fields([
+            Field::text('book_author')->label('Author')->required(),
+            Field::image('book_cover')->label('Cover'),
+            Field::repeater('book_awards')->fields([Field::text('name')->label('Award')]),
+        ])
+    );
+    $schema->add(Schema::optionsPage('library')->title('Library settings')->fields([Field::text('library_phone')]));
+});
+```
+
+A fieldset compiles into a regular `Metabox`, and an options page into an `OptionsPage`. Storage, the
+admin UI, REST and content export work exactly like hand-written ones. `Field::*` builders produce the
+same arrays that `new Metabox([...])` accepts, so you can mix builders and raw arrays, and
+`->with([...])` passes through any option the builder has no method for.
+
+## Define data in JSON
+
+Put one entity per file in a `taw-schema/` folder. Subfolders one level deep are fine
+(`taw-schema/post-types/book.json`). The keys use the same words as the PHP API:
+
+```json taw-schema/book-details.json
+{
+  "$schema": "../vendor/taw/core/resources/schema/taw-schema-1.0.json",
+  "version": 1,
+  "kind": "fieldset",
+  "key": "book_details",
+  "title": "Book details",
+  "on": ["book"],
+  "fields": [
+    { "id": "book_author", "type": "text", "label": "Author", "required": true },
+    { "id": "book_awards", "type": "repeater", "fields": [{ "id": "name", "type": "text" }] }
+  ]
+}
+```
+
+| `kind` | Keys (besides `version`, `kind`, `key` and optional `override`) |
+|---|---|
+| `post_type` | `labels` (`singular`, `plural`), `args` — passed to `register_post_type()` |
+| `taxonomy` | `for` (post types, required), `labels`, `args` — passed to `register_taxonomy()` |
+| `fieldset` | `on` (required), `fields` (required), `title`, `context`, `priority`, `prefix`, `config` |
+| `options_page` | `fields` (required), `title`, `menu_title`, `capability`, `config` |
+
+The `$schema` line gives your editor autocomplete and inline errors. A typo in a top-level key is an
+error. Extra keys on a field, like `conditions` or `width`, pass through to the field engine.
+
+### Where files are found, and which one wins
+
+Folders are scanned in this order: the child theme's `taw-schema/`, the parent theme's `taw-schema/`,
+then `wp-content/taw-schema/` for site-level definitions that should survive a theme switch. When the
+same entity is defined twice, **PHP beats every JSON file**, a child theme beats its parent, and a
+theme beats `wp-content`. Set `"override": true` (or `->override()` in PHP) to mark a replacement as
+deliberate. Otherwise you get a debug notice.
+
+An invalid file is skipped with a notice, and the rest still load. In production, parsed files are
+cached until one of them changes.
+
+### Validate without WordPress
+
+```bash
+php bin/taw schema:validate            # this theme's taw-schema/
+php bin/taw schema:validate path/ --json
+```
+
+It exits with an error on invalid files, pointing at each problem (for example
+`/fields/2/type: must be one of text, url, …`). It also warns about duplicates, and about fieldsets or
+taxonomies that target a post type these files don't define. Run it in CI.
+
+## Defaults and rules
+
+<ExpandableGroup>
+  <Expandable title="Post type and taxonomy defaults" default-open="false">
+    Post types default to `public` and `show_in_rest`. **`custom-fields` support is always added**, even when you pass your own `supports`: WordPress hides registered meta from REST without it, so your fields would silently disappear from `wp/v2`. Taxonomies default to `show_in_rest`. Everything else comes from `args`.
+  </Expandable>
+
+  <Expandable title="Reserved and invalid keys" default-open="false">
+    Keys are validated up front. Core names like `post` or `page` are rejected, and so are keys over WordPress's length limits (20 characters for post types, 32 for taxonomies) and taxonomies named like public query vars, such as `year` or `author`.
+  </Expandable>
+
+  <Expandable title="Field ids: namespace them" default-open="false">
+    The field registry is keyed by bare field id. A field sharing its id with another fieldset or a hand-written metabox is reported with a debug notice and an admin notice when `WP_DEBUG` is on. Prefix ids by entity (`book_author`, not `author`).
+  </Expandable>
+
+  <Expandable title="Timing" default-open="false">
+    Definitions are collected on `init` priority 1, and the registry freezes at priority 5 (a later `add()` is refused with a notice). Post types register at 5, taxonomies at 6, and fieldsets and options pages at 8.
+  </Expandable>
+
+  <Expandable title="Permalinks" default-open="false">
+    When your post types or taxonomies change, rewrite rules are flushed once, on the next admin request. You never need to re-save Settings → Permalinks, and the front end never flushes.
+  </Expandable>
+</ExpandableGroup>
+
+## Read the data
+
+Values are post meta named `_taw_<field id>`:
+
+```php
+use TAW\Core\Metabox\Metabox;
+
+$author = Metabox::get($postId, 'book_author');
+$awards = Metabox::get_repeater($postId, 'book_awards');   // decoded rows
+```
+
+Over REST, fields appear under `meta` (for example `/wp-json/wp/v2/book/42`), and structured fields
+also appear decoded as `taw_<field id>`.

@@ -4,6 +4,51 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-23" description="taw/core v1.44.0 / taw-theme v1.12.0 / taw-gutenberg 0.1.0: define your data model as JSON in taw-schema/, validate it without WordPress, and meet TAW Gutenberg, the new block theme." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature"]}>
+
+## September 2026 — JSON schema definitions, and TAW Gutenberg
+
+Tagged **v1.44.0**, with a paired `taw-theme` release tagged **v1.12.0**. It covers the whole data-layer
+series (v1.42.0–v1.44.0) plus the branding and PHP-requirement cleanups below.
+
+- **JSON definitions:** post types, taxonomies, fieldsets and options pages can live as one JSON file each in a `taw-schema/` folder (child theme, parent theme, or `wp-content/`). PHP definitions outrank every file. An invalid file is skipped with a notice. See [Data layer](/data-layer).
+- **`php bin/taw schema:validate`** checks those files **without WordPress**, pointing at each problem (`/fields/2/type`). `resources/schema/taw-schema-1.0.json` gives editors autocomplete.
+- **TAW Gutenberg 0.1.0:** a new block (full site editing) theme that uses only taw/core's data layer. See [TAW Gutenberg](/taw-gutenberg).
+- **Scope:** taw/core is now documented as serving TAW sites only (taw-theme, taw-gutenberg and their child themes).
+- **taw-theme:** registers `schema:validate` in `bin/taw`. The README and `style.css` no longer spell out “TAW”, and both now state the real PHP requirement (8.2+).
+
+</Update>
+
+<Update label="2026-09-23" description="taw/core v1.43.0: a schema registry — define post types, taxonomies, fieldsets and options pages in PHP; they compile into the existing Metabox and OptionsPage engines." tags={["taw/core", "feature"]}>
+
+## September 2026 — Schema registry
+
+Tagged **v1.43.0**. Define your content model in one place:
+
+```php
+add_action('taw_schema_register', function (\TAW\Core\Schema\Registry $schema): void {
+    $schema->add(Schema::postType('book')->labels('Book', 'Books'));
+    $schema->add(Schema::taxonomy('genre')->for('book')->labels('Genre', 'Genres'));
+    $schema->add(Schema::fieldset('book_details')->on('book')->fields([Field::text('book_author')]));
+});
+```
+
+Fieldsets become regular `Metabox`es and options pages become `OptionsPage`s, so storage, the admin UI, REST meta and content export behave exactly like hand-written ones. Post types default to `public` + `show_in_rest`, and **always** get `custom-fields` support (WordPress hides registered meta from REST without it). Invalid keys are rejected up front, field-id collisions are reported, and rewrite rules flush once, on the next admin request, when post types change.
+
+</Update>
+
+<Update label="2026-09-23" description="taw/core v1.42.0: Boot::data(), a data-only entry point for TAW block themes. Performance optimizations now register on boot, not at autoload." tags={["taw/core", "feature"]}>
+
+## September 2026 — Boot::data() and a data layer for block themes
+
+Tagged **v1.42.0**. `taw/core` is now split into a **data layer** (fields, REST meta, content interchange) and the **classic-theme toolkit** (PHP blocks, Vite, Alpine, performance, visual editor):
+
+- **`\TAW\Core\Boot::data()`** boots only the data layer, for block themes. `Theme::boot()` calls it too, so classic sites are unchanged.
+- **Behavior note:** Performance optimizations (which dequeue the block library CSS, among other things) used to register the moment Composer loaded the package. They now register in `Theme::boot()` / `bootstrapFullSite()`. taw-theme sites see no difference (verified: identical hooks, in identical order). If a setup relied on the old behavior without ever calling `boot()`, define `TAW_PERFORMANCE_AUTOLOAD` as `true` in `wp-config.php`.
+- `Framework::url()` resolves package assets from a child theme too. `dump()`/`dd()` no longer clash with other libraries. `ext-pdo_sqlite` is now optional (only the RAG and corpus features use it).
+
+</Update>
+
 <Update label="2026-09-20" description="taw/core v1.41.0 / taw-theme v1.11.14: fix — the documented Metabox 'tabs' option never rendered; a tabbed metabox now shows its tab UI instead of a flat field list." tags={["taw/core", "taw-theme", "bugfix"]}>
 
 ## September 2026 — Metabox tabs now render

@@ -1,8 +1,9 @@
 ---
 title: Introduction
 description: >-
-  TAW is a modern WordPress theme framework built around PHP blocks, a config-driven
-  metabox engine, and a Vite/Tailwind asset pipeline — no Gutenberg, no ACF, no bloat.
+  TAW is a WordPress framework with its own data layer — post types, fields and options defined
+  in code or JSON — and two themes on top: a classic, component-based theme and a Gutenberg block
+  theme. No ACF, no plugin dependencies.
 ---
 
 ## What is TAW?
@@ -13,18 +14,19 @@ TAW is a component-based WordPress theme framework. Every section of a page — 
   TAW is built for PHP and WordPress developers who prefer code-first workflows. You work in PHP classes, Composer, and Vite — not theme builders or click-driven admin panels.
 </Callout>
 
-The framework ships as two pieces:
+The framework ships as three pieces:
 
-- **TAW Theme** — the starter theme you install per project. Holds your blocks, templates, and `functions.php`.
-- **`taw/core`** — a versioned Composer package with all the framework internals: block system, metabox engine, CLI, forms, mail, and helpers. Update it across all your projects with a single `composer update taw/core`.
+- **`taw/core`** — a versioned Composer package: the **data layer** (post types, taxonomies, fields and options pages, defined in PHP or JSON — see [Data layer](/data-layer)) plus the classic-theme toolkit (block system, metabox engine, CLI, forms, mail, helpers). Update it across all your projects with a single `composer update taw/core`.
+- **TAW Theme** — the classic starter theme you install per project. Holds your PHP blocks, templates, and `functions.php`.
+- **[TAW Gutenberg](/taw-gutenberg)** — the block (full site editing) theme. Presentation is plain Gutenberg, and the data comes from `taw/core`.
 
 ---
 
 ## Why TAW?
 
-**No Gutenberg. No ACF. No plugin dependencies.**
+**No ACF. No plugin dependencies. You own your data layer.**
 
-TAW is its own stack. The metabox engine, form system, image helpers, and SVG support are all built in. Your theme stays lean and dependency-free.
+TAW is its own stack. The data layer, metabox engine, form system, image helpers, and SVG support are all built in, so no third-party field plugin can be abandoned under you. Build classic, component-based sites with TAW Theme (no Gutenberg involved) or block-editor sites with TAW Gutenberg. The data works the same way in both.
 
 <Columns cols="2">
   <Card title="Zero-config blocks" href="/quickstart" icon="layers" horizontal="false">

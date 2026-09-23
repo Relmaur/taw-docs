@@ -45,9 +45,19 @@
                 "icon": "lucide-paint-roller"
               },
               {
+                "title": "TAW Gutenberg",
+                "path": "taw-gutenberg",
+                "icon": "blocks"
+              },
+              {
                 "title": "TAW Core",
                 "path": "taw-core",
                 "icon": "hammer"
+              },
+              {
+                "title": "Data layer (schema)",
+                "path": "data-layer",
+                "icon": "database"
               },
               {
                 "title": "TAW Hub Companion",
