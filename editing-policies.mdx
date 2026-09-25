@@ -1,0 +1,170 @@
+---
+title: Editing policies — lock the block editor down for a client
+description: >-
+  Decide how much a client can change in the block editor, layer by layer: page layout, site
+  structure, design tokens and editor features. Pick a preset, override what you need, and switch
+  the level per install from wp-config.php.
+---
+
+## What editing policies do
+
+A block theme lets anyone who can edit a page change its layout, the site's templates and its
+styles. That's right while you build the site, and risky once a client takes it over. An **editing
+policy** decides how much of that stays open, in four layers:
+
+| Layer | Controls |
+|---|---|
+| **Content** | Per post type: which blocks can be added, a starting template for new posts, and whether the layout is locked |
+| **Site** | The Site Editor: templates, template parts, Global Styles, Navigation, "edit template" in the post editor, and the Site Editor itself |
+| **Design** | theme.json design tools: custom colors, gradients, font sizes, spacing, line height, borders, shadows, duotone, drop cap |
+| **Features** | Editor features: code editor, Custom HTML, block directory, Openverse, core and remote patterns, the block lock UI |
+
+You pick one **preset** for the whole site and override any layer or single setting. Named
+developers **bypass** the policy, so you keep full access even when the client is an Administrator.
+
+<Callout kind="info">
+  Editing policies ship with taw/core **v1.45.0 and later** (fully applied since v1.48.0). They run only when the theme calls `\TAW\Core\Boot::editing()`. [TAW Gutenberg](/taw-gutenberg) does this from v0.2.0. The classic [TAW Theme](/taw-theme) doesn't, and nothing changes there.
+</Callout>
+
+## The presets
+
+Each level includes everything the level before it locks.
+
+| Layer | `open` | `guided` | `structured` | `locked` |
+|---|---|---|---|---|
+| **Content** (pages) | Anything goes | A curated list of core blocks | + the layout is locked: text and media stay editable ("content only") | + fully locked |
+| **Site** | Open | Global Styles locked | + templates, template parts and "edit template" locked | + Navigation locked, Site Editor hidden |
+| **Design** | As the theme ships | No custom colors, gradients or font sizes; no drop cap | + no custom spacing, line height, border, shadow or duotone | Same as `structured` |
+| **Features** | All on | Code editor, Custom HTML, block directory, Openverse and remote patterns off | + core patterns and the block lock UI off | Same as `structured` |
+
+<Callout kind="tip">
+  Content rules from a preset apply to **pages** only. Posts and your own post types keep the normal editor unless you name them, so a client can still write blog posts freely.
+</Callout>
+
+What a locked user sees at each content level:
+
+- **`guided`:** the inserter only offers the curated blocks: paragraph, heading, list, quote, pullquote, image, gallery, video, audio, file, cover, media & text, buttons, columns, group, separator, spacer, table, details, embed and synced patterns.
+- **`structured`:** blocks can't be added, removed or moved. The client edits text, links and media in place. The block toolbar shows only text formatting, and the sidebar keeps only Typography.
+- **`locked`:** the whole layout is locked (`templateLock: all`). Text inside the existing blocks stays editable.
+
+## Define the policy
+
+The policy lives in one JSON file, `taw-schema/editing.json`, next to your other
+[data layer](/data-layer) definitions:
+
+```json taw-schema/editing.json
+{
+  "$schema": "../vendor/taw/core/resources/schema/taw-schema-1.0.json",
+  "version": 1,
+  "kind": "editing",
+  "key": "site",
+  "preset": "structured",
+  "layers": {
+    "design": "guided",
+    "features": { "customHtml": true },
+    "site": { "navigation": true },
+    "content": {
+      "page": {
+        "allow": ["core/*", "taw-gutenberg/*"],
+        "template": [["core/heading", { "level": 1 }], ["core/paragraph"]],
+        "lock": "contentOnly"
+      },
+      "post": "open"
+    }
+  }
+}
+```
+
+- **`preset`**: `open`, `guided`, `structured` or `locked`. The default is `open`.
+- **`layers.design` / `site` / `features`**: a level name, or an object of settings. Each setting is `true` (allowed) or `false` (locked). An object can also set `"level"` and then override single settings.
+- **`layers.content`**: a map of post type to a level name or a rule:
+  - `allow`: block names or globs (`core/*`, `acme/hero`). `null` allows every block.
+  - `template`: the starting blocks, in the same `[name, attributes, innerBlocks]` format `register_post_type()` uses.
+  - `lock`: `false`, `insert`, `contentOnly` or `all`.
+  - `newPostsOnly`: the template applies to new posts only (default `true`). Applying it to existing posts makes the editor offer to "reset" their content.
+- **`bypass.capability`**: the capability that bypasses the policy (default `taw_unlock_editing`).
+
+Check the file without WordPress:
+
+```bash
+php bin/taw schema:validate
+```
+
+<Expandable title="Define it in PHP instead" default-open="false">
+  PHP definitions outrank the JSON file, as for the rest of the data layer:
+
+  ```php
+  use TAW\Core\Schema\Registry;
+  use TAW\Core\Schema\Schema;
+
+  add_action('taw_schema_register', function (Registry $schema): void {
+      $schema->add(
+          Schema::editing()
+              ->preset('structured')
+              ->layer('features', ['customHtml' => true])
+              ->content('post', 'open')
+      );
+  });
+  ```
+
+  A post type can carry its own content rule too: `Schema::postType('event')->editing(['lock' => 'all'])`, or `"editing": { ... }` in its JSON file. The site file's `content` map wins over it.
+</Expandable>
+
+### How the settings combine
+
+From weakest to strongest: the preset, then a layer's level, then single settings, then a post type's own `editing` rule, then the site file's `content` map. `TAW_EDITING_PRESET` replaces only the preset, so your overrides still apply on top of it.
+
+## Per install: wp-config.php
+
+Keep `"preset": "open"` in the theme for development, and lock each client install from its
+`wp-config.php`:
+
+```php wp-config.php
+define('TAW_EDITING_PRESET', 'structured');           // this install's level
+define('TAW_EDITING_BYPASS_USERS', ['marco', 'ana']); // logins that stay unlocked
+```
+
+`TAW_EDITING_BYPASS_USERS` also accepts a comma-separated string. Users who have the bypass
+capability (`taw_unlock_editing` unless the policy names another) are unlocked too.
+
+<Callout kind="alert">
+  If nobody is named in `TAW_EDITING_BYPASS_USERS` and nobody has the capability, **everyone** is locked, including you. Tools → TAW Editing warns about this.
+</Callout>
+
+## Check what's in effect
+
+**Tools → TAW Editing** (for Administrators) shows the policy in effect, read-only:
+
+- the preset and where it comes from (the JSON file or `TAW_EDITING_PRESET`)
+- whether **you** bypass it
+- every setting of each layer, and the content rule for each post type
+- warnings: nobody can bypass, an `allow` pattern matches no registered block, an invalid constant
+
+## What's enforced, and where
+
+Some locks are checked by the server, and others shape the editor only:
+
+| Lock | Enforced |
+|---|---|
+| Blocks outside the `allow` list | **Server:** a save that **adds** one is rejected with a 400 (`taw_editing_block_not_allowed`) that names the blocks. Blocks already in the post still save |
+| Templates, template parts, Global Styles, Navigation | **Server:** writes are refused with a 403 (`taw_editing_site_locked`). Reads always work |
+| Site Editor at `locked` | **Server:** the menu entries are hidden, `site-editor.php` returns a 403, and the dashboard welcome panel (which links into it) is removed |
+| Layout locks, `contentOnly`, starting template | **Editor only** |
+| Design tokens | **theme.json**, site-wide, for everyone, including bypass users. Developers change the tokens in theme.json itself |
+| Editor features | **Editor only**, except Custom HTML: when it's off, a save that adds one is refused like any other disallowed block |
+
+<Callout kind="info">
+  Editing policies protect a site from accidents and from clients changing what they shouldn't. They aren't a security boundary: an Administrator can still install plugins or edit files.
+</Callout>
+
+## Recovery
+
+- **`define('TAW_EDITING_OFF', true);`** in `wp-config.php` turns every lock off at once.
+- **wp-cli** is never restricted.
+- Adding your login to `TAW_EDITING_BYPASS_USERS` unlocks only you.
+
+## Known behavior
+
+- **The inserter still opens** on a locked page, and it shows "No results found". That's how WordPress handles a full layout lock.
+- **`contentOnly` needs a script on WordPress 7.1.** The editor ignores a page-level `contentOnly` lock since 7.1, so taw/core sends `templateLock: all` and a small script puts each block in content-only mode. After a WordPress update, check a `structured` page in the editor once: WordPress still changes this API.
+- **Allowing `taw-gutenberg/*`** matches nothing until the theme registers its first block. Tools → TAW Editing lists such patterns.

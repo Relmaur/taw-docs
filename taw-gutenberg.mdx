@@ -58,6 +58,7 @@ way.
 | `theme.json`, `templates/`, `parts/` | All presentation |
 | `functions.php` | Loads Composer and registers the theme's services |
 | `app/Setup/TawData.php` | Calls `\TAW\Core\Boot::data()` at `after_setup_theme` |
+| `app/Setup/Editing.php` | Calls `\TAW\Core\Boot::editing()`, which applies `taw-schema/editing.json` |
 | `taw-schema/*.json` | Your content model |
 | `bin/taw` | `schema:validate` |
 
@@ -69,7 +70,21 @@ and `schema:validate`.
   Namespace your field ids by entity (`book_author`, not `author`). taw/core's field registry is keyed by bare id, so two fields both named `author` would collide.
 </Callout>
 
+## Lock the editor down for a client
+
+TAW Gutenberg boots taw/core's [editing policies](/editing-policies) (from v0.2.0). The theme ships
+`taw-schema/editing.json` with `"preset": "open"`, so you keep full site editing while you build. On a
+client install, pick the level in `wp-config.php` and name who stays unlocked:
+
+```php wp-config.php
+define('TAW_EDITING_PRESET', 'structured');      // open | guided | structured | locked
+define('TAW_EDITING_BYPASS_USERS', ['your-login']);
+```
+
+`define('TAW_EDITING_OFF', true);` turns every lock off if you lock yourself out. Tools → TAW Editing
+shows what's in effect.
+
 ## What's next
 
-Block Bindings (bind core blocks to taw fields in templates), a loop block, and per-post-type
-editing policies are on the taw/core roadmap. TAW Gutenberg adopts each one first.
+Block Bindings (bind core blocks to taw fields in templates) and a loop block are on the taw/core
+roadmap. TAW Gutenberg adopts each one first.

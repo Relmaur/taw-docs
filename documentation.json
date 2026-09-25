@@ -60,6 +60,11 @@
                 "icon": "database"
               },
               {
+                "title": "Editing policies",
+                "path": "editing-policies",
+                "icon": "lock"
+              },
+              {
                 "title": "TAW Hub Companion",
                 "path": "taw-hub-companion",
                 "icon": "satellite-dish"

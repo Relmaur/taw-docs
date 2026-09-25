@@ -4,6 +4,31 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-24" description="taw/core v1.45.0–v1.48.0 / taw-gutenberg 0.2.0–0.2.1: editing policies lock the block editor down for a client, layer by layer, with presets from open to locked." tags={["taw/core", "taw-gutenberg", "feature"]}>
+
+## September 2026 — Editing policies
+
+Tagged **v1.45.0** to **v1.48.0**, with TAW Gutenberg **v0.2.0** and **v0.2.1**. An editing policy
+decides how much a client can change in the block editor, in four layers: page content, site
+structure, design tokens and editor features. See [Editing policies](/editing-policies).
+
+- **Presets:** `open` → `guided` → `structured` → `locked`. Override any layer or single setting in `taw-schema/editing.json` (new JSON kind `editing`), with `Schema::editing()` in PHP, or per post type with `PostType::editing()`. `schema:validate` checks the file.
+- **Per install:** `TAW_EDITING_PRESET` in `wp-config.php` picks the level. `TAW_EDITING_BYPASS_USERS` names who stays unlocked, even when clients are Administrators. `TAW_EDITING_OFF` turns everything off.
+- **Enforced on the server:** a save that adds a block the policy doesn't allow gets a 400, and writes to locked templates, template parts, Global Styles or Navigation get a 403. At `locked`, the Site Editor is hidden and refused.
+- **Content-only pages on WordPress 7.1** (v1.48.0): the editor now ignores a page-level `contentOnly` lock, so taw/core locks the layout and switches each block to content-only editing with a small script.
+- **Tools → TAW Editing** shows the policy in effect, whether you bypass it, and warnings.
+- **Opt-in:** the policy applies only when a theme calls `\TAW\Core\Boot::editing()`. TAW Gutenberg does, and ships the `open` preset. taw-theme doesn't, and its hooks are unchanged.
+
+</Update>
+
+<Update label="2026-09-23" description="taw-theme v1.12.1: composer create-project no longer prints a warning about a missing .env.example file." tags={["taw-theme", "fix"]}>
+
+## September 2026 — taw-theme install fix
+
+Tagged **v1.12.1**. `composer create-project taw/theme` no longer prints a `copy()` warning. The install script tried to copy `.env.example` to `.env`, but the theme ships no such file and nothing reads a `.env`, so the step is gone.
+
+</Update>
+
 <Update label="2026-09-23" description="taw-create 0.1.0: one command starts either TAW theme. composer create-project taw/create asks for taw-theme or taw-gutenberg." tags={["taw-create", "taw-gutenberg", "feature"]}>
 
 ## September 2026 — One installer for both TAW themes
