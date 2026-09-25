@@ -4,6 +4,21 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-25" description="taw/core v1.50.0 / taw-gutenberg 0.3.1 / taw-theme v1.12.4: themeBlocks keeps a theme's own blocks available when the editor is locked down." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Theme blocks in locked-down editors
+
+Tagged taw/core **v1.50.0**, TAW Gutenberg **v0.3.1** and taw-theme **v1.12.4**.
+
+- **`themeBlocks`** is a new editing-policy key: your theme's own blocks, as names or globs (`["taw-gutenberg/*"]`).
+  - They're added to every allow list, the curated one included, so clients at `guided` and above can still insert them.
+  - Levels that allow every block are unchanged, and it still applies when `TAW_EDITING_PRESET` sets the level.
+  - See [Editing policies](/editing-policies).
+- **TAW Gutenberg 0.3.1** ships `themeBlocks: ["taw-gutenberg/*"]`, so its Callout block stays available to locked clients.
+- **Tools → TAW Editing** shows the theme blocks and warns when a pattern matches no registered block.
+
+</Update>
+
 <Update label="2026-09-25" description="taw/core v1.49.0–v1.49.1 / taw-gutenberg 0.3.0 / taw-theme v1.12.3: a shared Vite adapter, and custom blocks with Vite and TypeScript in TAW Gutenberg." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
 
 ## September 2026 — Vite for block themes

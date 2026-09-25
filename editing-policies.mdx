@@ -43,7 +43,7 @@ Each level includes everything the level before it locks.
 
 What a locked user sees at each content level:
 
-- **`guided`:** the inserter only offers the curated blocks: paragraph, heading, list, quote, pullquote, image, gallery, video, audio, file, cover, media & text, buttons, columns, group, separator, spacer, table, details, embed and synced patterns.
+- **`guided`:** the inserter only offers the curated blocks, plus your `themeBlocks`: paragraph, heading, list, quote, pullquote, image, gallery, video, audio, file, cover, media & text, buttons, columns, group, separator, spacer, table, details, embed and synced patterns.
 - **`structured`:** blocks can't be added, removed or moved. The client edits text, links and media in place. The block toolbar shows only text formatting, and the sidebar keeps only Typography.
 - **`locked`:** the whole layout is locked (`templateLock: all`). Text inside the existing blocks stays editable.
 
@@ -59,6 +59,7 @@ The policy lives in one JSON file, `taw-schema/editing.json`, next to your other
   "kind": "editing",
   "key": "site",
   "preset": "structured",
+  "themeBlocks": ["taw-gutenberg/*"],
   "layers": {
     "design": "guided",
     "features": { "customHtml": true },
@@ -76,6 +77,7 @@ The policy lives in one JSON file, `taw-schema/editing.json`, next to your other
 ```
 
 - **`preset`**: `open`, `guided`, `structured` or `locked`. The default is `open`.
+- **`themeBlocks`** (taw/core v1.50.0+): your theme's own blocks, as names or globs. They're added to every allow list, so clients can still insert them at `guided` and above. TAW Gutenberg ships `["taw-gutenberg/*"]`.
 - **`layers.design` / `site` / `features`**: a level name, or an object of settings. Each setting is `true` (allowed) or `false` (locked). An object can also set `"level"` and then override single settings.
 - **`layers.content`**: a map of post type to a level name or a rule:
   - `allow`: block names or globs (`core/*`, `acme/hero`). `null` allows every block.
@@ -167,4 +169,4 @@ Some locks are checked by the server, and others shape the editor only:
 
 - **The inserter still opens** on a locked page, and it shows "No results found". That's how WordPress handles a full layout lock.
 - **`contentOnly` needs a script on WordPress 7.1.** The editor ignores a page-level `contentOnly` lock since 7.1, so taw/core sends `templateLock: all` and a small script puts each block in content-only mode. After a WordPress update, check a `structured` page in the editor once: WordPress still changes this API.
-- **Allowing `taw-gutenberg/*`** matches nothing until the theme registers its first block. Tools → TAW Editing lists such patterns.
+- **A `themeBlocks` or `allow` pattern that matches no registered block** is flagged on Tools → TAW Editing.
