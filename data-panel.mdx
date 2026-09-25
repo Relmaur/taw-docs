@@ -1,0 +1,205 @@
+---
+title: Data panel — edit TAW fields in a block-editor sidebar
+description: >-
+  Show your fieldsets in a "TAW Data" sidebar in the block editor instead of as metaboxes under the
+  canvas. Switch it on per fieldset, for the whole site, or per install. Every field type works, and
+  values are stored exactly as the metabox stores them.
+---
+
+## What the data panel does
+
+In the block editor, TAW fields normally show as classic metaboxes below the canvas. The **data
+panel** shows them in a sidebar instead, called **TAW Data**. It gives a post's data one place of its own.
+
+- Open and close it from its own icon in the editor header, pin it to the toolbar, or open it from
+  the ⋮ menu.
+- Each fieldset is a section, with its tabs, its fields and its conditions, which update as you type.
+- It saves with the post: **Save**, autosave and the unsaved-changes warning all work as usual.
+
+<Callout kind="info">
+  The data panel ships with taw/core **v1.51.0 and later**, for both [TAW Theme](/taw-theme) and
+  [TAW Gutenberg](/taw-gutenberg). It's **off by default**: nothing changes until you switch it on.
+</Callout>
+
+## Switch it on
+
+Choose where a fieldset shows: `panel` (the sidebar) or `metabox`. You can set it at three levels.
+The first one that's set wins:
+
+1. **The fieldset** itself.
+2. **`TAW_DATA_UI`** in `wp-config.php`, for one install.
+3. **The site's `settings` file**, for every fieldset that doesn't choose.
+
+When none is set, the fieldset stays a `metabox`.
+
+<Tabs>
+<Tab title="One fieldset" icon="square-dashed">
+
+Add `"ui": "panel"` to the fieldset's JSON file:
+
+```json taw-schema/book-details.json
+{
+  "$schema": "../vendor/taw/core/resources/schema/taw-schema-1.0.json",
+  "version": 1,
+  "kind": "fieldset",
+  "key": "book_details",
+  "title": "Book details",
+  "on": ["book"],
+  "ui": "panel",
+  "fields": [
+    { "id": "book_author", "type": "text", "label": "Author", "required": true }
+  ]
+}
+```
+
+In PHP, use `Schema::fieldset('book_details')->on('book')->ui('panel')`, or `'ui' => 'panel'` in a
+hand-written `new Metabox([...])`.
+
+</Tab>
+<Tab title="The whole site" icon="globe">
+
+Add a `settings` file. A site has one, with the key `site`:
+
+```json taw-schema/settings.json
+{
+  "$schema": "../vendor/taw/core/resources/schema/taw-schema-1.0.json",
+  "version": 1,
+  "kind": "settings",
+  "key": "site",
+  "fieldsetUi": "panel"
+}
+```
+
+In PHP: `Schema::settings()->fieldsetUi('panel')`. To keep one fieldset as a metabox on such a site,
+give it `"ui": "metabox"`.
+
+</Tab>
+<Tab title="One install" icon="server">
+
+```php wp-config.php
+define('TAW_DATA_UI', 'panel'); // or 'metabox'
+```
+
+This replaces the site's `settings` value on this install only. Fieldsets that set `ui` themselves
+keep their own choice.
+
+</Tab>
+</Tabs>
+
+Run `php bin/taw schema:validate` after editing the files: it checks `ui` and `fieldsetUi` too.
+
+### A fieldset shows in one place, never both
+
+A fieldset in the panel gets **no metabox** in the block editor. If it had both, the metabox's form
+would post after the panel's save and put back the old values.
+
+- **The classic editor**, and metaboxes on the Menus screen, are unchanged.
+- **When every fieldset on a screen is in the panel**, no metaboxes remain, and WordPress uses its
+  iframed editor canvas again.
+
+## Field types
+
+Every field type works in the panel, with the same options as in the metabox:
+
+| Field | In the panel |
+|---|---|
+| `text`, `url`, `textarea`, `number`, `select` | Standard sidebar controls |
+| `checkbox` | A toggle |
+| `range` | A slider, with the unit in the label |
+| `color` | The theme's color palette, plus a custom color |
+| `datepicker` | A date picker. Values are stored in the field's own `date_format` |
+| `image`, `files` | The media library. Files can be reordered and removed, and `limit` is respected |
+| `icon` | A searchable grid of Lucide icons |
+| `post_select` | A search of published posts. One post, or several in order with `multiple` (capped by `max`) |
+| `wysiwyg` | A small block editor in a modal. See below |
+| `gradient_text`, `hubspot_form` | One framed group: numbered segments, or the portal ID, form ID and region |
+| `group` | One framed group of its sub-fields |
+| `repeater` | Rows you can add, remove, reorder and collapse, with `min`, `max` and nested repeaters |
+
+Conditions, tabs, read-only fields and required markers work as in the metabox. Inside a repeater
+row, a condition checks the row's other fields first, then the fieldset's own fields.
+
+<Callout kind="tip">
+  If a fieldset contains something the panel can't show, the **whole fieldset stays a metabox**. That
+  means a custom field type taw/core doesn't know, or a `group` inside a `repeater`. It never shows
+  half in the panel and half below the canvas.
+</Callout>
+
+## Rich text (`wysiwyg`)
+
+The sidebar is too narrow to write in, so a `wysiwyg` field shows a short preview and an **Edit**
+button. **Edit** opens a small block editor in a modal, styled with your theme's editor styles.
+
+- **The blocks it offers:** paragraph, heading, list, quote, image, buttons, separator and table.
+  - `teeny` fields offer text blocks only.
+  - `media_buttons => false` drops the image block.
+  - `'blocks' => ['core/paragraph', 'core/list']` sets the list yourself.
+- **Existing content** loads the way **Convert to blocks** does. Shortcodes become shortcode blocks,
+  and markup no block can represent lands in a Custom HTML block, so nothing is lost.
+- **The value is stored in the classic editor's format**: plain HTML with paragraphs as blank lines.
+  Your templates render it exactly as before, whether they print the value directly or pass it
+  through `wpautop()`.
+- **Opening it never changes anything.** Only **Apply** writes, and only when the content changed.
+  **Cancel** asks before it throws edits away.
+
+## Saving and checks
+
+The panel saves through the REST fields taw/core already registers, so values are **stored exactly
+as the metabox stores them**. Your templates and `Metabox::get()` read them the same way.
+
+The server checks every save that comes from the block editor, the same way `Metabox::save()` checks a
+metabox form:
+
+| Rule | What happens |
+|---|---|
+| `required` is empty | The save is refused. The editor shows the message, and the panel marks the field |
+| A `validate` callback fails | The save is refused with the callback's message |
+| A `readonly` value changes | The save is refused. The editor sends every value with each save, so an unchanged read-only value is simply not written |
+| A field is hidden by its conditions | Its stored value is cleared, as in the metabox |
+| Autosave | Never refused |
+
+In the editor, **saving is locked while a required field is empty**, and a notice names the empty fields.
+Its **Open TAW Data** button opens the panel. The empty fields are also marked in red once you've
+started editing.
+
+## Work on the panel itself
+
+The panel is a React app inside taw/core. It's shipped prebuilt in `vendor/taw/core/assets/data-panel/`,
+so sites never need Node. To change it, work in a taw/core checkout:
+
+```bash
+cd resources/data-panel
+npm ci
+npm run dev     # Vite on port 5175; WordPress switches to it through assets/data-panel/hot
+npm run check   # lint, format, types, tests and the build, before you commit
+```
+
+Commit the rebuilt `assets/data-panel/` with your change. CI fails if it doesn't match a fresh build.
+
+## Known behavior
+
+<ExpandableGroup>
+  <Expandable title="A post with an empty required field can't be saved until it's filled" default-open="false">
+    The server checks `required` against the value being saved or, when the save doesn't send it, the value already stored. An existing post whose required field is empty therefore can't be saved until someone fills it in. This is stricter than the metabox, which only shows a notice.
+  </Expandable>
+  <Expandable title="Icons need the Lucide picker switched on" default-open="false">
+    `icon` fields need `\TAW\Core\Icons\Lucide::enable()`; without it, the panel says icons aren't switched on. The icon search itself is registered by `Lucide::init()`, which only `Theme::boot()` calls. On TAW Gutenberg, call both `Lucide::enable()` and `Lucide::init()` in the theme, or the picker says icons couldn't be loaded.
+  </Expandable>
+  <Expandable title="Repeater tab layouts show as stacked rows" default-open="false">
+    `layout => tabbed_horizontal` and `tabbed_vertical` apply to the metabox. In the narrow sidebar, rows always show as stacked, collapsible cards.
+  </Expandable>
+  <Expandable title="Re-check the panel after WordPress upgrades" default-open="false">
+    The panel uses WordPress's own editor components, including a nested block editor for `wysiwyg`. These change between WordPress versions, so open a post with panel fields in a browser after each upgrade.
+  </Expandable>
+</ExpandableGroup>
+
+## Related
+
+<Columns cols="2">
+  <Card title="Data layer (schema)" icon="database" href="/data-layer">
+    Define post types and fieldsets in PHP or `taw-schema/*.json`.
+  </Card>
+  <Card title="Metabox and editor tooling" icon="edit" href="/taw-core-metabox">
+    Field types, conditions, tabs and read-only fields in the metabox.
+  </Card>
+</Columns>

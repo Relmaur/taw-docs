@@ -65,6 +65,11 @@
                 "icon": "lock"
               },
               {
+                "title": "Data panel",
+                "path": "data-panel",
+                "icon": "panel-right"
+              },
+              {
                 "title": "TAW Hub Companion",
                 "path": "taw-hub-companion",
                 "icon": "satellite-dish"

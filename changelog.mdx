@@ -4,6 +4,23 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-25" description="taw/core v1.51.0 / taw-gutenberg 0.3.2 / taw-theme v1.12.5: the data panel shows TAW fields in a block-editor sidebar, off by default." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature", "fix"]}>
+
+## September 2026 — The data panel
+
+Tagged taw/core **v1.51.0**, TAW Gutenberg **v0.3.2** and taw-theme **v1.12.5**.
+
+- **The data panel** shows fieldsets in a “TAW Data” sidebar in the block editor instead of as metaboxes under the canvas. See [Data panel](/data-panel).
+  - It's **off by default**. Switch it on per fieldset (`"ui": "panel"`), for the site (a `settings` schema file with `fieldsetUi`), or per install (`TAW_DATA_UI` in `wp-config.php`).
+  - Every field type works, including groups, repeaters (with nested ones) and conditions. Values are stored exactly as the metabox stores them.
+  - `wysiwyg` fields open a small block editor in a modal and keep the classic editor's storage format, so templates render them as before.
+  - The server checks `required`, `validate` callbacks and read-only fields on block-editor saves. In the editor, saving is locked while a required field is empty.
+- **Fix: repeater values written outside the metabox form** (REST, the visual editor, `fields:set`, `content:import`) no longer lose nested repeaters, or `files` and multiple `post_select` values, inside rows.
+- **Fix: REST writes of `gradient_text` and `hubspot_form`** are cleaned the way the metabox cleans them (for example, an empty HubSpot region becomes `na1`).
+- Both themes only update their taw/core lock. The panel stays off in both, and their hooks are unchanged.
+
+</Update>
+
 <Update label="2026-09-25" description="taw/core v1.50.0 / taw-gutenberg 0.3.1 / taw-theme v1.12.4: themeBlocks keeps a theme's own blocks available when the editor is locked down." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
 
 ## September 2026 — Theme blocks in locked-down editors
