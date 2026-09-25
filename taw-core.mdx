@@ -41,6 +41,8 @@ TAW Core metaboxes accept a `fields` configuration array, and each field defines
   The canonical implementation lives in the `TAW\Core\Metabox\Metabox` class (`src/Core/Metabox/Metabox.php`), which switches on the field `type` and handles rendering and saving.
 </Callout>
 
+`screens` takes post types (and page slugs or templates). Since `taw/core` v1.53.0 it also takes `term:<taxonomy>` for a taxonomy's term screens, and since v1.54.0 `user` for the user profile screens. Every field type works on all of them. See [Fields on terms](/data-layer#fields-on-terms) and [Fields on users](/data-layer#fields-on-users).
+
 ### Common field options
 
 Most field types support a shared set of options you can mix and match as needed:
@@ -766,7 +768,7 @@ Form::register([
 ]);
 ```
 
-**Cloudflare Turnstile** is opt-in bot verification. Site/secret keys are PHP constants defined in `wp-config.php` — the same pattern as database credentials, never a metabox/OptionsPage field, since those are readable via the REST API by anyone with `edit_posts`.
+**Cloudflare Turnstile** is opt-in bot verification. Site/secret keys are PHP constants defined in `wp-config.php` — the same pattern as database credentials, never a metabox or options-page field, because a secret doesn't belong in the database, and an options page can [expose its fields over REST](/data-layer#options-pages-over-rest).
 
 ```php
 // wp-config.php
@@ -1529,6 +1531,7 @@ Each field below uses a `type` value that maps directly to the Options Page rend
 | `position`  | *(none)*                        | Menu order position passed to `add_menu_page()`                         |
 | `fields`    | `[]`                            | Top-level field definitions, same format as Metabox                     |
 | `tabs`      | `[]`                            | Optional tabbed layout — same format as Metabox tabs                    |
+| `rest`      | *(none)*                        | `'private'` (in `/wp/v2/settings`, administrators) or `'public'` (also `GET /taw/v1/options/<id>`, anyone). See [Options pages over REST](/data-layer#options-pages-over-rest) |
 
 ### Retrieval
 
@@ -1610,6 +1613,7 @@ TAW Core registers the following REST endpoints automatically via `Theme::boot()
 | `POST` | `/taw/v1/visual-editor/save` | Save Visual Editor changes. Requires `edit_posts`. |
 | `GET` | `/taw/v1/visual-editor/fields` | Load all registered fields and current values for the editor panel. Requires `edit_posts`. |
 | `GET` | `/taw/v1/icons` | Lucide icon search powering the `icon` field type. Requires `edit_posts`. Only registered when `Lucide::enable()` was called — see [Icon System](#icon-system). |
+| `GET` | `/taw/v1/options/{page}` | Values of an options page with `rest: 'public'`, decoded. **Public, no login.** Only registered for such pages — see [Options pages over REST](/data-layer#options-pages-over-rest). |
 | `POST` | `/taw/v1/chat` | Hybrid-RAG chatbot — see [Sovereign Hybrid-RAG Chatbot](#sovereign-hybrid-rag-chatbot). Public by default, rate-limited. |
 | `GET` | `/taw/v1/bible/books` | Bible reader — see [Bible Reader Corpus](#bible-reader-corpus). Opt-in, public, rate-limited. |
 | `GET` | `/taw/v1/bible/books/{slug}/chapters/{n}` | Bible reader — one chapter's verses/sections/notes. |
@@ -2059,7 +2063,8 @@ php bin/taw content:import /tmp/site.json --yes
 
 - **scalar fields** → `register_post_meta()` with `show_in_rest`, the field's own sanitizer, and an `auth_callback` gated on `edit_post` for that post.
 - **repeater / files / post_select** (stored as JSON strings) → the raw meta stays a string, and a `register_rest_field()` computed field `taw_<id>` exposes the decoded object/array shape (and re-encodes on write), so `Metabox::get_repeater()`'s physical storage is untouched.
-- OptionsPage fields → `register_setting(..., 'show_in_rest' => …)`.
+- **term and user fields** ([term](/data-layer#fields-on-terms) and [user](/data-layer#fields-on-users) fieldsets) → the same, on the term (`edit_term`) or the user (`edit_user`, `edit` context only).
+- Options pages are **not** exposed here; a page opts in with [`rest`](/data-layer#options-pages-over-rest).
 
 <Callout kind="info">
   This exposes field values over `wp/v2` for **headless front-ends and external integrations**. It does not add a mobile-app editing UI — classic metaboxes stay desktop-only; on-phone editing is the [Visual Editor](/taw-core#visual-editor). Opt out with `add_filter('taw_register_meta_in_rest', '__return_false')`.
@@ -2112,7 +2117,7 @@ php bin/taw content:reindex-kb kb-a1b2c3d4                     # re-run ingestio
 **Settings → TAW Chatbot** (`TAW\Core\Rag\RagSettings`) exposes the API base URL, embedding/chat model names, indexed post types for the `wp-content` knowledge base, chunk size/overlap, max tool-call iterations, and whether anonymous visitors can chat.
 
 <Callout kind="alert">
-  The LLM API key is deliberately **not** one of these fields — OptionsPage fields are REST-readable by anyone with `edit_posts`, which makes the options table the wrong place for a secret. Define it in `wp-config.php` instead:
+  The LLM API key is deliberately **not** one of these fields — the options table is the wrong place for a secret (an options page can [publish its fields over REST](/data-layer#options-pages-over-rest)). Define it in `wp-config.php` instead:
 
   ```php
   define('TAW_RAG_API_KEY', 'sk-...');
@@ -2260,6 +2265,29 @@ $reader->searchParagraphs('pius-x', 'gracia'); // full-text search across both q
 </Callout>
 
 See [`catechism`](#catechism) under REST API for the full request/response shape of every route.
+
+{/* MARK: Translations */}
+
+## Translations
+
+taw-core's own strings (admin screens, field controls, form and password-gate messages, the data panel) use the **`taw-core`** text domain since v1.56.0, and its translations ship in the package (`languages/`). They load on their own in the site's language, so you don't call anything.
+
+- **Spanish (`es_MX`)** is bundled, starting with the strings TAW sites had already translated.
+- **Your theme's translation wins.** Before v1.56.0 these strings used the theme's `taw-theme` domain, so sites translated some of them in their own `languages/es_MX.po`. When the theme translates a taw-core string, that wording is used; the bundled translation fills in the rest. To change a taw-core string's wording on one site, translate it in the theme's `.po`.
+- Your theme's own strings keep your theme's domain: `__('Phone', 'taw-theme')` in `inc/options.php` is correct.
+
+<Expandable title="Working on taw-core's translations" default-open="false">
+  In the taw-core repository, no wp-cli or gettext needed:
+
+  ```bash
+  composer run i18n:pot       # languages/taw-core.pot from the PHP and the data panel's TSX
+  composer run i18n:po        # merge each languages/taw-core-<locale>.po with the .pot
+  composer run i18n:compile   # .po → .l10n.php, the file WordPress loads
+  composer run i18n:check     # CI: everything current, every call uses 'taw-core'
+  ```
+
+  To add a language, copy `taw-core.pot` to `taw-core-<locale>.po`, set its `Language` and `Plural-Forms` headers, translate it, and compile.
+</Expandable>
 
 {/* MARK: Helpers */}
 

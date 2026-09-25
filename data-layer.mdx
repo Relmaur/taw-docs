@@ -8,7 +8,7 @@ description: >-
 ## One data layer, two TAW themes
 
 `taw/core` is TAW's data layer. It defines your content model (post types, taxonomies, fields,
-options pages), stores values as post meta and options, exposes them over the REST API, and moves
+options pages), stores values as post, term and user meta and options, exposes them over the REST API, and moves
 them between environments with [Content Interchange](/content-interchange). You don't need ACF,
 Carbon Fields or any other plugin.
 
@@ -93,8 +93,8 @@ Put one entity per file in a `taw-schema/` folder. Subfolders one level deep are
 |---|---|
 | `post_type` | `labels` (`singular`, `plural`), `args` — passed to `register_post_type()` |
 | `taxonomy` | `for` (post types, required), `labels`, `args` — passed to `register_taxonomy()` |
-| `fieldset` | `on` (required), `fields` (required), `title`, `context`, `priority`, `prefix`, `ui` (`panel` or `metabox`, see [Data panel](/data-panel)), `config` |
-| `options_page` | `fields` (required), `title`, `menu_title`, `capability`, `config` |
+| `fieldset` | `on` (required: post types, `term:<taxonomy>` or `user`), `fields` (required), `title`, `context`, `priority`, `prefix`, `ui` (`panel` or `metabox`, see [Data panel](/data-panel)), `config` |
+| `options_page` | `fields` (required), `title`, `menu_title`, `capability`, `rest` (`private` or `public`, see [below](#options-pages-over-rest)), `config` |
 | `settings` | Key must be `site`. `fieldsetUi`: where fieldsets show in the block editor unless they set `ui` (see [Data panel](/data-panel)) |
 
 The `$schema` line gives your editor autocomplete and inline errors. A typo in a top-level key is an
@@ -133,8 +133,10 @@ taxonomies that target a post type these files don't define. Run it in CI.
     Keys are validated up front. Core names like `post` or `page` are rejected, and so are keys over WordPress's length limits (20 characters for post types, 32 for taxonomies) and taxonomies named like public query vars, such as `year` or `author`.
   </Expandable>
 
-  <Expandable title="Field ids: namespace them" default-open="false">
-    The field registry is keyed by bare field id. A field sharing its id with another fieldset or a hand-written metabox is reported with a debug notice and an admin notice when `WP_DEBUG` is on. Prefix ids by entity (`book_author`, not `author`).
+  <Expandable title="Field ids: qualified, but still namespace them" default-open="false">
+    Since `taw/core` v1.52.0, every field also has a qualified id, `"{fieldset}.{field}"` (group sub-fields `"{fieldset}.{group}_{sub}"`). REST meta, content export and import, the data panel, the visual editor and `bin/taw fields:get` / `fields:set` look fields up per post type (or taxonomy, or users) through it, so two fieldsets can share a field id and each keeps its own type and sanitizer. `Metabox::fieldsFor('post', 'book')` lists the fields stored on a post type.
+
+    The bare-id helpers are still ambiguous: `Metabox::get_field_config($id)` keeps one entry per id, and on a post type with both, `Metabox::get($postId, $id)` reads the `_taw_` one. So a shared id is still reported with a debug notice (and an admin notice when `WP_DEBUG` is on). Prefix ids by entity (`book_author`, not `author`).
   </Expandable>
 
   <Expandable title="Timing" default-open="false">
@@ -159,3 +161,83 @@ $awards = Metabox::get_repeater($postId, 'book_awards');   // decoded rows
 
 Over REST, fields appear under `meta` (for example `/wp-json/wp/v2/book/42`), and structured fields
 also appear decoded as `taw_<field id>`.
+
+## Fields on terms
+
+Target a taxonomy's terms with `term:<taxonomy>` in `on`, alone or next to post types (`taw/core`
+v1.53.0+):
+
+```json taw-schema/genre-details.json
+{
+  "version": 1,
+  "kind": "fieldset",
+  "key": "genre_details",
+  "on": ["term:genre"],
+  "fields": [
+    { "id": "genre_tagline", "type": "text", "label": "Tagline", "required": true },
+    { "id": "genre_cover", "type": "image", "label": "Cover" }
+  ]
+}
+```
+
+- The fields show on the taxonomy's **Add** and **Edit** screens, with every field type, conditions,
+  read-only fields and validation, exactly as on a post. Saving needs the `edit_term` capability.
+- Values are term meta (`_taw_genre_tagline`). Read them with `Metabox::get_term($termId, 'genre_tagline')`,
+  or `Metabox::term($termId)` for typed reads: `->bool()`, `->repeater()`, `->imageUrl()`, `->color()`,
+  `->posts()`, `->gradientText()`.
+- Over REST they're under `meta` on the term (`/wp-json/wp/v2/genre/7`), with the decoded `taw_<field id>`
+  for structured fields. On `post_tag`, the REST type is `tag`.
+- [Content snapshots](/content-interchange) carry them as the term's `fields`.
+- The [data panel](/data-panel) is for posts only; term screens always use the metabox form.
+
+`schema:validate` warns when the taxonomy isn't defined by your schema files or by WordPress.
+
+## Fields on users
+
+`user` in `on` puts a fieldset on **Profile**, **Edit User** and **Add New User** (`taw/core`
+v1.54.0+):
+
+```php
+$schema->add(Schema::fieldset('author_details')->on('user')->fields([
+    Field::url('author_website')->label('Website'),
+    Field::repeater('author_links')->fields([Field::url('href')->label('Link')]),
+]));
+```
+
+- Every field type, condition and validation works, as on a post. Saving needs the `edit_user` capability.
+- Values are user meta. Read them with `Metabox::get_user($userId, 'author_website')` or
+  `Metabox::user($userId)->repeater('author_links')` (the same typed reads as terms).
+- **Over REST, user fields are private:** they appear only in the `edit` context, to people who can edit
+  that user. They never show on an author's public `/wp-json/wp/v2/users/<id>`.
+- [Content snapshots](/content-interchange) carry them with `--with-users`.
+
+## Options pages over REST
+
+Options pages are private by default. A page opts in with `rest` (`taw/core` v1.55.0+):
+
+```json taw-schema/site-settings.json
+{
+  "version": 1,
+  "kind": "options_page",
+  "key": "site",
+  "rest": "public",
+  "fields": [{ "id": "company_phone", "type": "text", "label": "Phone" }]
+}
+```
+
+```php
+Schema::optionsPage('site')->rest('private')->fields([/* … */]);
+```
+
+| `rest` | Where | Who |
+|---|---|---|
+| *(not set)* | Nowhere | — |
+| `private` | `/wp-json/wp/v2/settings`, keyed by option name (`_taw_company_phone`). Read and write | Administrators (`manage_options`) |
+| `public` | The above, **plus** `GET /wp-json/taw/v1/options/<page id>`: every field by id, decoded like REST post fields (checkbox `true`/`false`, repeaters as arrays) | **Anyone, no login** |
+
+Writes through `/wp/v2/settings` get the page's own validation (`required`, URLs, number `min`/`max`,
+custom `validate`): a bad value returns a `400` naming each option, and the old value is kept.
+
+<Callout kind="alert">
+  A `public` page publishes **every field on it**. Never put API keys, internal emails or anything private on it. Keep secrets in `wp-config.php` constants whatever the page's `rest` setting.
+</Callout>

@@ -50,21 +50,27 @@ exist and already run the TAW stack.
 ## What's in a snapshot
 
 `TAW\Core\Content\Exporter::snapshot($scope)` produces a plain array, `json_encode`-ready.
-`schema` is `"1.1"`; the importer also accepts `"1.0"`. Full JSON Schema:
-`resources/schema/content-interchange-1.1.json` in the `taw/core` package.
+`schema` is `"1.2"` (`taw/core` v1.52.0+); the importer also accepts `"1.0"` and `"1.1"`. Full JSON
+Schema: `resources/schema/content-interchange-1.2.json` in the `taw/core` package.
+
+**Field keys:** a record's `fields` are keyed by the bare field id for `_taw_` fields
+(`"hero_heading"`), exactly as in 1.0 and 1.1, and by the full meta key for fields with any other
+prefix (`"_book_author"`). Each value is decoded with the config of the field registered for that
+post type, taxonomy or users, so two fieldsets sharing a field id each keep their own type. Before
+1.2, fields with another prefix were left out.
 
 | Section | Always carried | Contents |
 | --- | --- | --- |
 | `meta` | yes | `schema`, `generated_at`, `source` (URL, `taw/core` version, theme), and a `registry_fingerprint` (block IDs + `field_id → type`) so the importer can warn when the target's registry has drifted |
 | `options` | yes | Every `_taw_*` option (repeater / files **decoded to arrays**), plus a core allowlist — `blogname`, `blogdescription`, `show_on_front`, `page_on_front` / `page_for_posts` (**as slugs**) |
-| `terms` | yes | Per public taxonomy except `nav_menu`: `slug`, `name`, `description`, `parent` (by slug), `meta` |
-| `posts` | yes | `page` / `post`, every **public** CPT, **and every CPT with a `Metabox` attached** — except `taw_submission` and framework-internal types. Per post: `type`, `slug`, `status`, `title`, `excerpt`, `content`, `menu_order`, `date`, `author` (`{login, email}`), `comment_status`, `ping_status`, `parent` (by slug), `template`, `terms`, `featured_media` (filename), `fields` (each `_taw_*` value decoded by its registered type) |
+| `terms` | yes | Per public taxonomy except `nav_menu`: `slug`, `name`, `description`, `parent` (by slug), `meta`, plus `fields` (decoded, keyed like post fields) when the taxonomy has [term fieldsets](/data-layer#fields-on-terms) |
+| `posts` | yes | `page` / `post`, every **public** CPT, **and every CPT with a `Metabox` attached** — except `taw_submission` and framework-internal types. Per post: `type`, `slug`, `status`, `title`, `excerpt`, `content`, `menu_order`, `date`, `author` (`{login, email}`), `comment_status`, `ping_status`, `parent` (by slug), `template`, `terms`, `featured_media` (filename), `fields` (each field's value decoded by its registered type, any prefix) |
 | `media` | yes | Every referenced attachment: `id`, `ref` / `filename`, `url`, `title`, `description`, `alt`, `caption`, `mime` |
-| `users` | **opt-in** — `--with-users` | `login`, `email`, `display_name`, `roles[]`, `meta` (`first_name`, `last_name`, `description`, `nickname`, `locale`), `user_registered`. Password hashes **only** with the separate `--with-user-passwords` |
+| `users` | **opt-in** — `--with-users` | `login`, `email`, `display_name`, `roles[]`, `meta` (`first_name`, `last_name`, `description`, `nickname`, `locale`), `user_registered`, plus `fields` when a fieldset targets [users](/data-layer#fields-on-users). Password hashes **only** with the separate `--with-user-passwords` |
 | `comments` | **opt-in** — `--with-comments` | Comments on exported posts: `post_ref` (slug), author fields, `content`, `date_gmt`, `approved`, `type`, `parent_ref` (in-file id for threading) |
 
 **Never carried:** revisions, transients, non-allowlisted core / plugin options,
-`nav_menu` / `nav_menu_item` (code-owned in TAW themes), non-`_taw_` post meta. Drafts are
+`nav_menu` / `nav_menu_item` (code-owned in TAW themes), post meta that no fieldset registers. Drafts are
 excluded unless `--include-drafts`.
 
 ### Scope flags
@@ -123,7 +129,8 @@ These are **import-gated as well** — `content:import` skips them unless you al
 (`{ taw_changeset, operations: [...] }`, which `content:diff` emits). Records match by
 **natural key**, never by numeric ID:
 
-- posts by `(type, slug)`, or `(type, match_key)` for a slug-less draft
+- posts by `(type, slug)`, or `(type, match_key)` for a slug-less draft. Drafts and private posts
+  match by slug too, even from `bin/taw` with no user (`taw/core` v1.52.1+)
 - options by key · terms by `(taxonomy, slug)`
 - users by login, then email · comments by a content hash
 

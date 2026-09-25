@@ -4,6 +4,87 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-25" description="taw/core v1.56.0 / taw-gutenberg 0.3.10 / taw-theme v1.12.13: taw-core has its own text domain and ships its own translations." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — taw-core translations
+
+Tagged taw/core **v1.56.0**, TAW Gutenberg **v0.3.10** and taw-theme **v1.12.13**.
+
+- **Every taw-core string uses the `taw-core` text domain.** Before, most used the theme's `taw-theme` domain, and the form and password-gate messages used a `taw` domain that nothing loaded, so they were always English.
+- **Translations ship with the package** (`languages/`) and load on their own in the site's language. Spanish (`es_MX`) starts with the strings TAW sites already translated. The data panel gets them too.
+- **Your theme's translation wins.** When a theme's `languages/es_MX.po` translates a taw-core string, that wording keeps showing, so no site loses or changes a translation. See [Translations](/taw-core#translations).
+- One visible change on Spanish sites: the form message "%s is required." is now translated.
+
+</Update>
+
+<Update label="2026-09-25" description="taw/core v1.55.0 / taw-gutenberg 0.3.9 / taw-theme v1.12.12: options pages can be exposed over REST, per page." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Options pages over REST
+
+Tagged taw/core **v1.55.0**, TAW Gutenberg **v0.3.9** and taw-theme **v1.12.12**.
+
+- **`rest: "private"`** adds an options page's values to `/wp/v2/settings`, for administrators, with the page's own validation and sanitizing.
+- **`rest: "public"`** also serves them read-only at `GET /wp-json/taw/v1/options/<page id>`, to anyone. Use it only for pages with nothing private on them.
+- Pages without `rest` expose nothing, as before. See [Options pages over REST](/data-layer#options-pages-over-rest).
+
+</Update>
+
+<Update label="2026-09-25" description="taw/core v1.54.0 / taw-gutenberg 0.3.8 / taw-theme v1.12.11: fieldsets on user profiles." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Fields on users
+
+Tagged taw/core **v1.54.0**, TAW Gutenberg **v0.3.8** and taw-theme **v1.12.11**.
+
+- **`"on": ["user"]`** shows a fieldset on Profile, Edit User and Add New User, with every field type, conditions and validation. See [Fields on users](/data-layer#fields-on-users).
+- Over REST, user fields appear only to people who can edit that user. They never show on an author's public `/wp/v2/users/<id>`.
+- Content snapshots carry them with `--with-users`.
+
+</Update>
+
+<Update label="2026-09-25" description="taw/core v1.53.1 / taw-gutenberg 0.3.7 / taw-theme v1.12.10: unchecking a checkbox hides its conditional fields again." tags={["taw/core", "taw-gutenberg", "taw-theme", "fix"]}>
+
+## September 2026 — Checkbox conditions
+
+Tagged taw/core **v1.53.1**, TAW Gutenberg **v0.3.7** and taw-theme **v1.12.10**.
+
+- **Fix:** in the metabox form, unchecking a checkbox now hides the fields whose conditions depend on it, at the top level and inside repeater rows. Saving was already correct.
+
+</Update>
+
+<Update label="2026-09-25" description="taw/core v1.53.0 / taw-gutenberg 0.3.6 / taw-theme v1.12.9: fieldsets on taxonomy terms." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Fields on terms
+
+Tagged taw/core **v1.53.0**, TAW Gutenberg **v0.3.6** and taw-theme **v1.12.9**.
+
+- **`"on": ["term:genre"]`** shows a fieldset on a taxonomy's Add and Edit screens, alone or next to post types, with every field type, conditions and validation. See [Fields on terms](/data-layer#fields-on-terms).
+- Read values with `Metabox::get_term()` or `Metabox::term($id)`. They're in REST on the term, and content snapshots carry them.
+- Under the hood, the metabox engine now reads and writes through a storage context (post, term or user meta). Post metaboxes render and save byte-for-byte as before.
+
+</Update>
+
+<Update label="2026-09-25" description="taw/core v1.52.1 / taw-gutenberg 0.3.5 / taw-theme v1.12.8: content import finds drafts and private posts by slug from the CLI." tags={["taw/core", "taw-gutenberg", "taw-theme", "fix"]}>
+
+## September 2026 — Import matches drafts
+
+Tagged taw/core **v1.52.1**, TAW Gutenberg **v0.3.5** and taw-theme **v1.12.8**.
+
+- **Fix:** `bin/taw content:import` runs without a user, so it couldn't see drafts and private posts, and planned them as new posts. It now matches them by slug, and references to them (`parent`, `page_on_front`, comments) resolve.
+
+</Update>
+
+<Update label="2026-09-25" description="taw/core v1.52.0 / taw-gutenberg 0.3.4 / taw-theme v1.12.7: qualified field ids, and content snapshots carry fields with any prefix." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature", "fix"]}>
+
+## September 2026 — Qualified field ids
+
+Tagged taw/core **v1.52.0**, TAW Gutenberg **v0.3.4** and taw-theme **v1.12.7**.
+
+- **Every field also has a qualified id**, `"{fieldset}.{field}"`. REST meta, content export and import, the data panel, the visual editor and `fields:get` / `fields:set` look fields up per post type, so two fieldsets can share a field id and each keeps its own type and sanitizer. See [Field ids](/data-layer#defaults-and-rules).
+- **Content interchange 1.2:** fields with a prefix other than `_taw_` are exported, keyed by their meta key. `_taw_` fields keep their bare-id keys, and the importer still reads 1.0 and 1.1 files. See [Content Interchange](/content-interchange).
+- **Fix:** `fields:set` and the importer wrote group sub-fields to the wrong meta key (`_taw_{sub}` instead of `_taw_{group}_{sub}`).
+
+</Update>
+
 <Update label="2026-09-25" description="taw/core v1.51.1 / taw-gutenberg 0.3.3 / taw-theme v1.12.6: icon fields work in block themes." tags={["taw/core", "taw-gutenberg", "taw-theme", "fix"]}>
 
 ## September 2026 — Icon fields in block themes
