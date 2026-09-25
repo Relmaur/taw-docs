@@ -4,6 +4,22 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-25" description="taw/core v1.49.0–v1.49.1 / taw-gutenberg 0.3.0 / taw-theme v1.12.3: a shared Vite adapter, and custom blocks with Vite and TypeScript in TAW Gutenberg." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Vite for block themes
+
+Tagged taw/core **v1.49.0** and **v1.49.1**, TAW Gutenberg **v0.3.0** and taw-theme **v1.12.3**.
+
+- **`TAW\Core\Assets\Vite`** (v1.49.0) is a Vite adapter any TAW theme can use:
+  - `script()`, `style()` and `url()`, plus `block()`, which loads a block.json's `file:` assets through Vite;
+  - scripts load as ES modules and keep their translations;
+  - without a build, the site still renders and administrators see what's missing.
+- **One dev-server check for both loaders:** the check that only trusts the project's own `dist/hot` file now lives in `Assets\DevServer`, and the classic `ViteLoader` uses it too. taw-theme behaves exactly as before.
+- **Shared Vite config** in `vendor/taw/core/resources/vite/taw-vite.mjs`: `wordpressExternals()` (use the React and `@wordpress/*` copies WordPress already loads), `hotFile()` and `phpReload()`. v1.49.1 makes it tree-shakeable, so a block keeps only the names it imports (the example block went from 16.56 kB to 1.71 kB).
+- **TAW Gutenberg 0.3.0** builds custom blocks with Vite and TypeScript, and ships an example **Callout** block. `create-project` builds them for you. See [TAW Gutenberg](/taw-gutenberg#build-custom-blocks).
+
+</Update>
+
 <Update label="2026-09-24" description="taw/core v1.45.0–v1.48.0 / taw-gutenberg 0.2.0–0.2.1: editing policies lock the block editor down for a client, layer by layer, with presets from open to locked." tags={["taw/core", "taw-gutenberg", "feature"]}>
 
 ## September 2026 — Editing policies

@@ -10,7 +10,9 @@ description: >-
 TAW Gutenberg is the TAW theme for **block-editor sites**. It splits the work cleanly:
 
 - **Presentation is plain Gutenberg:** `theme.json`, `templates/*.html` and `parts/*.html`, all
-  editable in the Site Editor. There are no PHP templates and no JS build.
+  editable in the Site Editor. There are no PHP templates.
+- **Custom blocks are built with Vite and TypeScript** (from v0.3.0), through taw/core's shared Vite
+  adapter.
 - **Data comes from taw/core:** post types, taxonomies, fieldsets and options pages defined as JSON in
   `taw-schema/`, booted with `\TAW\Core\Boot::data()`. See the [Data layer](/data-layer) page.
 
@@ -19,14 +21,14 @@ and TAW Gutenberg when the site is built in the block editor. Both themes read t
 way.
 
 <Callout kind="info">
-  TAW Gutenberg requires PHP 8.2+ and WordPress 6.6+. It's developed against WordPress 7.1.
+  TAW Gutenberg requires PHP 8.2+ and WordPress 6.6+, plus Node 22.12+ to build its blocks. It's developed against WordPress 7.1.
 </Callout>
 
 ## Install
 
 <Steps>
   <Step title="Create the theme" icon="download" title-type="p">
-    Run the TAW installer with the Gutenberg starter. It installs the theme and its dependencies in `my-theme/`:
+    Run the TAW installer with the Gutenberg starter. It installs the theme and its dependencies in `my-theme/`, then builds the blocks (`npm install` and `npm run build`):
 
     ```bash
     cd wp-content/themes
@@ -59,6 +61,8 @@ way.
 | `functions.php` | Loads Composer and registers the theme's services |
 | `app/Setup/TawData.php` | Calls `\TAW\Core\Boot::data()` at `after_setup_theme` |
 | `app/Setup/Editing.php` | Calls `\TAW\Core\Boot::editing()`, which applies `taw-schema/editing.json` |
+| `app/Setup/Blocks.php` | Registers every `src/blocks/*/block.json` through taw/core's `Assets\Vite` |
+| `src/blocks/` | Custom blocks (TypeScript + SCSS), built into `dist/` by Vite |
 | `taw-schema/*.json` | Your content model |
 | `bin/taw` | `schema:validate` |
 
@@ -68,6 +72,36 @@ and `schema:validate`.
 
 <Callout kind="tip">
   Namespace your field ids by entity (`book_author`, not `author`). taw/core's field registry is keyed by bare id, so two fields both named `author` would collide.
+</Callout>
+
+## Build custom blocks
+
+Each block lives in `src/blocks/<name>/` with its `block.json`, and is named `taw-gutenberg/<name>`. The
+theme ships one example, **Callout** (a note with an info, success or warning tone). Copy its folder
+to start a new block.
+
+```json src/blocks/callout/block.json
+{
+    "apiVersion": 3,
+    "name": "taw-gutenberg/callout",
+    "editorScript": "file:./index.tsx",
+    "style": "file:./style.scss"
+}
+```
+
+The theme registers every `block.json` through taw/core's Vite adapter, which loads the `file:` assets
+from the Vite dev server or from the build.
+
+```bash
+composer install     # first: the Vite config uses taw/core's plugins from vendor/
+npm install
+npm run dev          # dev server; WordPress finds it through dist/hot
+npm run build        # production build into dist/
+npm run check        # lint, format, typecheck, tests and build
+```
+
+<Callout kind="tip">
+  `@wordpress/*` and `react` imports use the copies WordPress already loads, so a block's script stays small. Without a build or a running dev server, blocks still register, and administrators see which assets are missing.
 </Callout>
 
 ## Lock the editor down for a client
