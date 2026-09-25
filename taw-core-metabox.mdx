@@ -367,6 +367,22 @@ All field types share a base set of options:
     }
     ```
   </Expandable>
+
+  <Expandable title="link" default-open="false">
+    A URL, its text and “open in a new tab”, edited together and stored as one value (`taw/core` v1.59.0+). Relative paths like `/contact` work; with no URL there's no link. `required` means a URL.
+
+    ```php
+    ['id' => 'hero_cta', 'label' => 'Button', 'type' => 'link', 'required' => true]
+    ```
+
+    ```php
+    use TAW\Taw;
+
+    echo Taw::post($postId)->field('hero_cta');               // <a href="…" target="_blank" rel="noopener">Text</a>, escaped
+    $cta = Taw::post($postId)->field('hero_cta')->link();     // ->url(), ->label(), ->newTab(), ->exists()
+    echo $cta->html(['class' => 'btn']);
+    ```
+  </Expandable>
 </ExpandableGroup>
 
 ## Conditional fields
@@ -452,6 +468,10 @@ new Metabox([
 When metabox fields are rendered on the WordPress nav menu editor screen, only a subset of field types are available: `text`, `url`, `number`, `textarea`, `select`, and `checkbox`. Complex fields such as `image`, `wysiwyg`, `color`, `files`, and `repeater` are not supported in the nav menu context due to asset availability constraints.
 
 ## Retrieval API
+
+<Callout kind="tip">
+  Since `taw/core` v1.57.0 there's also a typed API: `$this->fields($postId)->field('hero_image')->image()->url()` in a block, or `Taw::post()` anywhere, with values escaped when echoed. See [Reading fields](/reading-fields).
+</Callout>
 
 Use these static helpers inside `getData()` or anywhere in your templates:
 

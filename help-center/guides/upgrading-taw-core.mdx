@@ -1,0 +1,69 @@
+---
+title: Upgrading taw/core on an existing site
+description: >-
+  How to bring a live TAW site's taw/core up to date, what changes by default
+  between versions, and what to check afterwards.
+---
+
+## The short version
+
+Every 1.x release of `taw/core` keeps existing theme code working and never changes stored data. A few
+releases changed a default, though, so the upgrade comes with a checklist organized by the version the
+site is coming from:
+- **In any theme:** `vendor/taw/core/UPGRADING.md` (the copy that came with the new version);
+- **Online:** [UPGRADING.md on GitHub](https://github.com/Relmaur/taw-core/blob/main/UPGRADING.md).
+
+It's written so an AI agent working on the site can follow it step by step.
+
+## Steps
+
+<Steps>
+  <Step title="Check the installed version" icon="search" title-type="p">
+    ```bash
+    composer show taw/core | grep versions
+    ```
+  </Step>
+
+  <Step title="Sync the theme scaffold (recommended)" icon="refresh-cw" title-type="p">
+    Ask your agent to "update the theme". The `update-theme` skill runs `php bin/taw sync`, which updates `functions.php`, `bin/`, CI and the framework skills, and never touches `Blocks/`, `inc/` or templates.
+  </Step>
+
+  <Step title="Update the package" icon="download" title-type="p">
+    ```bash
+    composer update taw/core
+    ```
+  </Step>
+
+  <Step title="Work through UPGRADING.md" icon="list-checks" title-type="p">
+    Read every section newer than the version you came from, and run the checks it marks. The `update-theme` skill does this for you when you let it update `taw/core`.
+  </Step>
+
+  <Step title="Verify and commit" icon="check" title-type="p">
+    Run the tests, load the front page and a page with a form (the `visual-check` skill), and open a few wp-admin screens with metaboxes and options pages. Then commit `composer.lock`.
+  </Step>
+</Steps>
+
+## What changed by default since v1.22
+
+These are the changes a site gets without asking. Everything else since v1.22 is opt-in.
+
+| Since | Change | What to check |
+|---|---|---|
+| v1.24 | Anonymous requests can't list users over REST | Whether anything fetches `/wp/v2/users` without logging in |
+| v1.25 | TAW metabox fields appear in the REST API; Tools → TAW Data appears | Whether a field holds something that shouldn't be public on published posts |
+| v1.30 | The RAG chatbot needs `RagSettings::enable()` | Only if the site uses the chatbot |
+| v1.39.1 | Forms reject an empty required email | Submit each form once |
+| v1.41 | Metaboxes with `tabs` show tabs | Open a post whose block uses metabox tabs |
+| v1.56 | taw-core has its own translations | Nothing: the theme's own translations still win |
+
+To roll back, reinstall the previous version: `composer update taw/core:<previous version>`, or restore
+`composer.lock`. Nothing needs migrating either way.
+
+## New things you may want
+
+Since v1.22, `taw/core` also gained features that stay off until a site uses them:
+- **Fields:** the [data panel](/data-panel), term and user fieldsets, and the `link` field type.
+- **Reading:** typed reads with [`Taw::post()`](/reading-fields).
+- **Content and REST:** [content snapshots](/content-interchange), and options pages over REST.
+- **Lockdown:** [editing policies](/editing-policies).
+- **Integrations:** Lucide icons and media folders.

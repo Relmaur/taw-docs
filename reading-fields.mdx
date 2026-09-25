@@ -1,0 +1,125 @@
+---
+title: Reading fields — typed values with Taw::post()
+description: >-
+  Read TAW fields as typed, escaped values in templates, MetaBlocks and block
+  render.php files: Taw::post(), Taw::term(), Taw::user() and Taw::option().
+---
+
+## One call, the right type, escaped
+
+Since `taw/core` v1.57.0, `TAW\Taw` reads any TAW field as a typed value. You get images, repeater rows,
+posts and links as objects, and `echo` escapes for the field's type:
+
+```php
+use TAW\Taw;
+
+$book = Taw::post();                                   // the current post
+
+echo $book->field('book_subtitle');                    // escaped text
+echo $book->field('book_cover')->image()->html('large');
+foreach ($book->field('book_awards')->rows() as $row) {
+    echo $row->field('name');
+}
+echo $book->field('book_buy')->link();                 // <a href="…">Buy</a>
+```
+
+It works for posts, terms, users and options, from both TAW themes. Nothing in it throws: a missing post
+or field reads as empty. The older helpers (`Metabox::get()`, `$this->getMeta()`, `OptionsPage::get()`)
+keep working unchanged.
+
+## Where fields come from
+
+| Call | Reads |
+|---|---|
+| `Taw::post()` | The current post |
+| `Taw::post(42)` or `Taw::post($wpPost)` | A given post |
+| `$this->fields($postId)` | The post a `MetaBlock` renders (safe with `false` on a 404) |
+| `Taw::term($termId)`, or `Taw::term()` on a category, tag or taxonomy archive | A term's fields ([term fieldsets](/data-layer#fields-on-terms)) |
+| `Taw::user($userId)` | A user's fields ([user fieldsets](/data-layer#fields-on-users)) |
+| `Taw::option('company_phone')` | An options-page field, from whichever page registers it |
+| `Taw::options('site')->field('company_phone')` | One page's fields |
+
+`field()` takes the field id (`book_subtitle`), a qualified id (`book_details.book_subtitle`) or the meta
+key (`_taw_book_subtitle`). A group's sub-field is `->field('address')->field('city')`.
+
+## What you can get from a value
+
+| Method | Returns |
+|---|---|
+| `->text()` | The value as a plain, **unescaped** string |
+| `->bool()` | A checkbox as `true` or `false` |
+| `->int()`, `->float()` | A number |
+| `->or('Default')` | The value, or the default when it's empty |
+| `->isEmpty()`, `->exists()` | Whether there's a value |
+| `->image()` | An `Image`: `->url('large')`, `->alt()`, `->width()`, `->height()`, `->html($size, $attrs)`, `->exists()` |
+| `->images()` | A `files` field's images |
+| `->post()`, `->posts()` | `post_select` values: `->title()`, `->url()`, `->post()`, `->fields()` (that post's own fields) |
+| `->rows()` | A repeater's rows. Each row's `->field('sub')` is typed by the repeater's sub-fields |
+| `->link()` | A `Link`: `->url()`, `->label()`, `->newTab()`, `->html($attrs)` |
+| `->paragraphs()` | A `wysiwyg` or `textarea` with paragraphs added (`wpautop`) and filtered |
+| `->value()` | The decoded value, the same shape the REST API and content export give |
+| `->raw()` | The stored value, exactly as `Metabox::get()` returns it |
+
+## What `echo` prints
+
+| Field type | `echo $value` prints |
+|---|---|
+| text, textarea, select, number, range, datepicker, color, icon | The value, `esc_html()`'d |
+| url | The URL, `esc_url()`'d |
+| wysiwyg | The HTML, `wp_kses_post()`'d, without added paragraphs (use `->paragraphs()` for those) |
+| image | The `<img>` tag (full size; use `->image()->html('large')` for another size) |
+| post_select (single) | The post's title, escaped |
+| link | The `<a>`, escaped, with `target="_blank" rel="noopener"` for a new tab |
+| checkbox, files, repeater, group, gradient_text, hubspot_form | Nothing: use the accessors |
+
+<Callout kind="alert">
+  **Don't escape a value again.** `esc_html($book->field('subtitle'))` escapes text that's already escaped, and turns a link's `<a>` into visible text. Echo the value directly, or escape `->text()` yourself.
+</Callout>
+
+## In a classic MetaBlock
+
+Return plain values from `getData()`, so the template keeps its own escaping and the block's unit test
+compares plain arrays:
+
+```php Blocks/Hero/Hero.php
+protected function getData(int|false $postId): array
+{
+    $fields = $this->fields($postId);
+
+    return [
+        'heading'   => $fields->field('hero_heading')->text(),
+        'image_url' => $fields->field('hero_image')->image()->url('large'),
+        'show_cta'  => $fields->field('hero_show_cta')->bool(),
+        'cta_url'   => $fields->field('hero_cta')->link()->url(),
+        'cta_label' => $fields->field('hero_cta')->link()->label(),
+        'slides'    => array_map(static fn ($row) => [
+            'title' => $row->field('title')->text(),
+            'image' => $row->field('image')->image()->url('medium'),
+        ], $fields->field('hero_slides')->rows()->all()),
+    ];
+}
+```
+
+## In a block theme's render.php
+
+A block-theme template or a block's `render.php` can read and echo directly:
+
+```php blocks/book-card/render.php
+<?php
+$book = TAW\Taw::post($block->context['postId'] ?? null);
+?>
+<article <?php echo get_block_wrapper_attributes(); ?>>
+    <?php echo $book->field('book_cover')->image()->html('medium'); ?>
+    <h3><?php echo $book->field('book_subtitle')->or(get_the_title()); ?></h3>
+    <?php echo $book->field('book_buy')->link()->html(['class' => 'wp-element-button']); ?>
+</article>
+```
+
+## Empty and unknown fields
+
+- A missing post, term or user, or `false`, reads every field as empty.
+- An empty value gives `''`, `false`, `0`, `[]`, or an object whose `->exists()` is `false`, so
+  `->image()->url()` is `''` rather than an error.
+- A field no metabox registers is still read from `_taw_<id>`, untyped, so hand-written meta works.
+- An accessor that doesn't fit the field (for example `->rows()` on a text field) converts as well as it
+  can and, with `WP_DEBUG` on, logs a `_doing_it_wrong()` notice naming the field.

@@ -60,6 +60,11 @@
                 "icon": "database"
               },
               {
+                "title": "Reading fields",
+                "path": "reading-fields",
+                "icon": "book-open-check"
+              },
+              {
                 "title": "Editing policies",
                 "path": "editing-policies",
                 "icon": "lock"
@@ -138,6 +143,10 @@
               {
                 "title": "Create Your First Page",
                 "path": "help-center/guides/setup-project"
+              },
+              {
+                "title": "Upgrading taw/core on an existing site",
+                "path": "help-center/guides/upgrading-taw-core"
               },
               {
                 "title": "Connect your AI agent to these docs",

@@ -4,6 +4,40 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-25" description="taw/core v1.59.0 / taw-gutenberg 0.3.13 / taw-theme v1.12.16: a link field type." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — The link field
+
+Tagged taw/core **v1.59.0**, TAW Gutenberg **v0.3.13** and taw-theme **v1.12.16**.
+
+- **`link`** is a new field type: a URL, its text and “open in a new tab”, edited together and stored as one value. It works in metaboxes, options pages, repeater rows, term and user screens and the [data panel](/data-panel). Relative paths like `/contact` work, and `required` means a URL.
+- `echo Taw::post()->field('cta')` prints the escaped `<a>`; `->link()` gives its parts. See [Reading fields](/reading-fields).
+- Existing fields render and save exactly as before.
+
+</Update>
+
+<Update label="2026-09-25" description="taw/core v1.58.0 / taw-gutenberg 0.3.12 / taw-theme v1.12.15: typed reads for terms, users and options." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Typed reads everywhere
+
+Tagged taw/core **v1.58.0**, TAW Gutenberg **v0.3.12** and taw-theme **v1.12.15**.
+
+- `Taw::term()` (the queried term when called without an ID), `Taw::user()`, `Taw::option('company_phone')` and `Taw::options('site')` read fields the same way as `Taw::post()`. See [Reading fields](/reading-fields).
+
+</Update>
+
+<Update label="2026-09-25" description="taw/core v1.57.0 / taw-gutenberg 0.3.11 / taw-theme v1.12.14: typed, escaped field reads with Taw::post()." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Taw::post()
+
+Tagged taw/core **v1.57.0**, TAW Gutenberg **v0.3.11** and taw-theme **v1.12.14**.
+
+- **`TAW\Taw::post()->field('x')`** returns a typed value: `->image()`, `->rows()`, `->posts()`, `->bool()`, `->text()`, and `echo` escaped for the field's type. In a MetaBlock, `$this->fields($postId)` does the same. See [Reading fields](/reading-fields).
+- Nothing throws: a missing post or field reads as empty. The existing helpers are unchanged.
+- Updating an older site? See [Upgrading taw/core on an existing site](/help-center/guides/upgrading-taw-core).
+
+</Update>
+
 <Update label="2026-09-25" description="taw/core v1.56.0 / taw-gutenberg 0.3.10 / taw-theme v1.12.13: taw-core has its own text domain and ships its own translations." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
 
 ## September 2026 — taw-core translations

@@ -162,6 +162,9 @@ $awards = Metabox::get_repeater($postId, 'book_awards');   // decoded rows
 Over REST, fields appear under `meta` (for example `/wp-json/wp/v2/book/42`), and structured fields
 also appear decoded as `taw_<field id>`.
 
+For typed values (images, rows, posts, links, escaped when echoed), use `Taw::post()`; see
+[Reading fields](/reading-fields).
+
 ## Fields on terms
 
 Target a taxonomy's terms with `term:<taxonomy>` in `on`, alone or next to post types (`taw/core`
