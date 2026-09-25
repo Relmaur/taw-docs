@@ -183,7 +183,7 @@ Commit the rebuilt `assets/data-panel/` with your change. CI fails if it doesn't
     The server checks `required` against the value being saved or, when the save doesn't send it, the value already stored. An existing post whose required field is empty therefore can't be saved until someone fills it in. This is stricter than the metabox, which only shows a notice.
   </Expandable>
   <Expandable title="Icons need the Lucide picker switched on" default-open="false">
-    `icon` fields need `\TAW\Core\Icons\Lucide::enable()`; without it, the panel says icons aren't switched on. The icon search itself is registered by `Lucide::init()`, which only `Theme::boot()` calls. On TAW Gutenberg, call both `Lucide::enable()` and `Lucide::init()` in the theme, or the picker says icons couldn't be loaded.
+    `icon` fields need `\TAW\Core\Icons\Lucide::enable()`, called before the theme boots taw/core (in TAW Gutenberg, before `after_setup_theme` priority 0). Without it, the panel says icons aren't switched on. On taw/core v1.51.0, block themes also had to call `Lucide::init()` for the icon search to exist; from **v1.51.1** the data layer does that for you.
   </Expandable>
   <Expandable title="Repeater tab layouts show as stacked rows" default-open="false">
     `layout => tabbed_horizontal` and `tabbed_vertical` apply to the metabox. In the narrow sidebar, rows always show as stacked, collapsible cards.

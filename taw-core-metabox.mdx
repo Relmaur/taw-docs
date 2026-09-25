@@ -320,7 +320,7 @@ All field types share a base set of options:
     Lucide icon picker. Stores a bare icon name (e.g. `house`), sanitized with `sanitize_key()`.
 
     <Callout kind="tip">
-      Opt-in — call `TAW\Core\Icons\Lucide::enable()` in `inc/customizations.php` before `Theme::boot()`, or this field renders a notice instead of the picker. Full reference: `taw-core` README § "Icon System".
+      Opt-in — call `TAW\Core\Icons\Lucide::enable()` in `inc/customizations.php` before `Theme::boot()` (block themes: before `Boot::data()`), or this field renders a notice instead of the picker. Full reference: `taw-core` README § "Icon System".
     </Callout>
 
     ```php

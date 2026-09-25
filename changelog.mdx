@@ -4,6 +4,17 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-25" description="taw/core v1.51.1 / taw-gutenberg 0.3.3 / taw-theme v1.12.6: icon fields work in block themes." tags={["taw/core", "taw-gutenberg", "taw-theme", "fix"]}>
+
+## September 2026 — Icon fields in block themes
+
+Tagged taw/core **v1.51.1**, TAW Gutenberg **v0.3.3** and taw-theme **v1.12.6**.
+
+- **`Boot::data()` now registers the icon search** (`/taw/v1/icons`) when `Lucide::enable()` has been called. Before, only `Theme::boot()` did, so `icon` fields in TAW Gutenberg showed a picker that couldn't load icons, in the metabox and in the [data panel](/data-panel).
+- Nothing changes for sites that don't call `Lucide::enable()`, and taw-theme behaves exactly as before.
+
+</Update>
+
 <Update label="2026-09-25" description="taw/core v1.51.0 / taw-gutenberg 0.3.2 / taw-theme v1.12.5: the data panel shows TAW fields in a block-editor sidebar, off by default." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature", "fix"]}>
 
 ## September 2026 — The data panel
