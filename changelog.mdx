@@ -4,6 +4,22 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-26" description="taw/core v1.66.0 / taw-gutenberg 0.3.25 / taw-theme v1.12.26: conditions (server side)." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Conditions
+
+Tagged taw/core **v1.66.0**, TAW Gutenberg **v0.3.25** and taw-theme **v1.12.26**. A chip, a block's bound text, or a **whole block** can show only when rules hold:
+
+- “First published **1965**” only when the year is set; a **Buy** button only when the buy link isn't empty; a “New” badge only for posts from the last 30 days.
+- 23 comparisons: empty / not empty, text (equals, contains, starts or ends with), lists (is one of, has), numbers (greater or less than, between), dates (before, after, on, between; with `today` or `-30 days`), yes / no.
+- Rules combine with **All** or **Any**, one group deep. A hidden chip can show other text instead.
+- New values: `@viewer.logged_in`, `@viewer.role`, `@date.today`, `@date.now`.
+- Each theme gains one hook; content without conditions renders as before.
+
+This release is the server side. The rule builder in the TAW data popup comes next.
+
+</Update>
+
 <Update label="2026-09-26" description="taw/core v1.65.1 / taw-gutenberg 0.3.24 / taw-theme v1.12.25: chip popover fixes." tags={["taw/core", "taw-gutenberg", "taw-theme", "fix"]}>
 
 ## September 2026 — Chip popover fixes
