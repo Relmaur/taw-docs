@@ -1,0 +1,133 @@
+---
+title: Dynamic tags and expressions — live values inside text
+description: >-
+  Put TAW fields, post and site values inside any sentence with the TAW data popup: pick a field or write
+  an expression like “Published on @post.date.format('F j, Y')”, insert it inline or use it as the whole
+  block's text. Values are always live on the front end.
+---
+
+## Values inside a sentence
+
+[Block Bindings](/block-bindings) replace a block's **whole** text with a field. Dynamic tags put a value
+**inside** the text, as many as you need:
+
+> Published on **September 26, 2026** by **Frank Herbert** · **1965**
+
+Each value is an atomic **chip** in the editor. On the front end it always shows the **live** value, with the
+same privacy rules as Block Bindings, and a chip inside a Query Loop reads that item's post.
+
+<Callout kind="info">
+  Dynamic tags ship with taw/core **v1.63.0** (front end), **v1.64.0** (expressions) and **v1.65.0** (the
+  TAW data popup). They work in both [TAW Theme](/taw-theme) and [TAW Gutenberg](/taw-gutenberg), with
+  nothing to switch on.
+</Callout>
+
+## Insert a value
+
+<Steps>
+<Step title="Put the cursor where the value goes">
+
+Click into a paragraph, heading, list item, button or any other text block, at the spot where the value
+should appear.
+
+</Step>
+<Step title="Open the TAW data popup">
+
+Click the **TAW data** button (a database icon) in the block toolbar. **Insert as** is set to **Inline**
+because the cursor is in text.
+
+</Step>
+<Step title="Pick a value">
+
+The **Fields** tab lists every value, grouped by fieldset (the metabox or options page title), then
+**Post** and **Site**, each with its current value. Search to narrow the list, then click a value: a chip
+appears at the cursor.
+
+</Step>
+</Steps>
+
+To make a value the block's **whole** text instead, switch **Insert as** to **Block text** before you pick.
+That's a Block Binding: the block becomes read-only and always shows the value.
+
+## Write an expression
+
+The **Expression** tab takes text and values together:
+
+```text
+Published on @post.date.format('F j, Y') by @post.author · @option.company_phone.default('—')
+```
+
+- Type `@` to get value suggestions, and `.` after a value for functions. The chips under the editor add
+  them too.
+- The **Preview** shows what the current post renders. Mistakes are listed under it: a missing
+  parenthesis, an unknown function, a name the post doesn't have.
+- **Insert inline** adds the expression as one chip. **Use as block text** makes it the block's text.
+- Reopening the popup on a block shows its expression, ready to change.
+
+### Names
+
+| Name | Reads |
+|---|---|
+| `@book_year` | A field of the post (its id). A group's sub-field is `@{group}_{sub}`, e.g. `@address_city` |
+| `@post.title`, `@post.date`, `@post.modified`, `@post.author`, `@post.excerpt`, `@post.url`, `@post.id`, `@post.type` | The post itself |
+| `@site.name`, `@site.tagline`, `@site.url`, `@site.year` | The site (`site.year` is the current year) |
+| `@option.company_phone` | An options-page field |
+| `@term.tagline` | A field of the queried term (on category, tag and taxonomy archives) |
+| `@author.bio` | A field of the post's author (the field needs `"bindings": true`) |
+
+### Functions
+
+Chain functions after a name, always with parentheses:
+
+| Function | Does | Example |
+|---|---|---|
+| `format('…')` | Formats a date with [PHP date format](https://wordpress.org/documentation/article/customize-date-and-time-format/) characters | `@post.date.format('F j, Y')` → September 26, 2026 |
+| `upper()` / `lower()` | Changes case | `@post.author.upper()` → FRANK HERBERT |
+| `default('…')` | Shows text when the value is empty | `@book_subtitle.default('No subtitle')` |
+| `truncate(n)` | Cuts to *n* characters and adds `…` | `@post.excerpt.truncate(80)` |
+
+### Plain text stays plain
+
+- An `@` inside a word stays text, so `hi@example.com` is safe. Write `@@` for a literal `@` before a word.
+- A `.` after a value ends the sentence unless a function follows: `Released in @book_year.` is fine.
+- Limits: 500 characters and 20 values per expression.
+
+## Edit or remove a chip
+
+- **Click a chip** to open its editor: change the expression and **Save**, **Refresh** its stored text, or
+  **Remove** it.
+- **Backspace** or **Delete** next to a chip removes the whole chip. Arrow keys skip over it.
+- In the editor, a chip shows the value from when it was inserted or refreshed. The front end is always
+  live, so a stale chip in the editor never means a stale page.
+
+## Privacy
+
+Every value goes through the same rules as [Block Bindings](/block-bindings#privacy):
+
+- Only **registered** TAW fields resolve, and a field with `"bindings": false` never does.
+- A **private** post's values need permission to read the post. A **password-protected** post shows only
+  its title, ID, URL, date and type until it's unlocked.
+- **Author fields** need `"bindings": true` on the field.
+
+An expression never runs code: a small parser reads the names and the five functions, and anything else
+renders as empty or as plain text.
+
+## How it's stored
+
+A chip is an inline element in the post content. Its text is the last value, and the JSON says what to read:
+
+```html
+<span class="taw-tag" data-taw-tag='{"expr":"Published on @post.date.format(&apos;F j, Y&apos;)"}'>Published on September 26, 2026</span>
+```
+
+A single value picked from the Fields tab stores `{"field": "book_year"}` or `{"tag": "post.date"}`. **Block
+text** is a Block Binding with `"args": {"expr": "…"}`. On the front end the `data-taw-tag` attribute is removed
+and the text replaced; if taw/core is ever removed, the last values remain as plain text.
+
+## Known behavior
+
+- **The canvas `@`** still opens WordPress's own user mentions. Expressions are written in the popup.
+- **With `SCRIPT_DEBUG` on**, WordPress 7.1 logs a “`useSelect` hook returns different values” warning when a
+  text block is selected with the **Attributes** panel open. It comes from WordPress's own panel.
+- **After a WordPress update**, open a post with chips once and check that inserting and clicking chips still
+  works: the popup relies on recent editor APIs.

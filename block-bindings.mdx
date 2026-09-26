@@ -22,7 +22,7 @@ don't write a custom block per field.
 
 <Callout kind="info">
   The `taw/field` source ships with taw/core **v1.60.0** (front end), **v1.61.0** (editor previews and the
-  toolbar button) and **v1.62.0** ([`allowBound`](#field-only-blocks-in-locked-down-post-types)). It's on
+  toolbar button, now the TAW data popup from **v1.65.0**) and **v1.62.0** ([`allowBound`](#field-only-blocks-in-locked-down-post-types)). It's on
   for every TAW theme; nothing changes until a block uses it.
 </Callout>
 
@@ -36,9 +36,12 @@ Select a paragraph, heading, list item, button, image or post date.
 </Step>
 <Step title="Pick the field">
 
-Click the **TAW field** button (a database icon) in the block toolbar, or open the block's ⋮ menu and
-choose **Connect to TAW field…**. The list shows only the fields that fit the block, grouped as
-**Post**, **Options**, **Term** and **Author**.
+Click the **TAW data** button (a database icon) in the block toolbar, set **Insert as** to **Block
+text**, and pick a value on the **Fields** tab (grouped by fieldset). Values that don't fit the block are
+greyed out. The block's ⋮ menu has the same as **Connect to TAW field…**.
+
+To put a value *inside* the text instead, or to combine text and values, see
+[Dynamic tags and expressions](/dynamic-tags).
 
 </Step>
 <Step title="Check the preview">
@@ -56,8 +59,9 @@ The block shows the field's current value. One pick binds every attribute the fi
 </Step>
 </Steps>
 
-The connected field is checked in the dropdown. **Disconnect TAW field** removes the TAW bindings and
-leaves any other source's bindings alone.
+The popup's footer shows what the block is bound to. **Disconnect** removes the TAW bindings and leaves any
+other source's bindings alone. A block can also take an expression as its text, e.g.
+`@post.title (@book_year)`: see [Dynamic tags and expressions](/dynamic-tags#write-an-expression).
 
 For one attribute at a time, use the sidebar's **Attributes** panel: it lists the TAW fields that fit each
 attribute. Images also get an “(image ID)” entry for core/image's `id`.

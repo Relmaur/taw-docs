@@ -70,6 +70,11 @@
                 "icon": "link"
               },
               {
+                "title": "Dynamic tags & expressions",
+                "path": "dynamic-tags",
+                "icon": "braces"
+              },
+              {
                 "title": "Editing policies",
                 "path": "editing-policies",
                 "icon": "lock"

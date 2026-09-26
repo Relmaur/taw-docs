@@ -4,6 +4,20 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-26" description="taw/core v1.63.0–v1.65.0 / taw-gutenberg 0.3.20–0.3.23 / taw-theme v1.12.22–v1.12.24: dynamic tags and expressions." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Dynamic tags and expressions
+
+Tagged taw/core **v1.63.0**, **v1.64.0** and **v1.65.0**. See [Dynamic tags and expressions](/dynamic-tags).
+
+- **Values inside a sentence:** “Published on **September 26, 2026** by **Frank Herbert**”. Each value is an atomic chip in the editor and always live on the front end, with the same privacy rules as Block Bindings.
+- **Expressions:** text and values in one string, e.g. `Published on @post.date.format('F j, Y') by @post.author`, with `format`, `upper`, `lower`, `default` and `truncate`.
+- **The TAW data popup** (the block toolbar's database button): a **Fields** tab grouped by fieldset and an **Expression** tab with suggestions, a live preview and error hints. Insert **inline** or use as the **block text**.
+- TAW Gutenberg's book template shows “Published on …” with an expression.
+- Hook lists gain three lines in total; content without tags renders exactly as before.
+
+</Update>
+
 <Update label="2026-09-25" description="taw/core v1.60.0–v1.62.0 / taw-gutenberg 0.3.16–0.3.18 / taw-theme v1.12.19–v1.12.21: Block Bindings." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
 
 ## September 2026 — Block Bindings: TAW fields in core blocks
