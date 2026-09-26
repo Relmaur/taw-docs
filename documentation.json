@@ -75,6 +75,11 @@
                 "icon": "braces"
               },
               {
+                "title": "Conditions",
+                "path": "conditions",
+                "icon": "eye"
+              },
+              {
                 "title": "Editing policies",
                 "path": "editing-policies",
                 "icon": "lock"

@@ -1,0 +1,148 @@
+---
+title: Conditions — show values and blocks only when they apply
+description: >-
+  Show a value, a block's text or a whole block only when rules hold: a Buy button only when there's a buy
+  link, "First published 1965" only when the year is set, a badge only for recent posts. Built with a rule
+  builder in the TAW data popup; checked live on the front end.
+---
+
+## Show it only when it applies
+
+Some content only makes sense when a value is set, or only for some posts:
+
+- a **Buy this book** button only when the book has a buy link;
+- "· First published **1965**" only when the year is known;
+- a "New" badge only for posts from the last 30 days;
+- "Welcome back" for logged-in visitors, "Sign in" for everyone else.
+
+A **condition** is a set of rules. When they hold, the value or block shows; when they don't, it doesn't
+(or a value shows other text instead). Every page view checks them with the post's current values, and
+inside a Query Loop each item decides for itself.
+
+<Callout kind="info">
+  Conditions ship with taw/core **v1.66.0** (front end) and **v1.67.0** (the editor). They work in both
+  [TAW Theme](/taw-theme) and [TAW Gutenberg](/taw-gutenberg), on top of
+  [dynamic tags](/dynamic-tags) and [Block Bindings](/block-bindings).
+</Callout>
+
+## Show a whole block only when…
+
+<Steps>
+<Step title="Select the block">
+
+Any block works: a paragraph, a button group, an image, a whole group of blocks.
+
+</Step>
+<Step title="Open its visibility settings">
+
+Either click the **TAW data** button (a database icon) in the toolbar and open the **Visibility** tab, or
+open **TAW visibility** in the block's sidebar (every block has it). Click **Add a condition**.
+
+</Step>
+<Step title="Build the rules">
+
+Each rule is a **value**, a **comparison** and, for most comparisons, **what to compare with**:
+
+> **Buy link** · **is not empty**
+
+The answer shows right away: **Shown for this post** or **Hidden for this post**. In the canvas the block
+gets a dashed outline and a label, and it's dimmed while it's hidden for the post you're editing.
+
+</Step>
+</Steps>
+
+To stop, click **Remove condition**.
+
+## Show a value only when…
+
+On the TAW data popup's **Expression** tab, or in the editor of a value already in the text (click it), use
+**Show only when…**:
+
+- build the rules the same way;
+- **Otherwise show** is the text shown when the rules don't hold. Leave it empty to show nothing.
+
+A value with a condition has a dashed border in the editor. It keeps showing its value there; the front end
+decides.
+
+This works for values inside text and for a block's whole text (**Insert as → Block text**).
+
+## Rules
+
+### Values
+
+Pick any value the popup lists: the post's fields, post and site properties, options, term and author
+fields. Two more are made for conditions:
+
+| Value | Is |
+|---|---|
+| **Logged in** (`@viewer.logged_in`) | yes for logged-in visitors |
+| **Role** (`@viewer.role`) | the visitor's roles, e.g. `editor, author` |
+| **Today** / **Now** (`@date.today`, `@date.now`) | the current date, or date and time |
+
+**Custom value…** takes any single [expression value](/dynamic-tags#names), functions included, e.g.
+`@post.date.format('l')` to compare the weekday.
+
+### Comparisons
+
+| Kind | Comparisons | Compare with |
+|---|---|---|
+| Presence | is empty, is not empty | — |
+| Text | is, is not, contains, does not contain, starts with, ends with | text; case and outer spaces don't matter |
+| Lists | is one of, is not one of | a list: `fiction, poetry` |
+| | has the item, does not have the item | one item of a multi-value field (checkboxes) |
+| Numbers | is greater than, is at least, is less than, is at most, is between | numbers |
+| Dates | is after, is before, is on, is between the dates | a date (`2025-01-31`), `today`, `now`, `tomorrow`, `yesterday`, or relative (`-30 days`, `+1 week`) |
+| Yes / no | is yes / on, is no / off | — (empty, `0`, `no`, `off` and `false` are "no") |
+
+Date fields and the post date are compared as dates, in the site's time zone. To compare with **another
+value**, write it with `@`: `@book_year` **is** `@first_edition_year`. Write `@@` for a literal `@`.
+
+### All or any, and groups
+
+**Show … when all / any of these are true** combines the rules. **Add group** adds a group with its own
+all/any, for "this, and one of those":
+
+> **Type** is `book`, **and any of:** **Logged in** is yes · **Price** is less than `300`
+
+Groups go one level deep, with up to 20 rules in total.
+
+## Good to know
+
+- **Hidden isn't private.** A hidden block is left out of the page, but it's still in the post content (and
+  in the template). Use conditions for what shows, not for who may read it.
+- **Page caches.** Rules on **Logged in** or **Role** differ per visitor. They work with caches that don't
+  serve cached pages to logged-in users (most do that). Rules on the post's own values are cache-safe.
+- **Templates.** In the Site Editor, "for this post" means the latest post of the template's type, as the
+  field previews do.
+- **If a rule is incomplete** (no comparison, nothing to compare with), the builder says which rule, and
+  the block or value stays hidden until it's fixed.
+- **Privacy** is the same as for values: a field with `"bindings": false`, or a private post's fields, read
+  as empty.
+
+## How it's stored
+
+A condition is JSON; the builder writes it for you.
+
+```json
+{"match": "all", "rules": [
+  {"value": "@book_buy_link", "op": "not_empty"},
+  {"match": "any", "rules": [
+    {"value": "@viewer.logged_in", "op": "is_true"},
+    {"value": "@price", "op": "lt", "to": 300}
+  ]}
+]}
+```
+
+| On | Where |
+|---|---|
+| A whole block | `"metadata": {"tawShowIf": {…}}` |
+| A value in text | `data-taw-tag='{"expr": "…", "if": {…}, "else": "…"}'` |
+| A block's text | the binding's `args`: `{"expr": "…", "if": {…}, "else": "…"}` |
+
+Operators in JSON: `empty`, `not_empty`, `equals`, `not_equals`, `contains`, `not_contains`, `starts_with`,
+`ends_with`, `in`, `not_in`, `has`, `has_not`, `gt`, `gte`, `lt`, `lte`, `between`, `before`, `after`, `on`,
+`between_dates`, `is_true`, `is_false`. If taw/core is ever removed, blocks with a condition always show and
+values keep their last text.
+
+TAW Gutenberg's `single-book.html` template is a working example: the subtitle, "First published …" and a
+**Buy this book** button each show only when their value is set.
