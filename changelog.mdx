@@ -4,6 +4,20 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-25" description="taw/core v1.60.0–v1.62.0 / taw-gutenberg 0.3.16–0.3.18 / taw-theme v1.12.19–v1.12.21: Block Bindings." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Block Bindings: TAW fields in core blocks
+
+Tagged taw/core **v1.60.0**, **v1.61.0** and **v1.62.0**, TAW Gutenberg **v0.3.16–v0.3.18** and taw-theme **v1.12.19–v1.12.21**. See [Block Bindings](/block-bindings).
+
+- **v1.60.0:** a `taw/field` Block Bindings source. Paragraphs, headings, list items, buttons, images and post dates can show post, option, term and author fields, in templates, patterns and Query Loops too. Fields can opt out with `"bindings": false`; user fields opt in with `"bindings": true`.
+- **v1.61.0:** the editor side. Bound blocks preview their real value, a **TAW field** toolbar button (and ⋮ → **Connect to TAW field…**) binds a block in one pick, and the **Attributes** panel lists TAW fields.
+- **v1.62.0:** [editing policies](/editing-policies) gain `allowBound`: blocks clients may add only bound to a field, offered as **Field text**, **Field image**… in the inserter.
+- TAW Gutenberg ships `templates/single-book.html`, built from bound core blocks, as the reference.
+- Both themes' hook lists gain three lines in total; nothing renders differently until a block uses a binding.
+
+</Update>
+
 <Update label="2026-09-25" description="taw/core v1.59.2 / taw-gutenberg 0.3.15 / taw-theme v1.12.18: fixes from the first fleet upgrade." tags={["taw/core", "taw-gutenberg", "taw-theme", "fix"]}>
 
 ## September 2026 — Fixes from the first fleet upgrade

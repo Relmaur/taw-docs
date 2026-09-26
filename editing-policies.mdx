@@ -81,6 +81,7 @@ The policy lives in one JSON file, `taw-schema/editing.json`, next to your other
 - **`layers.design` / `site` / `features`**: a level name, or an object of settings. Each setting is `true` (allowed) or `false` (locked). An object can also set `"level"` and then override single settings.
 - **`layers.content`**: a map of post type to a level name or a rule:
   - `allow`: block names or globs (`core/*`, `acme/hero`). `null` allows every block.
+  - `allowBound` (taw/core v1.62.0+): blocks clients may add only bound to a TAW field. See [Block Bindings](/block-bindings#field-only-blocks-in-locked-down-post-types).
   - `template`: the starting blocks, in the same `[name, attributes, innerBlocks]` format `register_post_type()` uses.
   - `lock`: `false`, `insert`, `contentOnly` or `all`.
   - `newPostsOnly`: the template applies to new posts only (default `true`). Applying it to existing posts makes the editor offer to "reset" their content.
@@ -149,6 +150,7 @@ Some locks are checked by the server, and others shape the editor only:
 | Lock | Enforced |
 |---|---|
 | Blocks outside the `allow` list | **Server:** a save that **adds** one is rejected with a 400 (`taw_editing_block_not_allowed`) that names the blocks. Blocks already in the post still save |
+| Unbound `allowBound` blocks | **Server:** a save that adds more unbound ones than the post had is rejected with a 400 (`taw_editing_block_not_bound`). The editor also locks saving with a notice |
 | Templates, template parts, Global Styles, Navigation | **Server:** writes are refused with a 403 (`taw_editing_site_locked`). Reads always work |
 | Site Editor at `locked` | **Server:** the menu entries are hidden, `site-editor.php` returns a 403, and the dashboard welcome panel (which links into it) is removed |
 | Layout locks, `contentOnly`, starting template | **Editor only** |
@@ -170,3 +172,4 @@ Some locks are checked by the server, and others shape the editor only:
 - **The inserter still opens** on a locked page, and it shows "No results found". That's how WordPress handles a full layout lock.
 - **`contentOnly` needs a script on WordPress 7.1.** The editor ignores a page-level `contentOnly` lock since 7.1, so taw/core sends `templateLock: all` and a small script puts each block in content-only mode. After a WordPress update, check a `structured` page in the editor once: WordPress still changes this API.
 - **A `themeBlocks` or `allow` pattern that matches no registered block** is flagged on Tools → TAW Editing.
+- **Field-only blocks:** a content rule's `allowBound` lets clients add some blocks only bound to a TAW field. See [Block Bindings](/block-bindings#field-only-blocks-in-locked-down-post-types).

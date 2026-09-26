@@ -1,0 +1,166 @@
+---
+title: Block Bindings — show TAW fields with core blocks
+description: >-
+  Bind core paragraphs, headings, buttons and images to TAW fields with the taw/field Block Bindings
+  source. Pick a field from the block toolbar, preview the real value in the editor, and use the same
+  fields in templates, patterns and Query Loops.
+---
+
+## What Block Bindings do
+
+WordPress's Block Bindings API lets a core block take an attribute from somewhere else instead of from
+what's typed into it. taw/core registers a binding source called **`taw/field`**, so a paragraph can
+show a book's subtitle, a button can link to a field's URL, and an image can show a field's image. You
+don't write a custom block per field.
+
+- **Where it works:** post content, templates, template parts, patterns and Query Loops (each item shows
+  its own post's fields), in both [TAW Theme](/taw-theme) and [TAW Gutenberg](/taw-gutenberg).
+- **What the front end shows:** the field's value, read the same way `Taw::post()` reads it (see
+  [Reading fields](/reading-fields)). An empty field keeps whatever the block saved.
+- **Read-only:** a bound block can't be typed into. Edit the value where the field lives: the metabox,
+  the [data panel](/data-panel), the term or user screen, or the options page.
+
+<Callout kind="info">
+  The `taw/field` source ships with taw/core **v1.60.0** (front end), **v1.61.0** (editor previews and the
+  toolbar button) and **v1.62.0** ([`allowBound`](#field-only-blocks-in-locked-down-post-types)). It's on
+  for every TAW theme; nothing changes until a block uses it.
+</Callout>
+
+## Bind a block in the editor
+
+<Steps>
+<Step title="Select the block">
+
+Select a paragraph, heading, list item, button, image or post date.
+
+</Step>
+<Step title="Pick the field">
+
+Click the **TAW field** button (a database icon) in the block toolbar, or open the block's ⋮ menu and
+choose **Connect to TAW field…**. The list shows only the fields that fit the block, grouped as
+**Post**, **Options**, **Term** and **Author**.
+
+</Step>
+<Step title="Check the preview">
+
+The block shows the field's current value. One pick binds every attribute the field fills:
+
+| Block | Field | Bound attributes |
+|---|---|---|
+| Paragraph, heading, list item | Text, textarea, rich text, number, select, date, URL, link, post select | The text |
+| Button | Link | URL, text, and “open in new tab” |
+| Button | URL / text | URL / text |
+| Image | Image, or a post select (its featured image) | ID, URL and alt |
+| Post date | Date picker | The date |
+
+</Step>
+</Steps>
+
+The connected field is checked in the dropdown. **Disconnect TAW field** removes the TAW bindings and
+leaves any other source's bindings alone.
+
+For one attribute at a time, use the sidebar's **Attributes** panel: it lists the TAW fields that fit each
+attribute. Images also get an “(image ID)” entry for core/image's `id`.
+
+<Callout kind="tip">
+  Previews show **saved** values. After you change a field in the metabox, save the post and the preview
+  refreshes. A template with no post of its own previews the most recent post of its type.
+</Callout>
+
+## The markup
+
+Bindings live in the block's `metadata`, so you can write them by hand in theme templates and patterns:
+
+```html templates/single-book.html
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"taw/field","args":{"field":"book_subtitle"}}}}} -->
+<p></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"metadata":{"bindings":{"id":{"source":"taw/field","args":{"field":"book_cover"}},"url":{"source":"taw/field","args":{"field":"book_cover","size":"large"}},"alt":{"source":"taw/field","args":{"field":"book_cover"}}}}} -->
+<figure class="wp-block-image"><img alt=""/></figure>
+<!-- /wp:image -->
+```
+
+TAW Gutenberg's `templates/single-book.html` is a complete example.
+
+| Arg | Meaning |
+|---|---|
+| `field` | The field: its id (`book_subtitle`), qualified id or meta key |
+| `from` | `post` (default), `option`, `term` or `user` |
+| `sub` | A sub-field of a group, e.g. `{"field": "address", "sub": "city"}` |
+| `size` | An image size for URLs (default `full`) |
+
+### Where the value comes from
+
+| `from` | Object |
+|---|---|
+| `post` | The block's post: the post being viewed, or each item in a Query Loop |
+| `term` | The queried term, on category, tag and taxonomy archives |
+| `user` | The post's author, or the queried author on author archives |
+| `option` | Site-wide options-page fields |
+
+## What binds, and how it's escaped
+
+- **Text** is escaped. A `wysiwyg` field gives safe HTML without an added `<p>`, and a `textarea` keeps its
+  line breaks.
+- **Images** give an ID, a URL at `size`, the alt text, title and caption (the caption only on an image
+  block).
+- **Links** give a button its URL, text and new-tab settings. A single **post select** gives its title, its
+  link or its featured image.
+- **Doesn't bind:** checkbox, files, repeater, group (bind a `sub`-field instead), gradient text and HubSpot
+  forms. These fields don't appear in the pickers.
+
+## Privacy
+
+- Only **registered** TAW fields bind. Arbitrary meta keys never do.
+- A **private** post's fields need permission to read the post; a **password-protected** post gives nothing
+  until it's unlocked. These are the same rules as WordPress's own `core/post-meta` source.
+- **User fields** never bind unless the field opts in with `"bindings": true`.
+- Any other field can opt out with `"bindings": false`:
+
+```json taw-schema/book-details.json
+{ "id": "book_internal_notes", "type": "textarea", "label": "Internal notes", "bindings": false }
+```
+
+In PHP, use `->bindings(false)` on the field.
+
+## Field-only blocks in locked-down post types
+
+An [editing policy](/editing-policies) can let clients add some blocks **only bound to a TAW field**. List
+them in a content rule's `allowBound`, next to `allow`:
+
+```json taw-schema/editing.json
+"layers": {
+  "content": {
+    "book": {
+      "allow": ["core/heading", "core/buttons"],
+      "allowBound": ["core/paragraph", "core/button", "core/image"]
+    }
+  }
+}
+```
+
+- **In the inserter**, those blocks appear as **Field text**, **Field heading**, **Field button**,
+  **Field image**… instead of the plain block. Inserting one opens the field picker, and the block reads
+  “Choose a TAW field” until you pick one.
+- **Saving is locked**, with a notice, while the post has more unbound ones than it had when it was saved,
+  for example a plain paragraph from pressing Enter or pasting.
+- **The server** refuses such a save with a 400 (`taw_editing_block_not_bound`). Unbound blocks already
+  in the post still save.
+
+<Callout kind="info">
+  `allowBound` only matters where blocks can be inserted: leave the rule's `lock` at `false`. A block that
+  needs a parent (a button needs **Buttons**) needs that parent in `allow`. A block in `allow` is free, and
+  a rule that allows every block ignores `allowBound`; **Tools → TAW Editing** warns about both. No preset
+  sets it, and [bypass users](/editing-policies) aren't affected.
+</Callout>
+
+## Known behavior
+
+- **Bound blocks are read-only in the canvas.** That's WordPress: a source without `setValues` can't be
+  edited in place.
+- **With `SCRIPT_DEBUG` on**, WordPress 7.1 logs a “`useSelect` hook returns different values” warning
+  while a bound block's **Attributes** panel is open. It comes from WordPress's own panel, not from taw/core,
+  and changes nothing on the page.
+- **The editor side uses recent WordPress APIs**, some still marked experimental. After a WordPress update,
+  open a post with a bound block once and check the preview and the toolbar button.

@@ -65,6 +65,11 @@
                 "icon": "book-open-check"
               },
               {
+                "title": "Block Bindings",
+                "path": "block-bindings",
+                "icon": "link"
+              },
+              {
                 "title": "Editing policies",
                 "path": "editing-policies",
                 "icon": "lock"
