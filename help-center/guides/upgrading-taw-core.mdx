@@ -25,7 +25,7 @@ It's written so an AI agent working on the site can follow it step by step.
   </Step>
 
   <Step title="Sync the theme scaffold (recommended)" icon="refresh-cw" title-type="p">
-    Ask your agent to "update the theme". The `update-theme` skill runs `php bin/taw sync`, which updates `functions.php`, `bin/`, CI and the framework skills, and never touches `Blocks/`, `inc/` or templates.
+    Ask your agent to "update the theme". The `update-theme` skill runs `php bin/taw sync`, which updates `functions.php`, `bin/`, CI and the framework skills, and never touches `Blocks/`, `inc/` or templates. Its `composer.json` and `package.json` suggestions include optional starter features (Reactiph, the chatbot's packages) that an existing site can skip.
   </Step>
 
   <Step title="Update the package" icon="download" title-type="p">
@@ -40,6 +40,10 @@ It's written so an AI agent working on the site can follow it step by step.
 
   <Step title="Verify and commit" icon="check" title-type="p">
     Run the tests, load the front page and a page with a form (the `visual-check` skill), and open a few wp-admin screens with metaboxes and options pages. Then commit `composer.lock`.
+
+    <Callout kind="alert">
+      A real form submission can email a client or create a post. To check validation, send a form with a required field left empty: nothing is saved or sent. Under Local, start the site first; `php bin/taw` commands need its database.
+    </Callout>
   </Step>
 </Steps>
 
@@ -55,6 +59,7 @@ These are the changes a site gets without asking. Everything else since v1.22 is
 | v1.39.1 | Forms reject an empty required email | Submit each form once |
 | v1.41 | Metaboxes with `tabs` show tabs | Open a post whose block uses metabox tabs |
 | v1.56 | taw-core has its own translations | Nothing: the theme's own translations still win |
+| v1.59.2 | taw-core's Spanish loads in classic themes; tabs work by keyboard | On a Spanish site, a required-field message is in Spanish |
 
 To roll back, reinstall the previous version: `composer update taw/core:<previous version>`, or restore
 `composer.lock`. Nothing needs migrating either way.
