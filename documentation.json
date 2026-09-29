@@ -80,6 +80,11 @@
                 "icon": "eye"
               },
               {
+                "title": "TAW Loop",
+                "path": "loop",
+                "icon": "repeat"
+              },
+              {
                 "title": "Editing policies",
                 "path": "editing-policies",
                 "icon": "lock"

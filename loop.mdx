@@ -1,0 +1,173 @@
+---
+title: TAW Loop — repeat a design for each item
+description: >-
+  Design one item and repeat it for each of a book's awards, its genres, the books in its series, the latest
+  books in its genre or the images of a gallery. Works with repeater rows, related posts, queries, terms and
+  images, with order, filters, pagination and loops inside loops.
+---
+
+## One design, every item
+
+Many designs repeat something:
+
+- a book's **awards** (a repeater field);
+- the **books in this series** (a post select field);
+- **more books like this**: the latest books in the same genre;
+- a post's **genres** (terms);
+- a **gallery** (a files field).
+
+A **TAW Loop** repeats a design for each item. You design the first item with any blocks; every other item
+follows it, with its own values. Core's Query Loop only loops over posts and doesn't know about TAW fields. The
+TAW Loop loops over all of the above.
+
+<Callout kind="info">
+  The TAW Loop ships with taw/core **v1.68.0** (front end) and **v1.69.0** (the editor). It works in both
+  [TAW Theme](/taw-theme) and [TAW Gutenberg](/taw-gutenberg), together with
+  [dynamic tags](/dynamic-tags), [Block Bindings](/block-bindings) and [conditions](/conditions).
+</Callout>
+
+## Add a loop
+
+<Steps>
+<Step title="Insert a TAW Loop">
+
+Find **TAW Loop** in the inserter. It asks: **What should it loop over?**
+
+</Step>
+<Step title="Choose the source">
+
+Pick one of **Repeater rows**, **Related posts**, **Posts (query)**, **Terms** or **Images**, then the field,
+taxonomy or post type. Only fields that exist on what you're editing are listed.
+
+</Step>
+<Step title="Pick a starting design">
+
+**List** (one line per item), **Cards** (a grid) or **Start blank**. You can change every block afterwards.
+
+</Step>
+</Steps>
+
+The loop shows real items for the post you're editing. In a template, it uses the latest post of that type.
+**The first item is the one you edit**; the others show their own values and refresh as you edit. A note
+under the items says how many there are.
+
+## Sources
+
+| Source | Items | Values in an item |
+|---|---|---|
+| **Repeater rows** | the rows of a repeater field (on the post, an options page, a term or a user) | each sub-field: `@row.name`, `@row.year` |
+| **Related posts** | the posts picked in a post select field, in their order | the item **is the post**: its title, date, featured image and fields work as usual |
+| **Posts (query)** | posts by type, terms, author, search, sticky, in any order | the item is the post |
+| **Terms** | this post's terms, or all terms of a taxonomy | `@row.name`, `@row.url`, `@row.count`, `@row.description`, `@row.slug`, and the term's own fields |
+| **Images** | the images of a files field or an image field | `@row.url`, `@row.alt`, `@row.caption`, `@row.title`, `@row.width`, `@row.height` |
+
+A query can also use:
+- **Same genre as this post** (any taxonomy);
+- **Same author as this post**;
+- **Leave out this post**;
+- a search, **Only sticky posts** or leaving them out;
+- an order: newest, oldest, title, recently updated, most comments, menu order or random.
+
+A post that isn't published (a draft, a private post) never shows in a loop to visitors who can't read it.
+
+## Item values
+
+Inside an item, the **TAW data** popup lists two groups first:
+
+- **Row**: the item's values, for example the award's **Name** and **Year**, or a term's **Name** and **URL**.
+- **Loop**: the item's **Position** (1, 2, 3…), the **Number of items**, and **Is first**, **Is last**,
+  **Is even** and **Is odd**.
+
+Use them like any other value: in text, as a block's text, bound to an image or a button, in an expression, or
+in a condition's rules. In expressions they're written `@row.<name>` and `@loop.<name>`:
+
+```text
+@row.name (@row.year)
+@loop.index. @post.title
+```
+
+Conditions on `@loop.*` answer questions like "not the last item" (**Is last** · **is empty**) or "every
+other item" (**Is even** · **is not empty**).
+
+## Options
+
+Select the loop (not an item) and open its sidebar:
+
+- **Source**: what it loops over. The toolbar button changes it too.
+- **Items**:
+  - **Order by**: the source's order, or any value (`@row.year`, `@post.date`, `@book_year`), compared as text,
+    numbers or dates, ascending or descending. Items without the value go last.
+  - **Show at most** and **Skip the first**.
+  - **Items per page**: `0` shows everything. With a number, click **Add page links**. Each loop on a page
+    pages on its own (`?taw-loop-<id>=2`).
+- **Filter**: show only the items whose values match, with the same rule builder as [conditions](/conditions).
+  For example, **Year** · **is less than** · `1970`.
+- **Layout**: **List** or **Grid** (1–6 columns), **Space between items**, and **Numbered list**.
+
+A loop shows at most **200 items**.
+
+### When there are no items
+
+Add a **No items** block inside the loop ("No awards yet.") and it shows when the loop is empty. In the
+editor it's always visible, so you can design it.
+
+Without a **No items** block, an empty loop shows **nothing at all**, including any heading you put inside
+it. So put a section's heading inside the loop to hide the whole section when there's nothing to show.
+
+### Loops inside loops
+
+An item can contain another TAW Loop, for example each related book's genres, or a repeater inside a
+repeater row. The inner loop reads its own item. Loops nest up to three levels deep.
+
+## Example: the book template
+
+TAW Gutenberg's **Single book** template (`templates/single-book.html`) uses three loops:
+
+| Section | Source | Details |
+|---|---|---|
+| **Genres** | Terms, `genre`, this post's | a grid of outline buttons, each bound to `@row.name` and `@row.url` |
+| **Awards** | Repeater rows, `book_awards` | ordered by `@row.year`, newest first; "`(@row.year)`" only shows when the year is set; **No awards yet.** when there are none |
+| **More books like this** | Posts (query), `book` | same genre as this book, leaving this book out, at most 3, in a 3-column grid; the heading sits inside the loop, so the section disappears when there are no other books |
+
+The Awards loop, as saved:
+
+```html
+<!-- wp:taw/loop {"loopId":1,"source":{"type":"repeater","from":"post","field":"book_awards"},"order":{"by":"@row.year","dir":"desc","as":"number"}} -->
+<!-- wp:heading --><h2 class="wp-block-heading">Awards</h2><!-- /wp:heading -->
+
+<!-- wp:taw/loop-item -->
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"taw/field","args":{"expr":"@row.name"}}}}} -->
+<p></p>
+<!-- /wp:paragraph -->
+<!-- /wp:taw/loop-item -->
+
+<!-- wp:taw/loop-empty -->
+<!-- wp:paragraph --><p>No awards yet.</p><!-- /wp:paragraph -->
+<!-- /wp:taw/loop-empty -->
+<!-- /wp:taw/loop -->
+```
+
+## For developers
+
+| Block | Is |
+|---|---|
+| `taw/loop` | the loop: `source`, `order` (`by`, `dir`, `as`), `limit`, `offset`, `perPage`, `filter` (a condition), `layout` (`type`, `columns`, `gap`), `ordered` |
+| `taw/loop-item` | the item design, rendered once per item as an `<li>` |
+| `taw/loop-empty` | shown when there are no items |
+| `taw/loop-pagination` | previous, page numbers and next (`previousLabel`, `nextLabel`, `showNumbers`) |
+
+Sources in `source`:
+
+- **Repeater:** `{"type":"repeater","field":"book_awards","from":"post"}`. `from` is `post`, `option`, `term`,
+  `user` or `row` (a repeater inside the current row).
+- **Related posts:** `{"type":"related","field":"book_series"}` (a post select field).
+- **Images:** `{"type":"images","field":"book_gallery"}`.
+- **Terms:** `{"type":"terms","taxonomy":"genre","scope":"post"}`. `scope` is `post` (this post's) or `all`,
+  with `orderBy`, `order`, `hideEmpty`, `parent`.
+- **Query:** `{"type":"query","postType":"book","terms":{"genre":"current"},"excludeCurrent":true}`, with
+  `author` (an ID or `"current"`), `search`, `sticky` (`only`, `exclude`), `include` and `exclude` (post IDs),
+  `orderBy` (`date`, `modified`, `title`, `menu_order`, `rand`, `comment_count`, `ID`), `order`.
+
+All blocks render on the server. Every block type receives the block context `taw/loopItem` (the item),
+`postId` and `postType`, so chips, bindings and conditions on any block read the item. Post items also set the
+global post while they render, so core blocks like Post Title show the item's post. See ADR-0014 in taw-core.
