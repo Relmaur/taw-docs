@@ -4,6 +4,21 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-30" description="taw/core v1.70.0 / taw-gutenberg 0.3.33 / taw-theme v1.12.34: formulas and if() in expressions." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Formulas and if() in expressions
+
+Tagged taw/core **v1.70.0**, TAW Gutenberg **v0.3.33** and taw-theme **v1.12.34**. Everything you've written so far keeps working the same way.
+
+- **Formulas:** `@( … )` does arithmetic and comparisons: `Item @(@loop.index + 1) of @loop.count`, `@(@price * 1.16)`.
+- **If:** `@if(@stock > 0, 'In stock', 'Sold out')` chooses text. Also `coalesce()` (the first value that isn't empty) and `empty()`.
+- Formulas work in text, block text, visibility rules (`@(@book_year + 1)` · is · `1966`) and a loop's order.
+- The Expression tab shows problems only the site can find, like dividing by zero or doing arithmetic with text, and has **@( formula )** and **@if( … )** buttons.
+
+More functions (numbers and money, dates, text, lists), expressions in links and images, and a function picker come next.
+
+</Update>
+
 <Update label="2026-09-30" description="taw/core v1.69.3 / taw-gutenberg 0.3.32 / taw-theme v1.12.33: Performance loads only when used." tags={["taw/core", "taw-gutenberg", "taw-theme", "internal"]}>
 
 ## September 2026 — Performance loads only when used
