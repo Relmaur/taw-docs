@@ -4,6 +4,21 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-30" description="taw/core v1.71.0 / taw-gutenberg 0.3.34 / taw-theme v1.12.35: about 40 new expression functions, and your own." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Expression functions
+
+Tagged taw/core **v1.71.0**, TAW Gutenberg **v0.3.34** and taw-theme **v1.12.35**.
+
+- **Numbers and money:** `@(@price * 1.16).currency('MXN')` → $116.58, `@number(1234567.8)`, `@percent(0.25)`, `round`, `min`, `max`…
+- **Dates:** `@ago(@book_year)` → "62 years ago", `@until(@event_date)`, `@days_between(…)`, `@add_days(@date.today, 10)`, `@weekday(@post.date)`… in your site's language and time zone.
+- **Text:** `capitalize`, `words`, `replace`, `strip`, `slug`, `plural(@count(@book_awards), 'award', 'awards')` → "3 awards"…
+- **Lists:** `@count(@book_awards)`, `@join(@column(@book_awards, 'name'), ' / ')`, `@terms('genre')`, `sort`, `contains`, `sum`, `avg`… Repeaters, related posts and files read as lists.
+- **Your own functions:** a theme registers them in PHP with the `taw_expression_functions` filter, and they work everywhere expressions do.
+- The TAW data popup's **Fields** tab now lists **Visitor and date** values (logged in, role, today, now).
+
+</Update>
+
 <Update label="2026-09-30" description="taw/core v1.70.0 / taw-gutenberg 0.3.33 / taw-theme v1.12.34: formulas and if() in expressions." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
 
 ## September 2026 — Formulas and if() in expressions
