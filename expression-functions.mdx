@@ -1,0 +1,86 @@
+---
+title: Expression functions — the reference
+description: >-
+  Every function you can use in TAW expressions: logic, numbers and money, dates, text and lists, with
+  what each does and an example. Write them as @fn(…) or after a value as .fn(…).
+---
+
+Every function works two ways: `@round(@price, 2)` or `@price.round(2)`. A `?` marks an optional argument.
+For how formulas work (`@( … )`, operators, empty values), see
+[Formulas and functions](/dynamic-tags#formulas-and-functions). A theme can add its own; see
+[Your own functions](/dynamic-tags#your-own-functions).
+
+## Logic
+
+| Function | Does | Example |
+|---|---|---|
+| `if(test, then, else?)` | Chooses: then when the test holds, else otherwise. | `@if(@stock > 0, 'In stock', 'Sold out')` |
+| `coalesce(a, b, …)` | The first value that isn’t empty. | `@coalesce(@subtitle, @post.excerpt)` |
+| `empty(value)` | Whether a value is empty. | `@if(@empty(@buy_link), 'Coming soon', 'Buy')` |
+
+## Numbers and money
+
+| Function | Does | Example |
+|---|---|---|
+| `round(number, digits?)` | Rounds a number. | `@round(@rating, 1)` |
+| `floor(number)` | Rounds down. | `@floor(@price)` |
+| `ceil(number)` | Rounds up. | `@ceil(@price)` |
+| `abs(number)` | Without its sign. | `@abs(@balance)` |
+| `min(a, b, … or list)` | The smallest number. | `@min(@column(@awards, 'year'))` |
+| `max(a, b, … or list)` | The largest number. | `@max(@column(@awards, 'year'))` |
+| `number(number, digits?)` | A number with the site’s thousands and decimal separators. | `@number(@visitors)` |
+| `currency(number, 'MXN')` | A price with its currency symbol. | `@(@price * 1.16).currency('MXN')` |
+| `percent(number, digits?)` | 0.25 as 25%. | `@percent(@share)` |
+
+## Dates
+
+A date can be a date field, `@post.date`, `@date.today`, text like `2026-09-30`, or a year (`1994`). Names and formats follow your site's language and time zone.
+
+| Function | Does | Example |
+|---|---|---|
+| `format(date, 'F j, Y')` | A date in a PHP date format. | `@post.date.format('F j, Y')` |
+| `ago(date)` | How long ago: “3 days ago”, or “in 2 weeks”. | `@ago(@post.date)` |
+| `until(date)` | Time left until a date: “2 weeks”; empty once it’s past. | `@until(@event_date)` |
+| `days_between(from, to)` | Whole days from one date to another. | `@days_between(@date.today, @event_date)` |
+| `add_days(date, days)` | A date some days later (or earlier, with a negative number). | `@add_days(@date.today, 30)` |
+| `year(date)` | The year. A 4-digit number is read as a year. | `@year(@post.date)` |
+| `month(date)` | The month’s name. | `@month(@post.date)` |
+| `day(date)` | The day of the month. | `@day(@post.date)` |
+| `weekday(date)` | The weekday’s name. | `@weekday(@event_date)` |
+
+## Text
+
+| Function | Does | Example |
+|---|---|---|
+| `upper(text)` | UPPER CASE. | `@post.title.upper()` |
+| `lower(text)` | lower case. | `@post.title.lower()` |
+| `capitalize(text)` | A capital first letter. | `@capitalize(@author)` |
+| `default(value, 'text')` | The text when the value is empty. | `@phone.default('—')` |
+| `truncate(text, characters)` | Shortens to a number of characters, with “…”. | `@post.excerpt.truncate(80)` |
+| `words(text, words)` | The first words, with “…”. | `@words(@post.excerpt, 12)` |
+| `word_count(text)` | How many words. | `@word_count(@post.excerpt)` |
+| `replace(text, find, with)` | Replaces text. | `@replace(@post.title, 'Vol.', 'Volume')` |
+| `strip(text)` | Without HTML. | `@strip(@blurb)` |
+| `slug(text)` | As a URL slug: “my-title”. | `@slug(@post.title)` |
+| `urlencode(text)` | Safe inside a link. | `/?s=@urlencode(@post.title)` |
+| `trim(text)` | Without spaces at either end. | `@trim(@code)` |
+| `plural(number, 'one', 'many')` | The number and the word that fits it: “3 awards”. | `@plural(@count(@awards), 'award', 'awards')` |
+| `concat(a, b, …)` | Joins text together. | `@concat(@first_name, ' ', @last_name)` |
+
+## Lists
+
+Lists come from repeaters (their rows), related posts (their titles), files (their URLs) and `terms()`. Other text splits at commas: `'a, b'`.
+
+| Function | Does | Example |
+|---|---|---|
+| `terms('taxonomy')` | The post’s terms in a taxonomy. | `@join(@terms('genre'))` |
+| `column(rows, 'sub-field')` | One sub-field of every repeater row. | `@column(@awards, 'name')` |
+| `count(list)` | How many items: rows, related posts, files… | `@count(@awards)` |
+| `join(list, ', ')` | Items as text, with a separator. | `@join(@terms('genre'), ' · ')` |
+| `first(list)` | The first item. | `@first(@related)` |
+| `last(list)` | The last item. | `@last(@related)` |
+| `sort(list)` | Items in order (numbers as numbers). | `@join(@sort(@terms('genre')))` |
+| `reverse(list)` | Items in reverse order. | `@join(@reverse(@column(@awards, 'name')))` |
+| `contains(list, value)` | Whether a list has a value (any case). | `@contains(@terms('genre'), 'fiction')` |
+| `sum(list)` | Adds the numbers up. | `@sum(@column(@items, 'price'))` |
+| `avg(list)` | The average of the numbers. | `@avg(@column(@reviews, 'stars'))` |

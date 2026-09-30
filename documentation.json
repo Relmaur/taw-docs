@@ -75,6 +75,11 @@
                 "icon": "braces"
               },
               {
+                "title": "Expression functions",
+                "path": "expression-functions",
+                "icon": "sigma"
+              },
+              {
                 "title": "Conditions",
                 "path": "conditions",
                 "icon": "eye"

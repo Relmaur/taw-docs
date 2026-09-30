@@ -57,11 +57,14 @@ The **Expression** tab takes text and values together:
 Published on @post.date.format('F j, Y') by @post.author · @option.company_phone.default('—')
 ```
 
-- Type `@` to get value suggestions, and `.` after a value for functions. The chips under the editor add
-  them too.
+- Type `@` to get value suggestions (and matching functions), and `.` after a value for functions. The
+  chips under the editor add them too, and **ƒ Functions** opens the function picker: every function by
+  group, with what it does and an example.
 - The **Preview** shows what the current post renders. Mistakes are listed under it: a missing
-  parenthesis, an unknown function, a name the post doesn't have.
-- **Insert inline** adds the expression as one chip. **Use as block text** makes it the block's text.
+  parenthesis, an unknown function ("Did you mean `@round(…)`?"), a name the post doesn't have, or what
+  only the site can find, like dividing by zero.
+- **Insert inline** adds the expression as one chip. **Use as block text** makes it the block's text; on a
+  button or an image, **Use it for** picks what it fills (see [Links and images](#links-and-images)).
 - Reopening the popup on a block shows its expression, ready to change.
 
 ### Names
@@ -74,10 +77,13 @@ Published on @post.date.format('F j, Y') by @post.author · @option.company_phon
 | `@option.company_phone` | An options-page field |
 | `@term.tagline` | A field of the queried term (on category, tag and taxonomy archives) |
 | `@author.bio` | A field of the post's author (the field needs `"bindings": true`) |
+| `@viewer.logged_in`, `@viewer.role`, `@date.today`, `@date.now` | The visitor, and today (group **Visitor and date**) |
+| `@row.name`, `@loop.index` | Inside a [TAW Loop](/loop): the item's values and position |
 
 ### Functions
 
-Chain functions after a name, always with parentheses:
+Chain functions after a name, always with parentheses. The most used are below; there are about 40 (see
+[Formulas and functions](#formulas-and-functions) and the [function reference](/expression-functions)):
 
 | Function | Does | Example |
 |---|---|---|
@@ -90,7 +96,91 @@ Chain functions after a name, always with parentheses:
 
 - An `@` inside a word stays text, so `hi@example.com` is safe. Write `@@` for a literal `@` before a word.
 - A `.` after a value ends the sentence unless a function follows: `Released in @book_year.` is fine.
-- Limits: 500 characters and 20 values per expression.
+- Limits: 1,000 characters, 50 values and 10 nested parentheses per expression.
+
+## Formulas and functions
+
+Two more forms turn an expression into a small spreadsheet formula:
+
+| Form | Example | Shows |
+|---|---|---|
+| `@( … )`: a formula | `Item @(@loop.index + 1) of @loop.count` | Item 3 of 7 |
+| | `@(@price * 1.16).currency('MXN')` | $116.58 |
+| `@name( … )`: a function | `@if(@stock > 0, 'In stock', 'Sold out')` | In stock |
+| | `@plural(@count(@book_awards), 'award', 'awards')` | 3 awards |
+| | `First published @book_year, @ago(@book_year)` | First published 1994, 32 years ago |
+
+Inside them you can use:
+- values (`@book_year`), numbers (`1.16`), text in quotes (`'Sold out'`), `true` and `false`;
+- arithmetic: `+ - * / %` and parentheses;
+- comparisons: `==`, `!=`, `<`, `<=`, `>`, `>=`; and logic: `and`, `or`, `not`;
+- any function, nested: `@if(@count(@book_awards) > 0, @join(@column(@book_awards, 'name'), ', '), 'None yet')`.
+
+A few rules keep it predictable:
+- Text that reads as a number is a number: `@(@book_year + 1)` works on a text field holding "1965".
+- An empty value empties the result, so a missing price shows nothing (add `default()` if you want text).
+- Dividing by zero or doing arithmetic with text shows nothing on the page, and the Expression tab tells you.
+- `@name(` is only a function when a function has that name: `@book_year(1965)` is still the year, then "(1965)".
+- Everything you wrote before these forms existed works exactly as it did.
+
+The functions come in five groups; the [function reference](/expression-functions) lists them all:
+
+| Group | For example |
+|---|---|
+| **Logic** | `if`, `coalesce` (the first value that isn't empty), `empty` |
+| **Numbers and money** | `round`, `number` (1,234.5), `currency('MXN')` ($1,234.50), `percent` (25%), `min`, `max` |
+| **Dates** | `ago` ("3 days ago"), `until`, `days_between`, `add_days`, `year`, `month`, `weekday` |
+| **Text** | `capitalize`, `words`, `replace`, `strip`, `slug`, `urlencode`, `plural`, `concat` |
+| **Lists** | `count`, `join`, `column`, `terms('genre')`, `sort`, `contains`, `sum`, `avg` |
+
+Repeaters, related posts (a post select with several posts) and files are **lists**:
+`@count(@book_awards)`, `@join(@related_books)`. Dates, money and names of months and weekdays follow your
+site's language and time zone.
+
+## Links and images
+
+On a **button**, **Use it for** → **Link** makes an expression the button's link:
+
+```text
+/?s=@urlencode(@book_author)&post_type=book
+```
+
+The result must be a safe link (a web address, a path, `mailto:`…). If it isn't, or it's empty, the button
+keeps its own link.
+
+On an **image**, **Use it for** → **Image** shows the image an expression names, with its own alt text:
+
+```text
+@coalesce(@book_cover, 49)
+```
+
+That's the book's cover, or image 49 from the media library when there's none. The result must be an image
+in the media library (an image field, or an image's ID); an image attached to a post the visitor can't read
+is left out. **Alt text** sets only the alt.
+
+A TAW Loop's **Order by** takes an expression too (**Custom expression…**), e.g. `@(0 - @row.year)` for the
+newest first. So do conditions: a rule's value can be `@(@book_year + 1)`.
+
+## Your own functions
+
+A theme can add functions in PHP. They work everywhere expressions do, and the picker lists them under
+**This site**:
+
+```php
+add_filter('taw_expression_functions', function (array $functions): array {
+    $functions['with_tax'] = [
+        'args'        => ['number'],   // any, text, number, int, list or date
+        'callback'    => fn (float $price): float => $price * 1.16,
+        'label'       => __('Price with tax', 'my-theme'),
+        'description' => __('Adds 16% VAT.', 'my-theme'),
+    ];
+    return $functions;
+});
+```
+
+Then `@with_tax(@price).currency('MXN')` shows $116.00 for a price of 100. The function runs only on the
+server; if it fails, its value is empty and the failure is logged (`expression.function_failed`). Built-in
+names can't be replaced.
 
 ## Edit or remove a chip
 
