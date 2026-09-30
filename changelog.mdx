@@ -4,6 +4,19 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-30" description="taw/core v1.72.0 / taw-gutenberg 0.3.35 / taw-theme v1.12.36: expressions in links and images." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
+
+## September 2026 — Expressions in links and images
+
+Tagged taw/core **v1.72.0**, TAW Gutenberg **v0.3.35** and taw-theme **v1.12.36**.
+
+- **Links:** a button's link can be an expression: `/?s=@urlencode(@post.title)`, `mailto:…`, `@coalesce(@book_buy_link, @option.store_url)`. Unsafe or empty links keep the button's own link.
+- **Images:** an image block can show the image an expression names, such as the cover or a placeholder: `@coalesce(@book_cover, 49)`. Its alt text comes along. Images attached to posts a visitor can't read are left out.
+- In the TAW data popup, pick **Block text**, then **Use it for**: a button's **text** or **link**, an image's **image** or **alt text**.
+- A TAW Loop's **Order by** has **Custom expression…**, e.g. `@(0 - @row.year)` for the newest first.
+
+</Update>
+
 <Update label="2026-09-30" description="taw/core v1.71.0 / taw-gutenberg 0.3.34 / taw-theme v1.12.35: about 40 new expression functions, and your own." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
 
 ## September 2026 — Expression functions
