@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-09-30" description="taw/core v1.69.3 / taw-gutenberg 0.3.32 / taw-theme v1.12.33: Performance loads only when used." tags={["taw/core", "taw-gutenberg", "taw-theme", "internal"]}>
+
+## September 2026 — Performance loads only when used
+
+Tagged taw/core **v1.69.3**, TAW Gutenberg **v0.3.32** and taw-theme **v1.12.33**.
+
+- `TAW\Support\Performance` is now loaded by the class autoloader instead of on every request. Nothing changes for themes: the same hooks register, and `TAW_PERFORMANCE_AUTOLOAD` still works.
+
+</Update>
+
 <Update label="2026-09-30" description="taw/core v1.69.2 / taw-gutenberg 0.3.31 / taw-theme v1.12.32: repeater rows keep gradient text and HubSpot form edits." tags={["taw/core", "taw-gutenberg", "taw-theme", "fix"]}>
 
 ## September 2026 — Repeater rows keep every edit
