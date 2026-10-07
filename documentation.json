@@ -85,6 +85,11 @@
                 "icon": "eye"
               },
               {
+                "title": "Dynamic block settings",
+                "path": "dynamic-block-settings",
+                "icon": "palette"
+              },
+              {
                 "title": "TAW Loop",
                 "path": "loop",
                 "icon": "repeat"

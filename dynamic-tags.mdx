@@ -158,6 +158,21 @@ That's the book's cover, or image 49 from the media library when there's none. T
 in the media library (an image field, or an image's ID); an image attached to a post the visitor can't read
 is left out. **Alt text** sets only the alt.
 
+More parts take an expression the same way (taw/core v1.75.0+):
+
+- **Button → Open in new tab:** a true result opens the link in a new tab; false or empty opens it in the
+  same tab. `@(@book_buy_link != '')` opens a new tab only when there's a buy link.
+- **Button → Link rel:** rel words such as `sponsored nofollow`. Anything else is left out, and an empty
+  result removes the rel.
+- **Image → Caption** and **Title:** text, e.g. `@if(@book_cover_credit != '', @concat('Cover: ', @book_cover_credit), '')`.
+  A caption only shows when the image block has one.
+- **Navigation link → Link:** a safe link, as for buttons.
+- **Post Date → Date:** a date (a date field, `@post.date`, or `2026-10-07`), e.g. `@add_days(@post.date, 30)`.
+  A result that isn't a date keeps the block's own date.
+
+A block's classes, colors and HTML attributes take expressions too: see
+[Dynamic block settings](/dynamic-block-settings).
+
 A TAW Loop's **Order by** takes an expression too (**Custom expression…**), e.g. `@(0 - @row.year)` for the
 newest first. So do conditions: a rule's value can be `@(@book_year + 1)`.
 

@@ -4,6 +4,36 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-10-07" description="taw/core v1.76.1 / taw-gutenberg 0.3.41 / taw-theme v1.12.43: tabs that look like tabs; dynamic block settings docs and examples." tags={["taw/core", "taw-gutenberg", "taw-theme", "fix", "docs"]}>
+
+## October 2026 — Tabs, and dynamic block settings wrapped up
+
+Tagged taw/core **v1.76.1**, TAW Gutenberg **v0.3.41** and taw-theme **v1.12.43**.
+
+- **Options pages and metabox tabs** look like tabs: one row of labels with the active one underlined in the admin color, instead of bordered boxes with faded labels. On narrow screens the row scrolls sideways. Keyboard use is unchanged.
+- New page: [Dynamic block settings](/dynamic-block-settings). [Dynamic tags](/dynamic-tags#links-and-images) covers the new **Use it for** targets.
+- TAW Gutenberg's **Single book** template shows them:
+  - genre badges in each genre's own color (a new **Color** field on genres);
+  - an `is-in-print`/`is-out-of-print` class on the details column;
+  - the cover's caption from a new **Cover credit** field;
+  - a `sponsored` rel on the Buy button;
+  - an `#awards` anchor.
+
+</Update>
+
+<Update label="2026-10-07" description="taw/core v1.76.0 / taw-theme v1.12.42: the Code of Canon Law corpus." tags={["taw/core", "taw-theme", "feature"]}>
+
+## October 2026 — Code of Canon Law corpus
+
+Tagged taw/core **v1.76.0** and taw-theme **v1.12.42**.
+
+- New and opt-in: `TAW\Core\Rest\CanonLawEndpoint::enable()` serves `taw/v1/canon-law/*` from a Code installed with `bin/taw canon-law:install <edition> <.sqlite|.json>`. On hosts without `pdo_sqlite`, it installs into MySQL.
+- `bin/taw` gains `canon-law:install` and `canon-law:export`.
+- With the endpoint on and an edition installed, the chatbot can look canons up (`lookup_canon_law`).
+- Sites that don't enable it are unchanged.
+
+</Update>
+
 <Update label="2026-10-07" description="taw/core v1.75.0 / taw-gutenberg 0.3.40 / taw-theme v1.12.41: dynamic block settings in the editor." tags={["taw/core", "taw-gutenberg", "taw-theme", "feature"]}>
 
 ## October 2026 — Dynamic block settings in the editor

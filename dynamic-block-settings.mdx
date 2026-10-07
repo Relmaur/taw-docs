@@ -1,0 +1,133 @@
+---
+title: Dynamic block settings — classes, colors and attributes from your data
+description: >-
+  Give any block its CSS classes, text, background and border colors, and HTML attributes from values: a
+  genre's color on its badge, an "in print" class when there's a buy link, an anchor from the title. Set in
+  the block's sidebar, previewed in the editor, applied live on the site.
+---
+
+## Settings that follow the data
+
+A block's look is usually fixed when you save the post. Dynamic settings let it follow the post's values:
+
+- a genre badge in the genre's own color;
+- an `is-in-print` or `is-out-of-print` class, depending on whether the book has a buy link;
+- a background that changes with a status field;
+- an anchor (`id`) made from the title, or a `data-year` attribute for your scripts.
+
+Each setting is an [expression](/dynamic-tags), so it can read any field, call
+[functions](/expression-functions) and choose with `@if(…)`. Every page view works it out with the post's
+current values, and inside a [TAW Loop](/loop) or a Query Loop each item gets its own.
+
+<Callout kind="info">
+  Dynamic block settings ship with taw/core **v1.74.0** (the site) and **v1.75.0** (the editor). They work
+  on every block, in both [TAW Theme](/taw-theme) and [TAW Gutenberg](/taw-gutenberg).
+</Callout>
+
+## Set one
+
+<Steps>
+<Step title="Select the block">
+
+Any block: a paragraph, a group, a button, a column.
+
+</Step>
+<Step title="Open TAW dynamic settings">
+
+It's in the block's sidebar, below **TAW visibility**. Every block has it.
+
+</Step>
+<Step title="Add a setting">
+
+Click **Add** next to **Classes**, **Text color**, **Background** or **Border color**, and write an
+expression. Typing `@` suggests values; **ƒ Functions** lists every function.
+
+The answer for the post you're editing shows as you type: the classes it adds, a color swatch, or why
+it's ignored.
+
+</Step>
+<Step title="Click Done">
+
+The canvas shows the classes and colors right away. Save the post as usual.
+
+</Step>
+</Steps>
+
+## Examples
+
+| Setting | Expression | For a book with… | Gives |
+|---|---|---|---|
+| Classes | `@if(@book_buy_link != '', 'is-in-print', 'is-out-of-print')` | a buy link | `is-in-print` |
+| Classes | `genre-@row.slug` (in a genre loop) | the genre "Science fiction" | `genre-science-fiction` |
+| Text color | `@row.genre_color` (in a genre loop) | a genre color of `#c0392b` | that red |
+| Background | `@if(@stock > 0, 'accent', 'contrast')` | stock left | the theme's accent color |
+| Anchor (id) | `@slug(@post.title)` | the title "Dune" | `id="dune"` |
+| `data-year` | `@book_year` | 1965 | `data-year="1965"` |
+
+## Colors
+
+A color can be:
+
+- **a color from the theme's palette**, by its name: `accent`, `contrast`, `base`. It becomes the palette's
+  own color, so it follows the theme. This is the safest choice.
+- **a CSS color**: `#c0392b`, `rgb(192, 57, 43)`, `hsl(6, 63%, 46%)`, or a named color like `tomato`.
+
+Anything else is ignored: `var(…)`, `url(…)`, text with `;`, or a field that holds something other than a
+color. A color field's value works as it is.
+
+<Callout kind="tip">
+  When the site's [editing policy](/editing-policies) turns custom colors off (the `guided` level and up),
+  dynamic colors accept **palette colors only**, so clients stay on brand. The sidebar says so when a color
+  is ignored for that reason.
+</Callout>
+
+The color goes where WordPress puts a color you pick in the sidebar: on the block's outer element, and on a
+Button's link. The site's own styles that depend on a block having a color apply too.
+
+## Classes
+
+Separate classes with spaces. Each one is cleaned the way WordPress cleans class names (letters, digits,
+`-` and `_`), and duplicates are dropped, up to 20. The block's own classes stay.
+
+## HTML attributes
+
+Under **HTML attributes**, **Add an attribute** offers:
+
+- **Anchor (id)**, for links to `#…` on the page. It takes one class-like word;
+- **Title**, **ARIA label** and **ARIA description**, as plain text;
+- **Data attribute (data-…)**: type the name after `data-`, in lowercase letters, numbers and dashes.
+
+No other attribute can be set (no `onclick`, `style`, `href` or `src`), whatever the expression gives.
+Attributes don't show in the canvas; the sidebar shows each one's value.
+
+## What happens with a value that doesn't fit
+
+Nothing breaks. A setting whose expression has an error, or whose result isn't valid, is left out, and an
+empty result leaves the block as it is. The sidebar tells you which and why.
+
+## Also in the TAW data popup
+
+The popup's **Use it for** fills a few more parts of a block from an expression (see
+[Dynamic tags](/dynamic-tags#links-and-images)):
+
+- Button: **Open in new tab** and **Link rel**;
+- Image: **Caption** and **Title**;
+- Navigation link: **Link**;
+- Post Date: **Date**.
+
+## How it's stored
+
+The settings live in the block's metadata, next to its bindings and conditions:
+
+```json
+"metadata": {
+  "tawSettings": {
+    "classes": "@if(@book_buy_link != '', 'is-in-print', 'is-out-of-print')",
+    "background": "accent",
+    "attributes": { "id": "@slug(@post.title)", "data-year": "@book_year" }
+  }
+}
+```
+
+The post content keeps the block as you designed it. The site applies the settings each time the page renders,
+so a page cache shows the values from when it was cached, like every dynamic tag.
