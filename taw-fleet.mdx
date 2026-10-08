@@ -1,0 +1,157 @@
+---
+title: "taw-fleet"
+description: "A terminal dashboard for every TAW site on your Mac: status, taw/core versions, git state, shortcuts, updates and new sites."
+---
+
+`taw-fleet` finds the TAW themes in your Local by Flywheel sites and shows them in one terminal screen: which sites run, which themes are behind on taw/core, what's uncommitted or unpushed, and whether a theme still matches the taw-theme scaffold. From there you open a theme in your editor, update it, hand the update to an agent, or create a new site.
+
+It needs no setup. It reads Local's own files, so on a new Mac you install it and run it.
+
+<Callout kind="info">
+  taw-fleet covers the sites on your Mac. Production sites are managed by the [TAW Hub](https://github.com/Relmaur/taw-hub) through the [TAW Hub Companion](/taw-hub-companion) plugin.
+</Callout>
+
+## Install
+
+<Steps>
+  <Step title="Install with Homebrew" icon="download">
+    ```bash
+    brew install Relmaur/tap/taw-fleet
+    ```
+
+    Update later with `brew upgrade taw-fleet`. Without Homebrew, download `taw-fleet_<version>_darwin_<arm64|amd64>.tar.gz` from the [releases](https://github.com/Relmaur/taw-fleet/releases), put `taw-fleet` on your `PATH`, and update with `taw-fleet self-update`.
+  </Step>
+  <Step title="Check the fleet" icon="stethoscope">
+    ```bash
+    taw-fleet doctor
+    ```
+
+    You see every TAW theme with what needs attention: taw/core behind, uncommitted changes, unpushed commits, a broken symlink, a missing PHP version.
+  </Step>
+  <Step title="Open the dashboard" icon="layout-dashboard">
+    ```bash
+    taw-fleet
+    ```
+
+    Press `?` for every key.
+  </Step>
+</Steps>
+
+## The dashboard
+
+One row per TAW theme. The columns show the site's status (`●` running, `○` halted), the theme kind (**CLASSIC** for taw-theme, **BLOCK** for taw-gutenberg), the installed taw/core (`1.59.2 ▲ 1.76.1` when behind), the last scaffold check, and git (`±` uncommitted, `↑` to push, `↓` to pull). At 120 columns or wider, a detail pane shows the selected site.
+
+| Key | Does |
+|---|---|
+| `enter` | The selected site in full |
+| `/` | Filter by site, theme, branch or version, or by `behind`, `dirty`, `unpushed`, `running` |
+| `e` `f` `t` | Open the theme in your editor, in Finder, in a terminal |
+| `b` `B` `P` | Open the site, its wp-admin, its production site |
+| `g` `G` | Open the theme's GitHub repository, its pull requests |
+| `s` `R` | Start or stop the site, restart it (Local must be open) |
+| `y` `S` | Check the theme against the taw-theme scaffold; apply Tier 1 |
+| `u` | Update taw/core |
+| `h` | Hand the update to an agent |
+| `n` | Create a new site |
+| `o` | Show the last task's output again |
+
+Anything that changes a site or a theme asks first. On the command line it asks too, and `--yes` skips the question in scripts.
+
+## Update a theme
+
+You have two ways to update a client theme.
+
+**Update taw/core yourself.** `u` in the dashboard (or `taw-fleet update <site>`) runs `composer update taw/core` with the site's PHP and Local's Composer. Only `composer.lock` and `vendor/` change. When it finishes, it lists the sections of `vendor/taw/core/UPGRADING.md` between the old and new version; each section has a check to run. Commit the result yourself.
+
+**Hand the whole update to an agent.** `h` (or `taw-fleet handoff <site>`) builds a prompt for the `update-theme` skill with everything an agent needs: where the theme and the site are, how to run PHP, Composer and wp-cli for this site, what `doctor` found, and the rules. The agent works on a branch, commits, and asks you before pushing. In the dashboard, `c` copies the prompt and `l` opens Claude Code in the theme with it.
+
+To check the theme's framework files against the newest taw-theme, use `y` (or `taw-fleet sync <site>`). It only reads. `S` (or `sync --apply`) writes the Tier 1 files after asking. Tier 2 files (docs and config) are never written; review them by hand.
+
+<Callout kind="alert">
+  taw-fleet refuses to update or sync the umbrella's own `taw-theme` and `taw-gutenberg`. They change through the taw-core release flow.
+</Callout>
+
+## Create a site
+
+`n` in the dashboard (or `taw-fleet create`) makes a new Local site with a fresh TAW theme:
+
+<Steps>
+  <Step title="Answer the form" icon="list">
+    Site name, classic or block theme, and the WordPress admin username and email. The domain (`<name>.local`), the site folder and the theme folder come from the name; PHP and the web server default to Local's preferred versions. A name, domain or folder that Local already has is refused here.
+  </Step>
+  <Step title="Watch it build" icon="hammer">
+    Local creates and starts the site. [taw-create](https://github.com/Relmaur/taw-create) installs taw-theme or taw-gutenberg into `wp-content/themes/<name>`, the front-end assets are built, wp-cli activates the theme, and the theme folder becomes a git repository with a first commit. This takes one to two minutes.
+  </Step>
+  <Step title="Save the password" icon="key">
+    The admin password is generated and shown once at the end. Press `c` to copy it. taw-fleet never stores it.
+  </Step>
+</Steps>
+
+Without the form:
+
+```bash
+taw-fleet create "Acme Shop" --block --admin-user marco --admin-email me@example.com --yes
+```
+
+<Callout kind="info">
+  Local's API can't delete sites. To remove a site, use Local's window.
+</Callout>
+
+## Commands
+
+| Command | Does |
+|---|---|
+| `taw-fleet` | The dashboard (the `list` table when not in a terminal) |
+| `list [--all] [--json]` | Every site and its TAW themes |
+| `show <site>` | One site in full |
+| `doctor [--json]` | What needs attention, with stable finding codes |
+| `open <site> --editor` | Open the theme (also `--finder`, `--terminal`, `--browser`, `--admin`, `--production`, `--github`, `--prs`) |
+| `start`, `stop`, `restart <site>` | Through the Local app |
+| `wp <site> <args>` | wp-cli with the site's PHP and database socket |
+| `sync <site> [--apply]` | `bin/taw sync`: compare with the taw-theme scaffold |
+| `update <site>` | `composer update taw/core` and the UPGRADING.md sections to check |
+| `inspect <site>` | `bin/taw inspect`: blocks, fields and forms of a running site |
+| `handoff <site> [--copy]` or `[--launch]` | The agent prompt for the update |
+| `create [name]` | A new Local site with a TAW theme |
+| `config init`, `show`, `path` | The settings file |
+| `self-update [--check]` | Replace taw-fleet with the newest release |
+
+Add `--json` to `list`, `show`, `doctor` and `sync` for scripts. The JSON keys and the `doctor` codes are stable.
+
+## Settings
+
+Everything is optional. `taw-fleet config init` writes a commented `~/.config/taw-fleet/config.toml`:
+
+```toml
+editor = "vscode"        # or "Cursor", "PhpStorm"…
+terminal = "Ghostty"
+
+[create]                 # defaults for new sites
+kind = "classic"         # or "block"
+admin_user = "marco"
+admin_email = "me@example.com"
+
+[sites.ls-mxico]         # keyed by the site's folder in ~/Local Sites
+production_url = "https://lsmexico.mx"
+notes = "Deploys from main."
+```
+
+## Troubleshooting
+
+<ExpandableGroup>
+<Expandable default-open="false" title="A site shows as halted but it's running">
+  Live statuses come from the Local app. With Local closed, taw-fleet falls back to Local's last saved statuses. Open Local and press `r`.
+</Expandable>
+
+<Expandable default-open="false" title="Start, stop or create says Local isn't open">
+  These go through the Local app's own API. Open the Local app and try again.
+</Expandable>
+
+<Expandable default-open="false" title="taw/core shows no newest version">
+  The newest versions come from GitHub and are cached for an hour. Without network access, taw-fleet uses the last cached answer. Set `GITHUB_TOKEN`, or sign in with `gh auth login`, if you hit GitHub's rate limit.
+</Expandable>
+
+<Expandable default-open="false" title="The editor doesn't open">
+  Check which editor taw-fleet picked with `taw-fleet config show`, and set `editor` in the settings. taw-fleet v0.7.2 and later also open editors correctly from a VS Code terminal.
+</Expandable>
+</ExpandableGroup>

@@ -110,6 +110,11 @@
                 "icon": "satellite-dish"
               },
               {
+                "title": "taw-fleet",
+                "path": "taw-fleet",
+                "icon": "layout-dashboard"
+              },
+              {
                 "title": "Content Interchange",
                 "path": "content-interchange",
                 "icon": "arrow-left-right"

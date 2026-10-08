@@ -4,6 +4,28 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-10-08" description="taw-fleet v1.0.0: a terminal dashboard for every TAW site on your Mac." tags={["taw-fleet", "feature", "docs"]}>
+
+## October 2026 — taw-fleet
+
+New tool: [taw-fleet](/taw-fleet), installed with `brew install Relmaur/tap/taw-fleet`. It reads Local by Flywheel's own files, so it needs no setup.
+
+- **Dashboard:**
+  - every TAW theme with its site's status, taw/core version, scaffold check and git state;
+  - a detail pane, a filter, and shortcuts to the editor, Finder, terminal, site, wp-admin, production and GitHub.
+- **Updates:**
+  - `update` runs `composer update taw/core` and lists the UPGRADING.md sections to check;
+  - `sync` compares a theme with the taw-theme scaffold;
+  - `handoff` gives the whole update to an agent with a prompt that has the site's context and your rules.
+- **Sites:**
+  - `start`, `stop` and `restart` go through the Local app;
+  - `wp` runs wp-cli with the site's PHP and database;
+  - `create` makes a new Local site with taw-theme or taw-gutenberg, activated and committed.
+- **Checks:** `doctor` lists what needs attention, with stable codes for scripts.
+- **Updating taw-fleet:** `brew upgrade taw-fleet`, or `taw-fleet self-update` without Homebrew.
+
+</Update>
+
 <Update label="2026-10-07" description="taw/core v1.76.1 / taw-gutenberg 0.3.41 / taw-theme v1.12.43: tabs that look like tabs; dynamic block settings docs and examples." tags={["taw/core", "taw-gutenberg", "taw-theme", "fix", "docs"]}>
 
 ## October 2026 — Tabs, and dynamic block settings wrapped up
