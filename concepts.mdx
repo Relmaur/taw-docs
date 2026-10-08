@@ -52,29 +52,30 @@ TAW Theme keeps all block classes under the `Blocks/` directory at the root of t
   </Card>
 </Columns>
 
-A simple UI block might look like this:
+Each block lives in its own folder, `Blocks/<Name>/`, with a class file named after the folder and an `index.php` view. A simple UI block looks like this:
 
 ```php
-// Blocks/Hero.php
-use TAW\Core\Blocks\BaseBlock;
+// Blocks/Button/Button.php
+namespace TAW\Blocks\Button;
 
-class Hero extends BaseBlock
+use TAW\Core\Block\Block;
+
+class Button extends Block
 {
-    public function render(array $context = []): void
+    protected string $id = 'button';
+
+    // Props the view receives when the caller doesn't pass them.
+    protected function defaults(): array
     {
-        // Echo or include a PHP partial here
+        return ['text' => '', 'url' => '#', 'variant' => 'primary'];
     }
 }
 ```
 
-In a template, you call the registry (via a helper or injected instance) to render the block.
+`Blocks/Button/index.php` renders the props as variables (`$text`, `$url`, `$variant`). Anywhere in a template or another block's view, render it with props:
 
 ```php
-// index.php
-$blocks->render('Hero', [
-    'title'   => 'Welcome to TAW',
-    'lead'    => 'Component-based theming for WordPress',
-]);
+<?php (new \TAW\Blocks\Button\Button())->render(['text' => 'Get started', 'url' => '/contact']); ?>
 ```
 
 As long as you follow the `Blocks/` convention and extend the right base class, TAW Core takes care of discovery and wiring.
@@ -100,44 +101,56 @@ Use a UI Block when the block:
 - Receives everything it needs via arguments or a view-model
 - Can be reused across many pages with different inputs
 
-```php
-// Blocks/Button.php
-use TAW\Core\Blocks\BaseBlock;
-
-class Button extends BaseBlock
-{
-    public function render(array $props = []): void
-    {
-        // Render a button with props like 'label' and 'url'
-    }
-}
-```
+The `Button` class above is a UI Block: `Block` with `defaults()`, rendered with props.
 
 ### When to use a MetaBlock
 
 Choose a MetaBlock when the block should define and persist its own fields.
 
 ```php
-// Blocks/HeroMeta.php
-use TAW\Core\Blocks\MetaBlock;
+// Blocks/Hero/Hero.php
+namespace TAW\Blocks\Hero;
 
-class HeroMeta extends MetaBlock
+use TAW\Core\Block\MetaBlock;
+use TAW\Core\Metabox\Metabox;
+
+class Hero extends MetaBlock
 {
-    protected function fields(): array
+    protected string $id = 'hero';
+
+    // The fields editors fill in, on every page.
+    protected function registerMetaboxes(): void
+    {
+        new Metabox([
+            'id'      => 'taw_hero',
+            'title'   => __('Hero Section', 'taw-theme'),
+            'screens' => ['page'],
+            'fields'  => [
+                ['id' => 'hero_heading', 'label' => __('Heading', 'taw-theme'), 'type' => 'text'],
+                ['id' => 'hero_image',   'label' => __('Image', 'taw-theme'),   'type' => 'image'],
+            ],
+        ]);
+    }
+
+    // What Blocks/Hero/index.php receives as variables ($heading, $image_id).
+    protected function getData(int|false $postId): array
     {
         return [
-            $this->text('headline'),
-            $this->textarea('subcopy'),
-            $this->image('background_image'),
+            'heading'  => $this->getMeta($postId, 'hero_heading'),
+            'image_id' => $this->getMeta($postId, 'hero_image'),
         ];
     }
-
-    public function render(): void
-    {
-        $data = $this->data(); // Loaded from post_meta
-        // Render hero using stored values
-    }
 }
+```
+
+In a page template, queue the block before `get_header()` (so its CSS and JS load in the head), then render it where it belongs:
+
+```php
+use TAW\Core\Block\BlockRegistry;
+
+BlockRegistry::queue('hero');
+get_header();
+BlockRegistry::render('hero');
 ```
 
 MetaBlocks integrate directly with the metabox engine so editors fill fields in the WordPress admin and see the block on the front end.
