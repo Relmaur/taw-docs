@@ -44,7 +44,8 @@ One row per TAW theme. The columns show the site's status (`●` running, `○` 
 | Key | Does |
 |---|---|
 | `enter` | The selected site in full |
-| `/` | Filter by site, theme, branch or version, or by `behind`, `dirty`, `unpushed`, `running` |
+| `/` | Filter by site, theme, branch or version, or by `behind`, `dirty`, `unpushed`, `running`, `live`, `vite` |
+| `w` | Work on it: start the site, open the editor, run Vite and open the site. Again to stop Vite and the site |
 | `e` `f` `t` | Open the theme in your editor, in Finder, in a terminal |
 | `b` `B` `P` | Open the site, its wp-admin, its production site |
 | `g` `G` | Open the theme's GitHub repository, its pull requests |
@@ -56,6 +57,8 @@ One row per TAW theme. The columns show the site's status (`●` running, `○` 
 | `h` | Hand the update to an agent |
 | `n` | Create a new site |
 | `o` | Show the last task's output again |
+
+`w` runs Vite in its own terminal window, so you see its output. The dashboard shows `vite` after the theme's name while it runs, and the page you open already has hot reload.
 
 Anything that changes a site or a theme asks first. On the command line it asks too, and `--yes` skips the question in scripts.
 
@@ -110,6 +113,7 @@ taw-fleet create "Acme Shop" --block --admin-user marco --admin-email me@example
 | `show <site>` | One site in full |
 | `doctor [--json]` | What needs attention, with stable finding codes |
 | `open <site> --editor` | Open the theme (also `--finder`, `--terminal`, `--browser`, `--admin`, `--production`, `--github`, `--prs`) |
+| `work <site> [--stop]` | Start the site, open the editor, run Vite, open the site (`--stop` stops Vite and the site) |
 | `start`, `stop`, `restart <site>` | Through the Local app |
 | `wp <site> <args>` | wp-cli with the site's PHP and database socket |
 | `sync <site> [--apply]` | `bin/taw sync`: compare with the taw-theme scaffold |
