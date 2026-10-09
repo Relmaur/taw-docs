@@ -33,7 +33,7 @@ It needs no setup. It reads Local's own files, so on a new Mac you install it an
     taw-fleet
     ```
 
-    Press `?` for every key.
+    It opens in its own terminal window and fills it; quitting closes the window. `taw-fleet --window=false` (or `window = false` in the config) keeps it in the current terminal. Press `?` for every key.
   </Step>
 </Steps>
 
@@ -49,6 +49,7 @@ One row per TAW theme. The columns show the site's status (`●` running, `○` 
 | `b` `B` `P` | Open the site, its wp-admin, its production site |
 | `g` `G` | Open the theme's GitHub repository, its pull requests |
 | `s` `R` | Start or stop the site, restart it (Local must be open) |
+| `A` | Update with agent: Claude Code in a window beside the dashboard, with the update prompt |
 | `y` `S` | Check the theme against the taw-theme scaffold; apply Tier 1 |
 | `u` | Update taw/core |
 | `h` | Hand the update to an agent |
@@ -63,7 +64,7 @@ You have two ways to update a client theme.
 
 **Update taw/core yourself.** `u` in the dashboard (or `taw-fleet update <site>`) runs `composer update taw/core` with the site's PHP and Local's Composer. Only `composer.lock` and `vendor/` change. When it finishes, it lists the sections of `vendor/taw/core/UPGRADING.md` between the old and new version; each section has a check to run. Commit the result yourself.
 
-**Hand the whole update to an agent.** `h` (or `taw-fleet handoff <site>`) builds a prompt for the `update-theme` skill with everything an agent needs: where the theme and the site are, how to run PHP, Composer and wp-cli for this site, what `doctor` found, and the rules. The agent works on a branch, commits, and asks you before pushing. In the dashboard, `c` copies the prompt and `l` opens Claude Code in the theme with it.
+**Hand the whole update to an agent.** `h` (or `taw-fleet handoff <site>`) builds a prompt for the `update-theme` skill with everything an agent needs: where the theme and the site are, how to run PHP, Composer and wp-cli for this site, what `doctor` found, and the rules. The agent works on a branch, commits, and asks you before pushing. In the dashboard, `A` opens Claude Code with it in the theme folder: in Terminal, the dashboard takes the left half of the screen and Claude the right half. When Claude exits, its window closes and the dashboard rescans. `A` is also offered as an answer when `u` asks, and `c` on the `h` screen copies the prompt.
 
 To check the theme's framework files against the newest taw-theme, use `y` (or `taw-fleet sync <site>`). It only reads. `S` (or `sync --apply`) writes the Tier 1 files after asking. Tier 2 files (docs and config) are never written; review them by hand.
 

@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-10-08" description="taw-fleet v1.2.0: its own window, update with agent, and a start/restart fix." tags={["taw-fleet"]}>
+
+## October 2026 — taw-fleet v1.2.0
+
+- **Its own window.** `taw-fleet` opens the dashboard in a new terminal window that it fills, and gives the current terminal back; quitting closes the window. `--window=false`, or `window = false` in the config, keeps it in the current terminal.
+- **Update with agent.** `A` opens Claude Code in the theme folder with the update prompt, in a window beside the dashboard (left and right halves of the screen in Terminal). When Claude exits, the dashboard rescans. `u` offers it as an answer too.
+- **Fix:** starting a site no longer reports "Local isn't open" while Local is starting it, and a restart no longer leaves Local showing "restarting".
+
+</Update>
+
 <Update label="2026-10-08" description="taw-hub retired: taw-fleet reads the live sites through the companion, now shipped with each TAW theme as an mu-plugin. taw/core v1.77.0, companion 0.3.0, taw-theme v1.12.44, taw-gutenberg v0.3.42." tags={["taw-fleet", "taw/core", "taw-hub-companion", "taw-theme", "taw-gutenberg"]}>
 
 ## October 2026 — taw-hub retired, the live sites in taw-fleet
