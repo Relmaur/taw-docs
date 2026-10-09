@@ -4,6 +4,15 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-10-09" description="taw-fleet v1.11.0: Claude gets its first message again; no more fighting Local's leftover processes." tags={["taw-fleet"]}>
+
+## October 2026 — starts and stops that don't hang
+
+- **taw-fleet v1.11.0:** `X`, `U` and `handoff --launch` opened Claude Code without its first message. It arrives again.
+- **Leftover processes:** after many starts and stops, Local can leave nginx or php-fpm processes behind that keep a site from starting or stopping. taw-fleet now finds them before and after every start, stop and restart, and names them instead of trying again. The dashboard asks to end them and then does what you asked; on the command line, run `taw-fleet unstick <site>`. Only Local's own processes are touched.
+
+</Update>
+
 <Update label="2026-10-09" description="taw-fleet v1.10.0: open and resolve client comments from the dashboard; a clearer table and detail pane." tags={["taw-fleet"]}>
 
 ## October 2026 — act on client comments from the dashboard
