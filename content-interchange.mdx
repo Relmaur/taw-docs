@@ -50,9 +50,15 @@ exist and already run the TAW stack.
 ## What's in a snapshot
 
 `TAW\Core\Content\Exporter::snapshot($scope)` produces a plain array, `json_encode`-ready.
-`schema` is `"1.6"` (`taw/core` v1.85.0+); the importer also accepts `"1.0"`–`"1.5"`, and warns
+`schema` is `"1.7"` (`taw/core` v1.87.0+); the importer also accepts `"1.0"`–`"1.6"`, and warns
 when a file's minor version is newer than its own. Full JSON Schema:
-`resources/schema/content-interchange-1.6.json` in the `taw/core` package.
+`resources/schema/content-interchange-1.7.json` in the `taw/core` package.
+
+- **1.7** carries the site icon and logo, the classic menus built in wp-admin and which location
+  each sits in (`menus`, `theme_mods`), reusable blocks and block navigation menus, and footnotes.
+  Menus a theme builds in code are left alone. Other plugins' post meta (an SEO plugin's titles)
+  travels only with `--meta=<prefix>`, e.g. `--meta=_wds_` for SmartCrawl. Templates, template
+  parts, global styles and widgets stay out: they're code-owned in TAW themes.
 
 - **1.6** adds `meta.scope`, which records what a scoped export left partial (`posts: partial`,
   `terms: used`, `options: false`). Change-sets carry the source, `refs` and the media their
@@ -103,6 +109,7 @@ in full.
 | `--types=page,post` | Limit to these post types |
 | `--since=2026-01-01` | Only posts dated on or after this date |
 | `--posts=12,about` | Only these posts (IDs or slugs) |
+| `--meta=_wds_` | Also carry post meta whose keys start with these prefixes (comma-separated); other plugins' meta is left out otherwise |
 | `--with-options` | With `--posts` / `--types` / `--since`: also export options (left out by default) |
 | `--with-terms` | With `--posts` / `--types` / `--since`: export every term, not only those the posts use |
 | `--no-media` | Omit the `media` section |
