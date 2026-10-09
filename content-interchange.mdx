@@ -172,8 +172,9 @@ users → terms → media (sideload + build old→new ID map) → posts → comm
 
 1. **Rollback first.** A full, **maximal-scope** `Exporter` snapshot (users, settings, all
    media, drafts) is written to `wp-content/uploads/taw-private/` — an `.htaccess`-denied
-   directory — and its path is named in the report. Restore with
-   `content:import <that-file>.json --yes`.
+   directory — and its path is named in the report, along with an **import journal**
+   (`import-*.json`, v1.86.0+). If either can't be written, nothing is imported. A record that
+   fails is listed under *failed* and the rest of the import carries on.
 2. **Media** is matched to an existing attachment by its path under uploads (`2024/05/photo.jpg`),
    then by filename, or sideloaded from `url` with its title / description / alt / caption (a caption
    keeps its markup). A matched attachment whose alt text, caption, title or description differ is
@@ -212,6 +213,14 @@ users → terms → media (sideload + build old→new ID map) → posts → comm
    remapped to their post by type and slug, with their dates kept, threading rebuilt from
    `parent_ref`, counts recomputed. A change-set `delete` deletes.
 8. **Settings** options — only if `--with-settings`.
+
+**Undo (v1.86.0).** The journal records what the import actually changed: for every post,
+attachment, term, option, user and comment it touched, the values before and after, plus what
+it created and deleted (downloaded files included). `content:import --undo` previews undoing the
+last import, `--undo --yes` does it, and `--undo=import-….json` picks another; Tools → TAW Data
+shows an **Undo this import** button on the import report. A value goes back only while it still
+equals what the import left, so anything edited since is kept (and listed). What the import
+created is deleted unless edited since, and what it deleted comes back.
 
 **Page and category trees (1.5, v1.84.0).** Parents are applied before their children, pages and
 terms alike, whatever order the source lists them in, and a parent removed at the source is removed
