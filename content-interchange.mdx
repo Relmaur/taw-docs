@@ -50,9 +50,13 @@ exist and already run the TAW stack.
 ## What's in a snapshot
 
 `TAW\Core\Content\Exporter::snapshot($scope)` produces a plain array, `json_encode`-ready.
-`schema` is `"1.5"` (`taw/core` v1.84.0+); the importer also accepts `"1.0"`–`"1.4"`, and warns
+`schema` is `"1.6"` (`taw/core` v1.85.0+); the importer also accepts `"1.0"`–`"1.5"`, and warns
 when a file's minor version is newer than its own. Full JSON Schema:
-`resources/schema/content-interchange-1.5.json` in the `taw/core` package.
+`resources/schema/content-interchange-1.6.json` in the `taw/core` package.
+
+- **1.6** adds `meta.scope`, which records what a scoped export left partial (`posts: partial`,
+  `terms: used`, `options: false`). Change-sets carry the source, `refs` and the media their
+  operations reference (see "Push a change-set to another site" below).
 
 - **1.5** keys pages (any hierarchical type) by their `path`, the parents' slugs and its own as in
   the page URL (`about/team`), so two pages with one slug under different parents stay two records,
@@ -88,11 +92,19 @@ excluded unless `--include-drafts`.
 
 ### Scope flags
 
+`--posts`, `--types` and `--since` make the export **scoped** (`taw/core` v1.85.0+): it leaves out
+options and keeps only the terms its posts use, and their parents, so importing "just these
+posts" never overwrites the rest of the site's settings or categories. `--with-options` and
+`--with-terms` (REST `include_options` / `include_terms`) bring them back. `taw-fleet pull` exports
+in full.
+
 | Flag | Effect |
 | --- | --- |
 | `--types=page,post` | Limit to these post types |
 | `--since=2026-01-01` | Only posts dated on or after this date |
 | `--posts=12,about` | Only these posts (IDs or slugs) |
+| `--with-options` | With `--posts` / `--types` / `--since`: also export options (left out by default) |
+| `--with-terms` | With `--posts` / `--types` / `--since`: export every term, not only those the posts use |
 | `--no-media` | Omit the `media` section |
 | `--all-media` | Also export attachments not referenced by any exported post / field |
 | `--include-drafts` | Include `draft` / `pending` posts (slug-less ones get a composite match key) |
@@ -183,7 +195,7 @@ users → terms → media (sideload + build old→new ID map) → posts → comm
      the source's uploads that this site doesn't have keeps its source URL, so it still loads;
    - so importing a snapshot from another site twice reports nothing to change the second time.
 4. **Portable transforms are reversed.** `page_on_front` / `page_for_posts` / `sticky_posts`
-   (slugs), `post.parent` (path or slug), `featured_media` (filename) and `author` (`{login,email}`)
+   (slugs; a front page neither on the site nor in the import keeps its current value, never 0), `post.parent` (path or slug), `featured_media` (filename) and `author` (`{login,email}`)
    all resolve back to a local ID before the diff and the write.
 5. **Posts** via `wp_insert_post` / `wp_update_post`, written as an admin's save would be:
    kses is lifted for the run (embeds, SVG and forms survive; `&` stays `&`), and
@@ -249,6 +261,12 @@ Per-record `update` (overwrite) / `create` (only new) / `skip` — global defaul
   <Step title="Editorial sandbox → live" titleType="h3">
     Export the sandbox, import to live with `--policy=update`. Media referenced by the
     edited posts sideloads automatically; nothing else on live is touched.
+  </Step>
+
+  <Step title="Push a change-set to another site" titleType="h3">
+    A change-set from `content:diff` carries the source, its references and the media its
+    operations use (v1.85.0+), so on another site it maps IDs, rewrites links and downloads
+    files like a snapshot import. Diffing scoped snapshots deletes nothing outside their scope.
   </Step>
 
   <Step title="Agent-mediated bulk edit" titleType="h3">
