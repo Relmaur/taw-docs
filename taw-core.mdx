@@ -33,6 +33,24 @@ This boot process wires TAW Core tools into WordPress so that CLI commands, bloc
 </Columns>
 
 {/* MARK: Metabox */}
+## The `taw` command
+
+TAW Core ships its command-line tool as `vendor/bin/taw`, so its commands update with `composer update taw/core`. A theme's own `bin/taw` hands over to it: `php bin/taw list` and `vendor/bin/taw list` show the same commands. A classic theme gets every command. A block theme gets `schema:validate` and `skills:sync`.
+
+To add a command of your own, register it from a file your theme's `composer.json` autoloads. Don't put it in `bin/`: the scaffold owns that folder and replaces it on sync.
+
+```php inc/cli.php
+TAW\CLI\CommandRegistry::add(fn (string $themeDir) => new App\Cli\ReportCommand($themeDir));
+```
+
+```json composer.json
+"autoload": { "files": ["inc/cli.php"] }
+```
+
+<Callout kind="info">
+  A registered command can't reuse a built-in command's name. Run `vendor/bin/taw list` to check that yours appears.
+</Callout>
+
 ## Metabox
 
 TAW Core metaboxes accept a `fields` configuration array, and each field defines a `type` that the `TAW\Core\Metabox\Metabox` engine knows how to render, validate, and save.
