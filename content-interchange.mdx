@@ -184,7 +184,10 @@ users → terms → media (sideload + build old→new ID map) → posts → comm
    fails is listed under *failed* and the rest of the import carries on.
 2. **Media** is matched to an existing attachment by its path under uploads (`2024/05/photo.jpg`),
    then by filename, or sideloaded from `url` with its title / description / alt / caption (a caption
-   keeps its markup). A matched attachment whose alt text, caption, title or description differ is
+   keeps its markup). A downloaded file goes into the source's month folder, so two files that share
+   a name stay two files; a `-scaled` image is downloaded as its original, and WordPress makes the same
+   scaled copy; the filename match never takes a file downloaded from another address; a download
+   is tried three times (v1.87.2–v1.88.0). A matched attachment whose alt text, caption, title or description differ is
    updated (v1.83.0). The dry run lists media first, as `media:<path>` records: `create` (would be
    downloaded), `update` (metadata differs), `missing` (not here and no URL). A file the snapshot lists
    that this site can't get is cleared wherever it's referenced, never left pointing at an unrelated
@@ -197,13 +200,16 @@ users → terms → media (sideload + build old→new ID map) → posts → comm
      `taw/loop` sources. Other blocks' attributes are never touched, and content with nothing to map
      is kept byte for byte;
    - a post the snapshot names but this site lacks is dropped with a warning, never left pointing
-     at an unrelated post. A post created later in the same import is linked on a second pass;
+     at an unrelated post. A post created later in the same import is linked on a second pass, and
+     a page or term already here whose only change is such a link shows as `links` in the dry run
+     and is written in the same run (v1.88.0; before, the link came with the next import);
    - each media file's URL (with its sizes) becomes its local URL, then links to the source site
      become links to this one, in content, excerpts, every text field and TAW options. A file in
      the source's uploads that this site doesn't have keeps its source URL, so it still loads;
    - so importing a snapshot from another site twice reports nothing to change the second time.
 4. **Portable transforms are reversed.** `page_on_front` / `page_for_posts` / `sticky_posts`
-   (slugs; a front page neither on the site nor in the import keeps its current value, never 0), `post.parent` (path or slug), `featured_media` (filename) and `author` (`{login,email}`)
+   (slugs; a front page neither on the site nor in the import keeps its current value, never 0;
+   one the import brings is set, even on a site that had none), `post.parent` (path or slug), `featured_media` (filename) and `author` (`{login,email}`)
    all resolve back to a local ID before the diff and the write.
 5. **Posts** via `wp_insert_post` / `wp_update_post`, written as an admin's save would be:
    kses is lifted for the run (embeds, SVG and forms survive; `&` stays `&`), and
@@ -306,6 +312,23 @@ Per-record `update` (overwrite) / `create` (only new) / `skip` — global defaul
     not code.
   </Step>
 </Steps>
+
+## How it's tested
+
+Every change to `taw/core` runs the **fidelity suite** in CI: a real round trip between two WordPress
+sites. Site A holds everything an import has to carry by natural key rather than by ID: pages three
+levels deep, two pages with the same slug, two files with the same name in different month folders,
+blocks that reference images, posts, terms and reusable blocks, IDs inside groups and nested repeater
+rows, menus, the site icon and logo. Site B starts with different IDs and some of A's records already
+there, older. After A is imported into B, the suite checks that:
+
+1. a second import reports nothing to change;
+2. every value on B points at the same record it does on A, read straight from each database;
+3. B's export, imported back into A, changes nothing;
+4. undo returns B to exactly where it was.
+
+Run it yourself from a `taw-core` checkout with `composer run fidelity` (WP-CLI and a MySQL server; see
+the README's *Fidelity suite*).
 
 ## The admin screen — Tools → TAW Data
 
