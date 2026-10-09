@@ -72,6 +72,7 @@ All routes are under the `taw-hub/v1` namespace and require a valid signature fr
 | `GET` | `/inventory/checksums` | `?slug&type` | per-component SHA-256 file manifest — integrity + version-diff (see below) |
 | `GET` | `/vulnerabilities` | — | the site scanner's findings (Defender Pro / Wordfence), normalized (see below) |
 | `GET` | `/logs` | `?limit&level&code&since` | `{ count, entries: [...] }` — the structured log `taw/core` writes (see below) |
+| `GET` | `/content` | `?types` | the published content as a taw/core Content Interchange snapshot (no drafts, users, comments or settings), for `taw-fleet pull` (0.4.0+) |
 | `POST` | `/framework/sync` | `{ "dry_run": bool }` | the `php bin/taw sync --json` report verbatim |
 | `POST` | `/taw` | `{ "command": string, "args": string[] }` | `{ exit_code, stdout, stderr }` |
 | `POST` | `/keys/rotate` | — | `{ "public_key": "<base64>" }` — new keypair, same key id |

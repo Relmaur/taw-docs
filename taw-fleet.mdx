@@ -47,6 +47,7 @@ One row per TAW theme. The columns show the site's status (`●` running, `○` 
 | `/` | Filter by site, theme, branch or version, or by `behind`, `dirty`, `unpushed`, `running`, `live`, `vite` |
 | `w` | Work on it: start the site, open the editor, run Vite and open the site. Again to stop Vite and the site |
 | `M` | Merge the theme's pull request (deploys production), then follow the deploy |
+| `C` | Pull the production site's content into the Local site (preview, then asks) |
 | `e` `f` `t` | Open the theme in your editor, in Finder, in a terminal |
 | `b` `B` `P` | Open the site, its wp-admin, its production site |
 | `g` `G` | Open the theme's GitHub repository, its pull requests |
@@ -87,6 +88,14 @@ With a GitHub token (`gh auth login`), the dashboard shows each theme's open pul
 
 `M` merges a pull request once CI has passed. It asks first, naming the production site the merge deploys. Then it deletes the branch, pulls the default branch into the local theme, and follows the deploy until production has it. `L` refreshes everything now.
 
+## Pull production content
+
+`C` (or `taw-fleet pull <site>`) copies a live site's published content into its Local copy:
+- **What comes over:** posts and CPT entries, TAW fields and options, terms, and the media they use.
+- **How:** it's fetched through the site's TAW companion (0.4+), signed with the fleet key and checked, so no passwords are involved.
+- **Preview first:** you see what would be created or changed. After you confirm, production wins, and a rollback snapshot is saved first.
+- **Never:** drafts, users, comments or settings.
+
 ## Create a site
 
 `n` in the dashboard (or `taw-fleet create`) makes a new Local site with a fresh TAW theme:
@@ -124,6 +133,7 @@ taw-fleet create "Acme Shop" --block --admin-user marco --admin-email me@example
 | `open <site> --editor` | Open the theme (also `--finder`, `--terminal`, `--browser`, `--admin`, `--production`, `--github`, `--prs`) |
 | `prs [site]` | Open pull requests with their CI, and what each theme has deployed |
 | `merge <site> [--pr N]` | Merge a pull request (deploys production) |
+| `pull <site>` | Production content into the Local site (preview, then asks) |
 | `work <site> [--stop]` | Start the site, open the editor, run Vite, open the site (`--stop` stops Vite and the site) |
 | `start`, `stop`, `restart <site>` | Through the Local app |
 | `wp <site> <args>` | wp-cli with the site's PHP and database socket |
@@ -155,7 +165,12 @@ admin_email = "me@example.com"
 [sites.ls-mxico]         # keyed by the site's folder in ~/Local Sites
 production_url = "https://lsmexico.mx"
 notes = "Deploys from main."
+
+[sites.parallelstaff]
+github_account = "parallelstaff"   # its theme belongs to another GitHub account
 ```
+
+A theme of another GitHub account shows `@account` in the dashboard. taw-fleet spots it from an SSH alias remote (`github.com-parallel`), from an owner outside `github_owners = [...]`, or from `github_account`.
 
 ## Troubleshooting
 
