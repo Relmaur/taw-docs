@@ -4,6 +4,15 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-10-09" description="taw/core v1.87.1: a post picked inside a repeater row is saved. Live sites on taw/core 1.87.0." tags={["taw/core"]}>
+
+## October 2026 — repeater rows keep their selected posts
+
+- **taw/core v1.87.1:** a post selector inside a repeater row could lose the editor's pick, because the row only saved it if something else changed afterwards. The picker now signals the change, as the image and file pickers do.
+- **Live sites:** chcapital.mx, lsmexico.mx, mlizardo.com and emelambda.com run taw/core 1.87.0, so `taw-fleet pull` gets everything from Phases 5–8 (page trees, the site icon, logo and menus). Their pages were compared before and after each deploy, and were unchanged.
+
+</Update>
+
 <Update label="2026-10-09" description="taw/core v1.87.0: content moves carry the site icon, logo and menus (schema 1.7). taw-gutenberg v0.3.54." tags={["taw/core", "taw-gutenberg"]}>
 
 ## October 2026 — the site icon, logo and menus come along
