@@ -39,7 +39,13 @@ It needs no setup. It reads Local's own files, so on a new Mac you install it an
 
 ## The dashboard
 
-One two-line card per TAW theme. The top line is the site: its status (`●` running, `○` halted), the installed taw/core (`1.59.2 ▲ 1.76.1` when behind), the last scaffold check, production (**LIVE**), open BugSmash comments (**FB**), pull requests and deploys, and git (`±` uncommitted, `↑` to push, `↓` to pull). Underneath: the theme, its kind (**CLASSIC** for taw-theme, **BLOCK** for taw-gutenberg), the production host when there's room, how old the oldest open comment is, and when the last commit was. At 120 columns or wider, a detail pane shows the selected site.
+One two-line card per TAW theme. The top line is the site: its status (`●` running, `○` halted), the installed taw/core (`1.59.2 ▲ 1.76.1` when behind), the last scaffold check, production (**LIVE**), open BugSmash comments (**FB**), pull requests and deploys, and git (`±` uncommitted, `↑` to push, `↓` to pull). Underneath: the theme, its kind (`classic` for taw-theme, `block` for taw-gutenberg), the production host when there's room, how old the oldest open comment is, and when the last commit was.
+
+The selected card is tinted. While every card fits, a blank line separates them; with more sites than fit, they sit tight and the rule under the column names shows where you are (`1–19 of 24`). The TAW ecosystem's own themes (the umbrella's taw-theme and taw-gutenberg) come last, under a **TAW ECOSYSTEM** label, and the header counts only client sites.
+
+At 120 columns or wider, a detail pane shows the selected site in sections that say where each part comes from: **LOCAL** (this Mac), **LIVE** (the production site's companion), **FEEDBACK** (BugSmash) and **FINDINGS** (`doctor`).
+
+The bottom line shows the everyday keys. Press `:` to find any other action, or `?` for all of them.
 
 | Key | Does |
 |---|---|
@@ -48,6 +54,8 @@ One two-line card per TAW theme. The top line is the site: its status (`●` run
 | `w` | Work on it: start the site, open the editor, run Vite and open the site. Again to stop Vite and the site |
 | `M` | Merge the theme's pull request (deploys production), then follow the deploy |
 | `C` | Pull the production site's content into the Local site (preview, then asks) |
+| `F` | Open the site's BugSmash review page |
+| `X` | Resolve the site's open comments with Claude: Claude Code beside the dashboard, in the TAW umbrella, with the `taw-resolve-comments` skill |
 | `e` `f` `t` | Open the theme in your editor, in Finder, in a terminal |
 | `b` `B` `P` | Open the site, its wp-admin, its production site |
 | `g` `G` | Open the theme's GitHub repository, its pull requests |
@@ -69,7 +77,11 @@ Anything that changes a site or a theme asks first. On the command line it asks 
 
 ## Client feedback
 
-Clients review their live site in BugSmash and pin comments to the page. With `bugsmash_project` set for a site, the **FB** column shows how many comments are open, in the warning color once the oldest has waited more than two days, and `doctor` lists them (`comments.open`). The detail pane shows the latest ones with their page. taw-fleet only reads them; to work through them, ask Claude in the TAW umbrella to "resolve comments on chcapital" (the `taw-resolve-comments` skill).
+Clients review their live site in BugSmash and pin comments to the page. With `bugsmash_project` set for a site, the **FB** column shows how many comments are open, in the warning color once the oldest has waited more than two days, and `doctor` lists them (`comments.open`). The detail pane quotes the latest ones with their page, author and age.
+
+Press `F` to open the site's review page in BugSmash. Press `X` to hand the open comments to Claude Code: it opens beside the dashboard in the TAW umbrella, with the theme folder added, and starts the `taw-resolve-comments` skill on them. The skill shows its plan first and asks before anything reaches production. When Claude Code closes, the dashboard checks BugSmash again. taw-fleet finds the umbrella through the taw-theme and taw-gutenberg links in Local; set `umbrella = "~/Documents/TAW"` in the settings if it can't.
+
+taw-fleet itself only reads the comments. You can also ask Claude in the TAW umbrella to "resolve comments on chcapital".
 
 Store the BugSmash API key once (BugSmash → Settings → API Key): `taw-fleet comments key import`. It stays in your macOS Keychain.
 
