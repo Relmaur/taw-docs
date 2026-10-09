@@ -55,6 +55,8 @@ One row per TAW theme. The columns show the site's status (`●` running, `○` 
 | `A` | Update with agent: Claude Code in a window beside the dashboard, with the update prompt |
 | `U` | Update all with agents: every client theme that needs it, in one Claude Code session |
 | `y` `S` | Check the theme against the taw-theme scaffold; apply Tier 1 |
+| `Y` | Check every theme against the scaffold at once |
+| `:` | All actions: type to find one, enter runs it |
 | `u` | Update taw/core |
 | `h` | Hand the update to an agent |
 | `n` | Create a new site |
@@ -137,7 +139,7 @@ taw-fleet create "Acme Shop" --block --admin-user marco --admin-email me@example
 | `work <site> [--stop]` | Start the site, open the editor, run Vite, open the site (`--stop` stops Vite and the site) |
 | `start`, `stop`, `restart <site>` | Through the Local app |
 | `wp <site> <args>` | wp-cli with the site's PHP and database socket |
-| `sync <site> [--apply]` | `bin/taw sync`: compare with the taw-theme scaffold |
+| `sync <site> [--apply]` | `bin/taw sync`: compare with the taw-theme scaffold (`--all`: every theme) |
 | `update <site>` | `composer update taw/core` and the UPGRADING.md sections to check |
 | `inspect <site>` | `bin/taw inspect`: blocks, fields and forms of a running site |
 | `handoff <site> [--copy]` or `[--launch]` | The agent prompt for the update |
