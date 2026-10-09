@@ -46,6 +46,7 @@ One row per TAW theme. The columns show the site's status (`●` running, `○` 
 | `enter` | The selected site in full |
 | `/` | Filter by site, theme, branch or version, or by `behind`, `dirty`, `unpushed`, `running`, `live`, `vite` |
 | `w` | Work on it: start the site, open the editor, run Vite and open the site. Again to stop Vite and the site |
+| `M` | Merge the theme's pull request (deploys production), then follow the deploy |
 | `e` `f` `t` | Open the theme in your editor, in Finder, in a terminal |
 | `b` `B` `P` | Open the site, its wp-admin, its production site |
 | `g` `G` | Open the theme's GitHub repository, its pull requests |
@@ -77,6 +78,14 @@ To check the theme's framework files against the newest taw-theme, use `y` (or `
 <Callout kind="alert">
   taw-fleet refuses to update or sync the umbrella's own `taw-theme` and `taw-gutenberg`. They change through the taw-core release flow.
 </Callout>
+
+## Pull requests and deploys
+
+With a GitHub token (`gh auth login`), the dashboard shows each theme's open pull requests and its deploy:
+- **PR column:** `✓` when CI passed, `✗` when it failed.
+- **DEPLOY column:** `✓` when production has the newest commit, `↑2` when two commits aren't deployed, `⟳` while it deploys, `✗` when it failed.
+
+`M` merges a pull request once CI has passed. It asks first, naming the production site the merge deploys. Then it deletes the branch, pulls the default branch into the local theme, and follows the deploy until production has it. `L` refreshes everything now.
 
 ## Create a site
 
@@ -113,6 +122,8 @@ taw-fleet create "Acme Shop" --block --admin-user marco --admin-email me@example
 | `show <site>` | One site in full |
 | `doctor [--json]` | What needs attention, with stable finding codes |
 | `open <site> --editor` | Open the theme (also `--finder`, `--terminal`, `--browser`, `--admin`, `--production`, `--github`, `--prs`) |
+| `prs [site]` | Open pull requests with their CI, and what each theme has deployed |
+| `merge <site> [--pr N]` | Merge a pull request (deploys production) |
 | `work <site> [--stop]` | Start the site, open the editor, run Vite, open the site (`--stop` stops Vite and the site) |
 | `start`, `stop`, `restart <site>` | Through the Local app |
 | `wp <site> <args>` | wp-cli with the site's PHP and database socket |
