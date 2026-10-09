@@ -257,6 +257,22 @@ granted to anyone with `manage_options`).
 
 <Image src="/images/taw-data-review.png" width="720" height="420" alt="Import review table showing per-field changes before applying" />
 
+## Defaults into records
+
+When a theme shows content from its fields' [`defaults`](/taw-core-metabox#defaults) (taw/core v1.80.0+), that content is in code, not in the database, so it can't be edited in wp-admin and isn't exported. Saving the defaults turns it into records:
+
+```bash
+php bin/taw content:defaults                 # preview: every empty field and what it would get
+php bin/taw content:defaults --apply         # write them (a journal goes first)
+php bin/taw content:defaults --undo=defaults-20261009-120000.json
+```
+
+Or **Tools → TAW Data → Defaults**: the count, a table of the fields, and a **Save N defaults to the database** button, then **Undo it** for the last save.
+
+- Only empty fields are written, on the posts each metabox applies to (its post types, templates and slugs) and on options pages. Fields with a value are never touched.
+- The journal in `uploads/taw-private/` lists exactly what was written. Undo restores those fields, and keeps any field edited since.
+- A default the field's sanitizing would change (tags in a `text` or `textarea` field) is marked `*` in the preview: saving stores the sanitized value.
+
 ## REST export
 
 `GET /wp-json/taw/v1/content/export` — the same snapshot the Export button produces, for CI

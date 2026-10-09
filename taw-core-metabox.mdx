@@ -462,6 +462,32 @@ new Metabox([
 | `prefix` | `'_taw_'` | Meta key prefix applied to all field IDs |
 | `icon` | *(none)* | SVG string — displayed as the metabox icon |
 | `show_on` | *(none)* | `callable(WP_Post): bool` — return `false` to hide the metabox |
+| `defaults` | *(none)* | `['field_id' => value]` — what a field reads, and shows in the editor, while nothing is stored (taw/core v1.80.0+). See [Defaults](#defaults) |
+
+## Defaults
+
+Put a block's fallback content in `defaults` instead of writing `getMeta(...) ?: 'text'` in `getData()`:
+
+```php
+new Metabox([
+    'id'       => 'taw_hero',
+    'screens'  => ['page'],
+    'fields'   => [
+        ['id' => 'hero_heading', 'type' => 'text'],
+        ['id' => 'hero_items', 'type' => 'repeater', 'fields' => [['id' => 'title', 'type' => 'text']]],
+    ],
+    'defaults' => [
+        'hero_heading' => __('Welcome', 'taw-theme'),
+        'hero_items'   => [['title' => 'One'], ['title' => 'Two']], // structured fields as arrays
+    ],
+]);
+```
+
+- `Metabox::get()`, `getMeta()`, `get_repeater()` and the other getters, and `Taw::post()->field()`, return the default while the stored value is empty (`''` or nothing; `'0'` is a value). The page renders as it did with `?:`.
+- The edit screen shows the default in the field, so saving the post keeps it.
+- Options pages take the same key, and `OptionsPage::get()` falls back to it.
+- A `?:` fallback lives only in code. A default can become a record: **Tools → TAW Data → Defaults** or `php bin/taw content:defaults --apply` writes the defaults into empty fields, with an undo. See [Content Interchange](/content-interchange#defaults-into-records).
+- The block editor's data panel doesn't show defaults yet.
 
 ## Field availability in nav menu context
 
