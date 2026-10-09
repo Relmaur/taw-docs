@@ -4,6 +4,15 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-10-09" description="taw-fleet v1.9.0: open BugSmash comments per site; two-line dashboard rows." tags={["taw-fleet"]}>
+
+## October 2026 — client feedback in the morning check
+
+- **taw-fleet v1.9.0:** sites with a BugSmash project (`bugsmash_project` in the settings) show their open review comments: an **FB** column (a warning once the oldest has waited more than two days), a Feedback block with the latest comments and their page, `doctor` findings (`comments.open`, `comments.unreachable`, `comments.no-key`), and `taw-fleet comments`. It only reads; the API key stays in the Keychain (`taw-fleet comments key import`).
+- **Dashboard:** each theme is now a two-line card: the site and its columns on top, and underneath its theme, kind, production host, the oldest open comment's age and the last commit's age.
+
+</Update>
+
 <Update label="2026-10-09" description="taw/core v1.87.2: pulls settle when a host drops large files. taw-theme v1.12.53 (chat guardrails); fsspx live on taw/core 1.87.1." tags={["taw/core", "taw-theme"]}>
 
 ## October 2026 — pulls settle on slow hosts

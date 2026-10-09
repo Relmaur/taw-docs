@@ -39,7 +39,7 @@ It needs no setup. It reads Local's own files, so on a new Mac you install it an
 
 ## The dashboard
 
-One row per TAW theme. The columns show the site's status (`●` running, `○` halted), the theme kind (**CLASSIC** for taw-theme, **BLOCK** for taw-gutenberg), the installed taw/core (`1.59.2 ▲ 1.76.1` when behind), the last scaffold check, and git (`±` uncommitted, `↑` to push, `↓` to pull). At 120 columns or wider, a detail pane shows the selected site.
+One two-line card per TAW theme. The top line is the site: its status (`●` running, `○` halted), the installed taw/core (`1.59.2 ▲ 1.76.1` when behind), the last scaffold check, production (**LIVE**), open BugSmash comments (**FB**), pull requests and deploys, and git (`±` uncommitted, `↑` to push, `↓` to pull). Underneath: the theme, its kind (**CLASSIC** for taw-theme, **BLOCK** for taw-gutenberg), the production host when there's room, how old the oldest open comment is, and when the last commit was. At 120 columns or wider, a detail pane shows the selected site.
 
 | Key | Does |
 |---|---|
@@ -66,6 +66,12 @@ One row per TAW theme. The columns show the site's status (`●` running, `○` 
 `w` runs Vite in its own terminal window, so you see its output. The dashboard shows `vite` after the theme's name while it runs, and the page you open already has hot reload.
 
 Anything that changes a site or a theme asks first. On the command line it asks too, and `--yes` skips the question in scripts.
+
+## Client feedback
+
+Clients review their live site in BugSmash and pin comments to the page. With `bugsmash_project` set for a site, the **FB** column shows how many comments are open, in the warning color once the oldest has waited more than two days, and `doctor` lists them (`comments.open`). The detail pane shows the latest ones with their page. taw-fleet only reads them; to work through them, ask Claude in the TAW umbrella to "resolve comments on chcapital" (the `taw-resolve-comments` skill).
+
+Store the BugSmash API key once (BugSmash → Settings → API Key): `taw-fleet comments key import`. It stays in your macOS Keychain.
 
 ## Update a theme
 
@@ -148,9 +154,11 @@ taw-fleet create "Acme Shop" --block --admin-user marco --admin-email me@example
 | `config init`, `show`, `path` | The settings file |
 | `live [site]` | The production sites through their companion: versions, plugin updates, vulnerabilities, logs |
 | `live key new`, `live key show`, `live trust <site>` | taw-fleet's signing key (Keychain) and the sites' pinned keys |
+| `comments [site]` | Open review comments in each site's BugSmash project, newest first |
+| `comments projects`, `comments key import`, `comments key show` | Your BugSmash projects and their ids; the API key (Keychain) |
 | `self-update [--check]` | Replace taw-fleet with the newest release |
 
-Add `--json` to `list`, `show`, `doctor` and `sync` for scripts. The JSON keys and the `doctor` codes are stable.
+Add `--json` to `list`, `show`, `doctor`, `sync` and `comments` for scripts. The JSON keys and the `doctor` codes are stable.
 
 ## Settings
 
@@ -168,6 +176,7 @@ admin_email = "me@example.com"
 [sites.ls-mxico]         # keyed by the site's folder in ~/Local Sites
 production_url = "https://lsmexico.mx"
 notes = "Deploys from main."
+bugsmash_project = "a2f16102-91d0-4968-a010-fca3146f4596"   # from taw-fleet comments projects
 
 [sites.parallelstaff]
 github_account = "parallelstaff"   # its theme belongs to another GitHub account
