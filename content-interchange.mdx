@@ -50,11 +50,17 @@ exist and already run the TAW stack.
 ## What's in a snapshot
 
 `TAW\Core\Content\Exporter::snapshot($scope)` produces a plain array, `json_encode`-ready.
-`schema` is `"1.3"` (`taw/core` v1.79.0+); the importer also accepts `"1.0"`–`"1.2"`, and warns
+`schema` is `"1.4"` (`taw/core` v1.82.0+); the importer also accepts `"1.0"`–`"1.3"`, and warns
 when a file's minor version is newer than its own. Full JSON Schema:
-`resources/schema/content-interchange-1.3.json` in the `taw/core` package. 1.3 adds a post's
-`password`, a comment's `post_type`, keeps empty taxonomies as `[]` (so removed terms are
-cleared), and keys slug-less drafts by their local date.
+`resources/schema/content-interchange-1.4.json` in the `taw/core` package.
+
+- **1.4** adds `refs`: the natural keys of every post, term and user the snapshot references by
+  numeric ID (`post_select` values, and IDs in block attributes), keyed by the source ID, e.g.
+  `"refs": {"posts": {"135": {"type": "case_study", "slug": "studio"}}}`. It also adds
+  `meta.source.uploads_url`, and `media` also covers images in block attributes and files linked by
+  URL in the uploads folder (a PDF in a link field).
+- **1.3** adds a post's `password`, a comment's `post_type`, keeps empty taxonomies as `[]` (so
+  removed terms are cleared), and keys slug-less drafts by their local date.
 
 **Field keys:** a record's `fields` are keyed by the bare field id for `_taw_` fields
 (`"hero_heading"`), exactly as in 1.0 and 1.1, and by the full meta key for fields with any other
@@ -151,28 +157,39 @@ users → terms → media (sideload + build old→new ID map) → posts → comm
    media, drafts) is written to `wp-content/uploads/taw-private/` — an `.htaccess`-denied
    directory — and its path is named in the report. Restore with
    `content:import <that-file>.json --yes`.
-2. **Media** is matched to an existing attachment by filename, or sideloaded from `url` with
-   its title / description / alt / caption. The `old → new` ID map is applied to
-   `wp-image-N`, `"id":N` and `"ids":[…]` in `post_content` and to `image` / `files` field
-   values before anything is written.
-3. **Portable transforms are reversed.** `page_on_front` / `page_for_posts` / `sticky_posts`
+2. **Media** is matched to an existing attachment by its path under uploads (`2024/05/photo.jpg`),
+   then by filename, or sideloaded from `url` with its title / description / alt / caption.
+3. **References and URLs are mapped to this site's** (1.4), before the diff and the write:
+   - attachment IDs by the media match; post, term and user IDs through `refs`, by slug, login or
+     email. That covers `post_select` values (also in repeaters, term and user fields, and options),
+     `image` / `files` values, and the IDs in block attributes: images, galleries, covers,
+     media-text, files, video, audio, navigation links, page lists, latest posts, query loops and
+     `taw/loop` sources. Other blocks' attributes are never touched, and content with nothing to map
+     is kept byte for byte;
+   - a post the snapshot names but this site lacks is dropped with a warning, never left pointing
+     at an unrelated post. A post created later in the same import is linked on a second pass;
+   - each media file's URL (with its sizes) becomes its local URL, then links to the source site
+     become links to this one, in content, excerpts, every text field and TAW options. A file in
+     the source's uploads that this site doesn't have keeps its source URL, so it still loads;
+   - so importing a snapshot from another site twice reports nothing to change the second time.
+4. **Portable transforms are reversed.** `page_on_front` / `page_for_posts` / `sticky_posts`
    (slugs), `post.parent` (slug), `featured_media` (filename) and `author` (`{login,email}`)
    all resolve back to a local ID before the diff and the write.
-4. **Posts** via `wp_insert_post` / `wp_update_post`, written as an admin's save would be:
+5. **Posts** via `wp_insert_post` / `wp_update_post`, written as an admin's save would be:
    kses is lifted for the run (embeds, SVG and forms survive; `&` stays `&`), and
    `content:import` runs as a user (`--user`, default the first administrator). **Field meta
    goes through `Metabox::writeMeta()`**, the same sanitize + `wp_slash` path an admin metabox
    save uses; a field nothing registers on the target is written as it came. Password, date
    (both columns) and terms per taxonomy travel. Author resolves login → email → the importing
    user (with a warning). A failed write is reported and nothing else is written for that post.
-5. **Users** via `wp_insert_user` / `wp_update_user`. Roles are **sanitised against the roles
+6. **Users** via `wp_insert_user` / `wp_update_user`. Roles are **sanitised against the roles
    the target site actually defines** — a role the target doesn't have is never granted, and a
    user whose source roles don't exist here keeps the role they have. New accounts get a random
    password unless a portable hash was exported.
-6. **Comments** are recreated once (matched by their own date, content and author email),
+7. **Comments** are recreated once (matched by their own date, content and author email),
    remapped to their post by type and slug, with their dates kept, threading rebuilt from
    `parent_ref`, counts recomputed. A change-set `delete` deletes.
-7. **Settings** options — only if `--with-settings`.
+8. **Settings** options — only if `--with-settings`.
 
 A clean **`--migrate` export → `import --yes` against the same site reports 0 created /
 0 updated / 0 deleted.** `plan()` reports zero changes and `apply()` skips every record the
