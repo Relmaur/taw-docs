@@ -4,6 +4,16 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-10-09" description="Site skills: every TAW theme carries its AI tools; taw-fleet v1.12.0 runs them in the theme folder." tags={["taw/core", "taw-theme", "taw-gutenberg", "taw-fleet"]}>
+
+## October 2026: AI tools in every site
+
+- **taw/core v1.89.0** ships the site skills every TAW site gets: `resolve-comments` (client comments from BugSmash) and `perf-audit` (GTMetrix and PageSpeed). `bin/taw sync` installs them in classic themes, and the new `php bin/taw skills:sync --apply` installs them in block themes. See [Site skills](/site-skills).
+- **taw-theme v1.12.56** and **taw-gutenberg v0.3.58** lock taw/core 1.89.0 and carry both skills, so new sites start with them.
+- **taw-fleet v1.12.0:** press `a` to start Claude Code in a theme folder on one of its skills, and `X` now runs `resolve-comments` there too. `taw-fleet wp-remote` writes to the live site as a bot user whose password stays in the Keychain, and `doctor` reports skills a theme hasn't installed.
+
+</Update>
+
 <Update label="2026-10-09" description="taw-fleet v1.11.0: Claude gets its first message again; no more fighting Local's leftover processes." tags={["taw-fleet"]}>
 
 ## October 2026 — starts and stops that don't hang

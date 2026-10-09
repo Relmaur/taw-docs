@@ -115,6 +115,11 @@
                 "icon": "layout-dashboard"
               },
               {
+                "title": "Site skills",
+                "path": "site-skills",
+                "icon": "sparkles"
+              },
+              {
                 "title": "Content Interchange",
                 "path": "content-interchange",
                 "icon": "arrow-left-right"

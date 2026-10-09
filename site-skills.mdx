@@ -1,0 +1,104 @@
+---
+title: "Site skills"
+description: "The Claude Code skills every TAW site carries, how they get into a theme, and how taw-fleet runs them on any Mac."
+---
+
+Every TAW theme carries Claude Code skills in its `.claude/skills/` folder. When Claude Code starts in the theme folder, it finds them. taw-fleet starts it there for you, so a site's AI tools work on any Mac that has taw-fleet and the site, with nothing else checked out.
+
+## What a theme carries
+
+| Skill | What it does | Comes from |
+|---|---|---|
+| `resolve-comments` | Works through the client's BugSmash comments: sorts them, edits TAW fields on production, opens a PR for theme changes, drafts blog posts, then replies and resolves | taw/core 1.89+ |
+| `perf-audit` | Runs GTMetrix and PageSpeed, ties each finding to a fix in the theme, and checks again after the fix | taw/core 1.89+ |
+| `update-theme`, `audit-seo`, `visual-check`, `populate-content`, `build-page`… | The scaffold's own skills | taw-theme |
+| Any skill marked `owner: site` | A skill written for this one site, such as how its client writes posts | The site itself |
+
+A site's own skills and notes win over the framework's when they disagree. Put client conventions there, or in the theme's `CLAUDE.md`, rather than editing a framework skill: sync replaces framework skills and never touches the site's own.
+
+## Get them into a theme
+
+<Tabs>
+  <Tab title="Classic theme" icon="layout-template">
+    `bin/taw sync` installs them with the rest of the scaffold. In taw-fleet, press `S` on the theme, or `U` to update every theme.
+
+    ```bash
+    composer update taw/core
+    php bin/taw sync --apply
+    ```
+  </Tab>
+
+  <Tab title="Block theme" icon="blocks">
+    Block themes don't sync the classic scaffold, so they take only taw/core's skills:
+
+    ```bash
+    composer update taw/core
+    php bin/taw skills:sync --apply
+    ```
+  </Tab>
+</Tabs>
+
+`taw-fleet doctor` reports `skills.missing` when a theme's taw/core ships skills the theme hasn't installed yet.
+
+## Run them from taw-fleet
+
+- Press `a` on a site to see its theme's skills with their descriptions. Pick one, and Claude Code opens beside the dashboard, in the theme folder, with what taw-fleet knows about the site: its URLs, repository, deploy branch, BugSmash project and open findings.
+- Press `X` to go straight to `resolve-comments` on the site's open BugSmash comments.
+
+When Claude Code closes, the dashboard refreshes. After `resolve-comments`, it checks BugSmash again.
+
+## Production writes
+
+Skills that change the live site, like `resolve-comments`, write through `taw-fleet wp-remote`. It calls the site's WordPress REST API as a bot user whose password stays in your macOS Keychain, so it never appears in a Claude transcript or a file.
+
+<Steps>
+  <Step title="Create the bot user" icon="user-plus" titleType="p">
+    In the site's wp-admin, go to Users → Add New. Give it a name like `claude-bot` and the **Editor** role. Then open the user, go to Application Passwords, and create one named "taw-fleet".
+  </Step>
+
+  <Step title="Store it on your Mac" icon="key-round" titleType="p">
+    ```bash
+    printf 'claude-bot:xxxx xxxx xxxx xxxx xxxx xxxx' | taw-fleet wp-remote key import ls-mxico
+    ```
+
+    Repeat on each Mac that works on the site.
+  </Step>
+
+  <Step title="Check it" icon="check" titleType="p">
+    ```bash
+    taw-fleet wp-remote key show ls-mxico
+    ```
+
+    <Callout kind="success" collapsed="false">
+      You see the bot's name and its role, `editor`. The password is never shown.
+    </Callout>
+  </Step>
+</Steps>
+
+You can also call it yourself:
+
+```bash
+taw-fleet wp-remote ls-mxico GET '/wp/v2/pages?slug=nosotros&context=edit'
+taw-fleet wp-remote ls-mxico POST /wp/v2/pages/12 --data @meta.json
+taw-fleet wp-remote ls-mxico POST /wp/v2/media --file hero.webp
+```
+
+<Callout kind="info">
+  `wp-remote` has no DELETE: taw-fleet never deletes anything on production. It uses the `?rest_route=` form of each URL, because some hosts' firewalls block `/wp-json/wp/v2/users`, and it retries when a host answers with an empty page.
+</Callout>
+
+## Troubleshooting
+
+<ExpandableGroup>
+  <Expandable title="X says the theme doesn't have the resolve-comments skill" default-open="false">
+    The theme's taw/core is older than 1.89, or the skills haven't been installed yet. Run `composer update taw/core` in the theme, then `S` in taw-fleet (classic) or `php bin/taw skills:sync --apply` (block).
+  </Expandable>
+
+  <Expandable title="wp-remote says there are no bot credentials" default-open="false">
+    Store them on this Mac with `taw-fleet wp-remote key import <site>`. They live in each Mac's Keychain, so a new Mac needs them once.
+  </Expandable>
+
+  <Expandable title="sync reports a clash on a skill" default-open="false">
+    The site has its own skill (`owner: site`) with the same name as a framework skill. Sync keeps the site's. Rename the site's skill to get the framework's too.
+  </Expandable>
+</ExpandableGroup>

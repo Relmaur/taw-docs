@@ -55,7 +55,8 @@ The bottom line shows the everyday keys. Press `:` to find any other action, or 
 | `M` | Merge the theme's pull request (deploys production), then follow the deploy |
 | `C` | Pull the production site's content into the Local site (preview, then asks) |
 | `F` | Open the site's BugSmash review page |
-| `X` | Resolve the site's open comments with Claude: Claude Code beside the dashboard, in the TAW umbrella, with the `taw-resolve-comments` skill |
+| `X` | Resolve the site's open comments with Claude: Claude Code beside the dashboard, in the theme folder, with its `resolve-comments` skill |
+| `a` | Ask Claude…: pick one of the theme's skills, and Claude Code starts on it in the theme folder (see [Site skills](/site-skills)) |
 | `e` `f` `t` | Open the theme in your editor, in Finder, in a terminal |
 | `b` `B` `P` | Open the site, its wp-admin, its production site |
 | `g` `G` | Open the theme's GitHub repository, its pull requests |
@@ -79,9 +80,9 @@ Anything that changes a site or a theme asks first. On the command line it asks 
 
 Clients review their live site in BugSmash and pin comments to the page. With `bugsmash_project` set for a site, the **FB** column shows how many comments are open, in the warning color once the oldest has waited more than two days, and `doctor` lists them (`comments.open`). The detail pane quotes the latest ones with their page, author and age.
 
-Press `F` to open the site's review page in BugSmash. Press `X` to hand the open comments to Claude Code: it opens beside the dashboard in the TAW umbrella, with the theme folder added, and starts the `taw-resolve-comments` skill on them. The skill shows its plan first and asks before anything reaches production. When Claude Code closes, the dashboard checks BugSmash again. taw-fleet finds the umbrella through the taw-theme and taw-gutenberg links in Local; set `umbrella = "~/Documents/TAW"` in the settings if it can't.
+Press `F` to open the site's review page in BugSmash. Press `X` to hand the open comments to Claude Code: it opens beside the dashboard in the theme folder and starts the theme's `resolve-comments` skill on them. The skill shows its plan first and asks before anything reaches production. When Claude Code closes, the dashboard checks BugSmash again.
 
-taw-fleet itself only reads the comments. You can also ask Claude in the TAW umbrella to "resolve comments on chcapital".
+taw-fleet itself only reads the comments. The skill writes to production through `taw-fleet wp-remote` (see [Site skills](/site-skills)).
 
 Store the BugSmash API key once (BugSmash → Settings → API Key): `taw-fleet comments key import`. It stays in your macOS Keychain.
 
@@ -158,6 +159,7 @@ taw-fleet create "Acme Shop" --block --admin-user marco --admin-email me@example
 | `work <site> [--stop]` | Start the site, open the editor, run Vite, open the site (`--stop` stops Vite and the site) |
 | `start`, `stop`, `restart <site>` | Through the Local app |
 | `unstick <site>` | End Local's leftover nginx or php-fpm processes that keep the site from starting or stopping (asks first) |
+| `wp-remote <site> <method> <route>` | Call the production site's WordPress REST API as its bot user; `wp-remote key import\|show <site>` stores and checks the bot's credentials |
 | `wp <site> <args>` | wp-cli with the site's PHP and database socket |
 | `sync <site> [--apply]` | `bin/taw sync`: compare with the taw-theme scaffold (`--all`: every theme) |
 | `update <site>` | `composer update taw/core` and the UPGRADING.md sections to check |
