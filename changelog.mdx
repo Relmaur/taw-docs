@@ -4,6 +4,28 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-10-08" description="taw-hub retired: taw-fleet reads the live sites through the companion, now shipped with each TAW theme as an mu-plugin. taw/core v1.77.0, companion 0.3.0, taw-theme v1.12.44, taw-gutenberg v0.3.42." tags={["taw-fleet", "taw/core", "taw-hub-companion", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026 — taw-hub retired, the live sites in taw-fleet
+
+The TAW Hub control app is retired. [taw-fleet](/taw-fleet) now checks the production sites itself.
+
+- **taw-fleet v1.1.0:**
+  - `taw-fleet live` shows each production site's WordPress, PHP, taw/core and companion versions, plugins with updates waiting, known vulnerabilities and recent logs;
+  - in the dashboard that's the LIVE column and a Production section;
+  - `doctor` adds `live.*` findings.
+  - Requests are signed with a key kept in your macOS Keychain, and every answer is checked against the site's pinned key.
+- **[Companion](/taw-hub-companion) 0.3.0** ships with the theme as an mu-plugin:
+  - a Composer requirement, the fleet key in `extra.taw-companion.keys`, and the deploy copying its one-file loader;
+  - it updates with `composer.lock`.
+  - The four live client sites run it.
+- **taw/core v1.77.0:**
+  - `hub:install` and `hub:enroll` are retired (hidden stubs that explain what replaced them);
+  - `enshrined/svg-sanitize` 1.0.0 fixes three advisories that current Composer refuses to install.
+- **taw-theme v1.12.44 and taw-gutenberg v0.3.42** take taw/core v1.77.0. taw-theme's `bin/taw` drops the hub commands, and the `hub-connect` skill is gone.
+
+</Update>
+
 <Update label="2026-10-08" description="taw-fleet v1.0.0: a terminal dashboard for every TAW site on your Mac." tags={["taw-fleet", "feature", "docs"]}>
 
 ## October 2026 — taw-fleet

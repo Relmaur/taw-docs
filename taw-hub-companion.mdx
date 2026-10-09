@@ -1,77 +1,69 @@
 ---
-title: "TAW Hub Companion"
-description: "The signed wp-json/taw-hub/v1 receiver plugin that connects a TAW site to the TAW Hub control hub."
+title: "TAW Companion"
+description: "The signed wp-json/taw-hub/v1 receiver that ships with a TAW theme as an mu-plugin, so taw-fleet can check the live site."
 ---
 
-`taw-hub-companion` is a lightweight WordPress plugin that exposes a small, **signature-authenticated** REST surface on a TAW site so a central [TAW Hub](https://github.com/Relmaur/taw-hub) hub can check its health, run framework syncs, execute allow-listed `bin/taw` commands, and rotate its key — with no passwords.
+The **companion** (`taw/hub-companion`, repo [`Relmaur/taw-hub-companion`](https://github.com/Relmaur/taw-hub-companion)) is a small WordPress plugin that exposes a **signature-authenticated** REST surface on a live TAW site. [taw-fleet](/taw-fleet) uses it to show each production site's health, plugins, known vulnerabilities and recent logs, with no passwords and no SSH.
 
 <Callout kind="info">
-  This replaces the short-lived `TAW\Hub` subsystem that shipped in `taw/core` v1.20.0 and was removed in v1.20.1. `taw/core` is a theme framework; fleet management is a separate concern with its own repo (`Relmaur/taw-hub-companion`), release cadence, and wire protocol.
+  The companion was built for the TAW Hub control app, which was **retired on 2026-10-08**: taw-fleet now reads the sites directly. The wire protocol, the `taw-hub/v1` route names and the `TAW_HUB_*` constants keep their names.
 </Callout>
 
 ## How it fits together
 
 ```mermaid
 sequenceDiagram
-    participant Hub as TAW Hub
-    participant Plugin as taw-hub-companion
-    participant CLI as bin/taw (theme)
-    Hub->>Plugin: POST /wp-json/taw-hub/v1/framework/sync  (Ed25519-signed)
-    Plugin->>Plugin: verify signature (ADR-0003)
-    Plugin->>CLI: php bin/taw sync --apply --json
-    CLI-->>Plugin: JSON report
-    Plugin-->>Hub: report  (response signed with the site key)
-    Hub->>Hub: verify response signature
+    participant Fleet as taw-fleet (your Mac)
+    participant Site as companion (mu-plugin)
+    Fleet->>Site: GET /wp-json/taw-hub/v1/health  (Ed25519-signed, key in your Keychain)
+    Site->>Site: verify the signature against a trusted key
+    Site-->>Fleet: report  (signed with the site's own key)
+    Fleet->>Fleet: verify against the key pinned for this site
 ```
 
-The plugin never contains fleet logic — it verifies the Hub, runs one bounded operation, signs the response, and returns.
+The companion holds no fleet logic: it verifies the request, runs one bounded operation, signs the response and returns.
 
 ## Install
 
-<Callout kind="tip">
-  On a TAW site, the fastest path is the **`hub-connect`** skill — it runs every step below interactively (installing the plugin, gathering the Hub's key, writing `wp-config.php` with confirmation, verifying, and surfacing the site key to register). Or run the primitive it wraps: `php bin/taw hub:install --activate` (requires `taw/core` ≥ v1.20.2), then do steps 2 and 4 by hand.
-</Callout>
+The companion ships with the theme, per client project, and runs as an **mu-plugin**: it can't be deactivated by accident, and it updates with the theme's `composer.lock`.
 
 <Steps>
-  <Step title="Add the plugin" icon="download">
-    `php bin/taw hub:install` clones it into `wp-content/plugins/` (or add it manually and run `composer install` inside it). The plugin is **not** bundled with the theme — only fleet sites need it.
-  </Step>
-  <Step title="Configure wp-config.php" icon="settings">
-    Configuration is read from constants only — never the options table.
+  <Step title="Require it in the theme" icon="package">
+    In the theme's `composer.json`, add the repository, the requirement and the key the site trusts (taw-fleet's public key, from `taw-fleet live key show`):
 
-    ```php
-    define('TAW_HUB_PUBLIC_KEY', '…base64 Ed25519 public key from the Hub…'); // required
-    define('TAW_HUB_KEY_ID',     'hub-local');                               // the Hub's key id (default: hub-local)
-    // define('TAW_HUB_ALLOWED_IPS', '203.0.113.4, 203.0.113.5');            // optional source-IP allow-list
-    // define('TAW_HUB_SITE_KEY_ID', 'site-abc123');                         // optional — override the site's own key id
+    ```json
+    {
+      "repositories": [{ "type": "vcs", "url": "https://github.com/Relmaur/taw-hub-companion" }],
+      "require": { "taw/hub-companion": "^0.3" },
+      "extra": { "taw-companion": { "keys": { "taw-fleet": "…base64 public key…" } } }
+    }
     ```
 
+    Then run `composer update taw/hub-companion`. The key is public, so committing it is fine. It's per fleet owner, which is why the public taw-theme scaffold doesn't include it.
+  </Step>
+  <Step title="Load it as an mu-plugin" icon="plug">
+    Copy `vendor/taw/hub-companion/mu-loader/taw-companion.php` to `wp-content/mu-plugins/`. On TAW client sites, the theme's deploy workflow does this after the rsync. The loader finds the companion in the active theme's `vendor/` and never needs updating.
+
     <Callout kind="alert">
-      With no `TAW_HUB_PUBLIC_KEY` the plugin is **inert**: every route returns `501` and an admin notice tells you what to define.
+      The loader stands aside while the companion is still active as a **regular plugin** (two copies would mix their classes). Deactivate and delete the regular plugin, and the mu copy takes over on the next request.
     </Callout>
   </Step>
-  <Step title="Activate" icon="power">
-    On activation the plugin generates this site's own Ed25519 keypair (secret key stored autoload-off; never leaves the site).
-  </Step>
-  <Step title="Enrol the site with the Hub" icon="link">
-    With `taw/core` ≥ v1.23.0, mint a one-time enrolment token on the Hub (`php artisan fleet:enrol-token`) and run `php bin/taw hub:enroll --token=enrol_…` on the site — it `POST`s the site's identity to the Hub's `POST /api/fleet/enroll`, verifies the Hub's signed reply against `TAW_HUB_PUBLIC_KEY`, and reports the assigned `site_id`. On older `taw/core`, a signed `GET /wp-json/taw-hub/v1/health` returns `site_public_key` and `site_key_id` (also shown in an admin notice) — give those to the Hub operator to register by hand.
+  <Step title="Check it from taw-fleet" icon="check">
+    `taw-fleet live <site>` shows the site's versions and findings. Pin the key the site signs with once: `taw-fleet live trust <site>`. From then on every answer is verified.
   </Step>
 </Steps>
 
+On first use the companion creates the site's own Ed25519 keypair (stored autoload-off; the secret never leaves the site). A site that already had the companion as a regular plugin keeps its keypair.
+
+`TAW_HUB_PUBLIC_KEY` (with `TAW_HUB_KEY_ID`) in `wp-config.php` still works next to theme keys. With no trusted key at all, the companion is **inert**: every route returns `501`.
+
 ## Updating
 
-From `0.2.0` the plugin self-updates from its **GitHub releases** (`Relmaur/taw-hub-companion`) — there is no per-site zip upload and no SSH step.
-
-- Every site shows the standard **"Update available"** row in *Plugins*, and `wp plugin update taw-hub-companion` works.
-- Unless `TAW_HUB_COMPANION_AUTO_UPDATE` is set to `false` in `wp-config.php`, the plugin opts itself into WordPress's **background auto-update cron** — a tagged release reaches the whole fleet within a cron cycle (~12 h) with nobody clicking anything.
-
-<Callout kind="info">
-  Releasing is `git tag vX.Y.Z && git push origin vX.Y.Z`: a CI workflow builds the plugin zip (dev files stripped, no `vendor/` — the plugin has an autoload fallback) and publishes it as the release asset the updater points at. The tag must match both the `Version:` header and `TAW_HUB_COMPANION_VERSION`. A site on a pre-`0.2.0` build has no updater — bring it to `0.2.0` once by hand, and it self-maintains after that.
-</Callout>
+As an mu-plugin, the companion updates with the theme: `composer update taw/hub-companion`, then deploy. Installed as a regular plugin (the old way), it self-updates from its GitHub releases.
 
 ## Routes
 
-All routes are under the `taw-hub/v1` namespace and require a valid Hub signature.
+All routes are under the `taw-hub/v1` namespace and require a valid signature from a trusted key. taw-fleet uses the `GET` routes only.
 
 | Method | Route | Body / query | Returns |
 |---|---|---|---|
@@ -85,19 +77,19 @@ All routes are under the `taw-hub/v1` namespace and require a valid Hub signatur
 | `POST` | `/keys/rotate` | — | `{ "public_key": "<base64>" }` — new keypair, same key id |
 
 <Callout kind="tip">
-  `/inventory` is a read-only, subprocess-free software bill of materials the Hub polls to correlate the fleet against vulnerability feeds, spot abandoned components, and flag pending updates — without SSH. Each plugin carries `version`, `active`, `auto_update`, `requires_wp` / `requires_php`, `tested_up_to` (from `readme.txt`), `update_version` (the pending version, or `null`), `update_source` (`wordpress_org` \| `external` \| `disabled` \| `unknown` — *who, if anyone, is watching it for updates*; `unknown` is the abandoned-plugin tell) and `main_file_mtime`. Themes carry the same signals where they apply; `dropins` is the bare list of present drop-in filenames (an unexpected `object-cache.php` / `db.php` is a classic persistence trick). Works on every host. The response shape is the Hub's [ADR-0013](https://github.com/Relmaur/taw-hub/blob/main/docs/ADR/0013-fleet-inventory-and-vulnerability-correlation.md) contract, pinned by `schema_version`; the companion mirrors the Hub's `inventory-snapshot.schema.json` into its test fixtures so the two can't drift.
+  `/inventory` is a read-only, subprocess-free software bill of materials taw-fleet reads to correlate the fleet against vulnerability feeds, spot abandoned components, and flag pending updates — without SSH. Each plugin carries `version`, `active`, `auto_update`, `requires_wp` / `requires_php`, `tested_up_to` (from `readme.txt`), `update_version` (the pending version, or `null`), `update_source` (`wordpress_org` \| `external` \| `disabled` \| `unknown` — *who, if anyone, is watching it for updates*; `unknown` is the abandoned-plugin tell) and `main_file_mtime`. Themes carry the same signals where they apply; `dropins` is the bare list of present drop-in filenames (an unexpected `object-cache.php` / `db.php` is a classic persistence trick). Works on every host. The response shape is pinned by `schema_version` and `docs/reference/inventory-snapshot.schema.json` in the companion repo.
 </Callout>
 
 <Callout kind="tip">
-  `/inventory/checksums` is a per-component SHA-256 **file manifest** — ground truth for the Hub to spot a webshell dropped into a plugin folder, to diff one version of a component against the next when it updates (the "quiet backdoor on update" signal — a new phone-home, a new application password, a new drop-in), and to dedupe fleet-wide analysis by `(slug, version, tree_hash)`. **Summary mode** (no `slug`) returns just `tree_hash` + `file_count` per active component — a cheap "did anything change" poll; **detail mode** (`?slug=`) adds the full `relpath → sha256` map, and `?type=plugin|mu_plugin|theme` narrows the set. Only executable / script file types are hashed; `node_modules` and `.git` are skipped; symlinks are not followed. The companion only produces the manifest — all comparison is the Hub's.
+  `/inventory/checksums` is a per-component SHA-256 **file manifest** — ground truth for spotting a webshell dropped into a plugin folder, to diff one version of a component against the next when it updates (the "quiet backdoor on update" signal — a new phone-home, a new application password, a new drop-in), and to dedupe fleet-wide analysis by `(slug, version, tree_hash)`. **Summary mode** (no `slug`) returns just `tree_hash` + `file_count` per active component — a cheap "did anything change" poll; **detail mode** (`?slug=`) adds the full `relpath → sha256` map, and `?type=plugin|mu_plugin|theme` narrows the set. Only executable / script file types are hashed; `node_modules` and `.git` are skipped; symlinks are not followed. The companion only produces the manifest; the comparison is up to the client.
 </Callout>
 
 <Callout kind="tip">
-  `/vulnerabilities` reports the security findings the site's **own scanner** has already computed — the companion does no vulnerability matching itself. A per-scanner read adapter reads the scanner's stored results and normalizes them; `ScannerRegistry` picks the first installed scanner (fleet standard first, fallback after). Ships a **Defender / Defender Pro** adapter (reads the `defender_scan_item` table — known vulnerabilities with CVSS, plugins closed on wp.org, abandoned plugins; verified against Defender 6.2.4) and a **Wordfence** adapter (reads the `wfIssues` table — known vulnerabilities, abandoned plugins, directory removals; verified against Wordfence 8.2.x). Defender is checked first as the fleet standard. The `scanner` block carries `name`, `version`, and `last_scan_at` (`null` = installed but never scanned), so the Hub knows the source and how fresh it is. Each finding: `component_type`, `slug`, `installed_version`, `severity` (`critical|high|medium|low|unknown`), `cvss_score`, `kind` (`vulnerability|abandoned|removed|outdated`), `link`, `detected_at`. Read-only and DB-read-only, behind the same signature guard.
+  `/vulnerabilities` reports the security findings the site's **own scanner** has already computed — the companion does no vulnerability matching itself. A per-scanner read adapter reads the scanner's stored results and normalizes them; `ScannerRegistry` picks the first installed scanner (fleet standard first, fallback after). Ships a **Defender / Defender Pro** adapter (reads the `defender_scan_item` table — known vulnerabilities with CVSS, plugins closed on wp.org, abandoned plugins; verified against Defender 6.2.4) and a **Wordfence** adapter (reads the `wfIssues` table — known vulnerabilities, abandoned plugins, directory removals; verified against Wordfence 8.2.x). Defender is checked first as the fleet standard. The `scanner` block carries `name`, `version`, and `last_scan_at` (`null` = installed but never scanned), so the client knows the source and how fresh it is. Each finding: `component_type`, `slug`, `installed_version`, `severity` (`critical|high|medium|low|unknown`), `cvss_score`, `kind` (`vulnerability|abandoned|removed|outdated`), `link`, `detected_at`. Read-only and DB-read-only, behind the same signature guard.
 </Callout>
 
 <Callout kind="tip">
-  `/logs` serves the JSON-Lines file `taw/core`'s `TAW\Core\Log\Logger` writes to `wp-content/taw-logs/` — so the Hub can report on a site's swallowed exceptions, failed syncs, and misconfigurations without SSH. `limit` is capped at 500 (default 100); `level` is one of `debug|info|notice|warning|error|critical`; `code` is a prefix match (`form`, `mail.emailit`); `since` is an ISO-8601 timestamp. Read-only, and behind the same signature as every other route. If `taw/core` is old or has never logged, `entries` is just `[]`.
+  `/logs` serves the JSON-Lines file `taw/core`'s `TAW\Core\Log\Logger` writes to `wp-content/taw-logs/` — so a client can report on a site's swallowed exceptions, failed syncs, and misconfigurations without SSH. `limit` is capped at 500 (default 100); `level` is one of `debug|info|notice|warning|error|critical`; `code` is a prefix match (`form`, `mail.emailit`); `since` is an ISO-8601 timestamp. Read-only, and behind the same signature as every other route. If `taw/core` is old or has never logged, `entries` is just `[]`.
 </Callout>
 
 <Callout kind="tip">
@@ -105,12 +97,12 @@ All routes are under the `taw-hub/v1` namespace and require a valid Hub signatur
 </Callout>
 
 <Callout kind="alert">
-  **On `proc_open`-disabled hosts** — most managed WordPress hosting (WPMU DEV, WP Engine, Kinsta, …) — `/framework/sync` and `/taw` return `503 {"error":"exec_unavailable"}`; they shell out to `bin/taw` and cannot run. `/health` reports `"exec_available": false` so the Hub knows this up front, and `/logs` keeps working — neither spawns a subprocess. Run framework sync via the theme's own `framework-sync.yml` GitHub Action on those hosts.
+  **On `proc_open`-disabled hosts** — most managed WordPress hosting (WPMU DEV, WP Engine, Kinsta, …) — `/framework/sync` and `/taw` return `503 {"error":"exec_unavailable"}`; they shell out to `bin/taw` and cannot run. `/health` reports `"exec_available": false` up front, and `/logs` keeps working — neither spawns a subprocess. Run framework sync via the theme's own `framework-sync.yml` GitHub Action on those hosts.
 </Callout>
 
 ## The wire protocol
 
-Every request and response is signed. The full spec is **frozen** and governed by the Hub repo — see [ADR-0003 — Wire protocol & request signatures](https://github.com/Relmaur/taw-hub/blob/main/docs/ADR/0003-wire-protocol-and-signatures.md) and [ADR-0005 — Companion plugin architecture](https://github.com/Relmaur/taw-hub/blob/main/docs/ADR/0005-companion-plugin-architecture.md).
+Every request and response is signed. The spec is **frozen** and lives in the companion repo: [the wire protocol](https://github.com/Relmaur/taw-hub-companion/blob/main/docs/reference/wire-protocol.md), [ADR-0003](https://github.com/Relmaur/taw-hub-companion/blob/main/docs/adr/0003-wire-protocol-and-signatures.md) and [ADR-0005](https://github.com/Relmaur/taw-hub-companion/blob/main/docs/adr/0005-companion-plugin-architecture.md).
 
 **Canonical string** (`\n`-joined, no trailing newline):
 
@@ -125,14 +117,14 @@ TAW-HUB-v1
 
 **Headers:** `X-Taw-Hub-Algo` (`ed25519` or `hmac-sha256`), `X-Taw-Hub-Key-Id`, `X-Taw-Hub-Timestamp`, `X-Taw-Hub-Nonce`, `X-Taw-Hub-Signature` (base64 of the raw signature bytes).
 
-**Verification order** (mandatory): parse headers → `|now − timestamp| ≤ 60s` → resolve key by `(algo, keyId)` → cryptographic verify → consume the nonce (last, 150s TTL). Any failure → `401 {"error":"unauthorized","reason":"<code>"}` with a stable code (`malformed_signature_headers`, `timestamp_out_of_window`, `unknown_key_id`, `invalid_signature`, `replayed_nonce`).
+**Verification order** (mandatory): parse headers → `|now − timestamp| ≤ 60s` → resolve key by `(algo, keyId)` → cryptographic verify → consume the nonce (last, 150s TTL). Any failure → `401` with `{"code":"taw_hub_unauthorized","data":{"reason":"<code>"}}` and a stable reason (`malformed_signature_headers`, `timestamp_out_of_window`, `unknown_key_id`, `invalid_signature`, `replayed_nonce`).
 
 <Callout kind="info">
-  Responses are signed too, with `{METHOD}` set to the literal `RESPONSE`. The plugin's `SignatureGate`, `CanonicalString`, and signers are verified byte-for-byte against a fixture generated from the Hub's own signer (`hub-signing-vectors.json`) so the two implementations can't silently drift.
+  Responses are signed too, with `{METHOD}` set to the literal `RESPONSE`. The plugin's `SignatureGate`, `CanonicalString`, and signers are verified byte-for-byte against `hub-signing-vectors.json`, and taw-fleet's Go signer is tested against the same vectors, so the two implementations can't silently drift.
 </Callout>
 
 ## Known limits
 
 - The signed `{PATH}` is rebuilt from the matched REST route, so subdirectory WordPress installs work — but a **filtered `rest_get_url_prefix()`** (≠ `wp-json`) is unsupported and raises an admin notice.
-- `/assets/sync` is not implemented — the Hub's Vite-bundle sync job is still deferred.
-- Enrolment needs a one-time token minted on the Hub. `php bin/taw hub:enroll` (`taw/core` ≥ v1.23.0) automates the round trip and verifies the signed reply; on older `taw/core` the operator registers the site's key by hand from `GET /health`.
+- taw-fleet doesn't use the write routes (`/framework/sync`, `/taw`, `/keys/rotate`). Run framework sync through the theme's `framework-sync.yml` workflow.
+- `php bin/taw hub:install` and `hub:enroll` are retired (taw/core v1.77.0).

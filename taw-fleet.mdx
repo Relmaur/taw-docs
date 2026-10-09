@@ -8,7 +8,7 @@ description: "A terminal dashboard for every TAW site on your Mac: status, taw/c
 It needs no setup. It reads Local's own files, so on a new Mac you install it and run it.
 
 <Callout kind="info">
-  taw-fleet covers the sites on your Mac. Production sites are managed by the [TAW Hub](https://github.com/Relmaur/taw-hub) through the [TAW Hub Companion](/taw-hub-companion) plugin.
+  taw-fleet also reads your **production** sites, through the [companion](/taw-hub-companion) that ships with each TAW theme: `taw-fleet live`.
 </Callout>
 
 ## Install
@@ -114,6 +114,8 @@ taw-fleet create "Acme Shop" --block --admin-user marco --admin-email me@example
 | `handoff <site> [--copy]` or `[--launch]` | The agent prompt for the update |
 | `create [name]` | A new Local site with a TAW theme |
 | `config init`, `show`, `path` | The settings file |
+| `live [site]` | The production sites through their companion: versions, plugin updates, vulnerabilities, logs |
+| `live key new`, `live key show`, `live trust <site>` | taw-fleet's signing key (Keychain) and the sites' pinned keys |
 | `self-update [--check]` | Replace taw-fleet with the newest release |
 
 Add `--json` to `list`, `show`, `doctor` and `sync` for scripts. The JSON keys and the `doctor` codes are stable.
