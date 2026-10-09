@@ -158,7 +158,12 @@ users → terms → media (sideload + build old→new ID map) → posts → comm
    directory — and its path is named in the report. Restore with
    `content:import <that-file>.json --yes`.
 2. **Media** is matched to an existing attachment by its path under uploads (`2024/05/photo.jpg`),
-   then by filename, or sideloaded from `url` with its title / description / alt / caption.
+   then by filename, or sideloaded from `url` with its title / description / alt / caption (a caption
+   keeps its markup). A matched attachment whose alt text, caption, title or description differ is
+   updated (v1.83.0). The dry run lists media first, as `media:<path>` records: `create` (would be
+   downloaded), `update` (metadata differs), `missing` (not here and no URL). A file the snapshot lists
+   that this site can't get is cleared wherever it's referenced, never left pointing at an unrelated
+   attachment with the same number.
 3. **References and URLs are mapped to this site's** (1.4), before the diff and the write:
    - attachment IDs by the media match; post, term and user IDs through `refs`, by slug, login or
      email. That covers `post_select` values (also in repeaters, term and user fields, and options),
