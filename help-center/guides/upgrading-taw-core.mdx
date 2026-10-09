@@ -30,8 +30,10 @@ It's written so an AI agent working on the site can follow it step by step.
 
   <Step title="Update the package" icon="download" title-type="p">
     ```bash
-    composer update taw/core
+    composer update taw/core --with-dependencies
     ```
+
+    `--with-dependencies` lets Composer update the packages taw/core itself needs. Without it, an update that needs a newer one finishes without changing anything. Check the version moved: `composer show taw/core | grep versions`.
   </Step>
 
   <Step title="Work through UPGRADING.md" icon="list-checks" title-type="p">
