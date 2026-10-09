@@ -25,7 +25,7 @@ It's written so an AI agent working on the site can follow it step by step.
   </Step>
 
   <Step title="Sync the theme scaffold (recommended)" icon="refresh-cw" title-type="p">
-    Ask your agent to "update the theme". The `update-theme` skill runs `php bin/taw sync`, which updates `functions.php`, `bin/`, CI and the framework skills, and never touches `Blocks/`, `inc/` or templates. Its `composer.json` and `package.json` suggestions include optional starter features (Reactiph, the chatbot's packages) that an existing site can skip.
+    Ask your agent to "update the theme". The `update-theme` skill runs `php bin/taw sync`, which updates `functions.php`, `bin/`, CI and the framework skills, and never touches `Blocks/`, `inc/` or templates. For `composer.json` and `package.json` it lists only what the scaffold has and your site lacks (since taw/core v1.78.0). It never proposes removing your own packages, and optional starter features (Reactiph, the chatbot's packages) are marked optional so an existing site can skip them.
   </Step>
 
   <Step title="Update the package" icon="download" title-type="p">

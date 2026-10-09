@@ -4,6 +4,23 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-10-08" description="taw/core v1.78.0, taw-theme v1.12.45, taw-gutenberg v0.3.43: safer theme updates, ready for updating every site at once." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026 — safer theme updates
+
+- **taw/core v1.78.0:** `php bin/taw sync` compares `composer.json` and `package.json` with the scaffold by rule.
+  - It suggests only what the scaffold has and your site lacks: missing keys or repositories, and raised version constraints.
+  - It never proposes removing your own packages, and never reads `extra` (where the companion key lives).
+  - Optional starter features (Reactiph, the chatbot) are marked optional.
+  - `--apply-manifests` writes the suggestions.
+- **taw-theme v1.12.45:** the `update-theme` skill has a batch mode for an agent updating several themes at once.
+  - It skips a theme with uncommitted changes instead of asking.
+  - It returns docs changes as proposals.
+  - It commits on its own branch, never pushes, and reports in a fixed format.
+- **taw-gutenberg v0.3.43:** taw/core v1.78.0.
+
+</Update>
+
 <Update label="2026-10-08" description="taw-fleet v1.2.0: its own window, update with agent, and a start/restart fix." tags={["taw-fleet"]}>
 
 ## October 2026 — taw-fleet v1.2.0
