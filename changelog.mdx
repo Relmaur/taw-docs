@@ -4,6 +4,21 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-10-09" description="taw/core v1.79.0: content imports keep what they're given. taw-theme v1.12.47, taw-gutenberg v0.3.45." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026 — safer content imports
+
+- **taw/core v1.79.0:** the first round of Content Interchange fixes, on the import side:
+  - comments are no longer duplicated on every import;
+  - content keeps embeds and `&`;
+  - password-protected posts stay protected;
+  - date and term changes travel;
+  - a failed write never lands on another post.
+- Snapshot schema 1.3. Older snapshots still import.
+- **taw-theme v1.12.47, taw-gutenberg v0.3.45:** taw/core 1.79.0.
+
+</Update>
+
 <Update label="2026-10-09" description="taw-fleet v1.7.0: check every theme at once; a menu of all actions." tags={["taw-fleet"]}>
 
 ## October 2026 — check every theme, find any action

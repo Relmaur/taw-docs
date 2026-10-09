@@ -50,8 +50,11 @@ exist and already run the TAW stack.
 ## What's in a snapshot
 
 `TAW\Core\Content\Exporter::snapshot($scope)` produces a plain array, `json_encode`-ready.
-`schema` is `"1.2"` (`taw/core` v1.52.0+); the importer also accepts `"1.0"` and `"1.1"`. Full JSON
-Schema: `resources/schema/content-interchange-1.2.json` in the `taw/core` package.
+`schema` is `"1.3"` (`taw/core` v1.79.0+); the importer also accepts `"1.0"`–`"1.2"`, and warns
+when a file's minor version is newer than its own. Full JSON Schema:
+`resources/schema/content-interchange-1.3.json` in the `taw/core` package. 1.3 adds a post's
+`password`, a comment's `post_type`, keeps empty taxonomies as `[]` (so removed terms are
+cleared), and keys slug-less drafts by their local date.
 
 **Field keys:** a record's `fields` are keyed by the bare field id for `_taw_` fields
 (`"hero_heading"`), exactly as in 1.0 and 1.1, and by the full meta key for fields with any other
@@ -155,14 +158,20 @@ users → terms → media (sideload + build old→new ID map) → posts → comm
 3. **Portable transforms are reversed.** `page_on_front` / `page_for_posts` / `sticky_posts`
    (slugs), `post.parent` (slug), `featured_media` (filename) and `author` (`{login,email}`)
    all resolve back to a local ID before the diff and the write.
-4. **Posts** via `wp_insert_post` / `wp_update_post`; **field meta via `Metabox::writeMeta()`**
-   — the same sanitize + `wp_slash` path an admin metabox save uses. Author resolves
-   login → email → the importing user (with a warning).
+4. **Posts** via `wp_insert_post` / `wp_update_post`, written as an admin's save would be:
+   kses is lifted for the run (embeds, SVG and forms survive; `&` stays `&`), and
+   `content:import` runs as a user (`--user`, default the first administrator). **Field meta
+   goes through `Metabox::writeMeta()`**, the same sanitize + `wp_slash` path an admin metabox
+   save uses; a field nothing registers on the target is written as it came. Password, date
+   (both columns) and terms per taxonomy travel. Author resolves login → email → the importing
+   user (with a warning). A failed write is reported and nothing else is written for that post.
 5. **Users** via `wp_insert_user` / `wp_update_user`. Roles are **sanitised against the roles
-   the target site actually defines** — a role the target doesn't have is never granted.
-   New accounts get a random password unless a portable hash was exported.
-6. **Comments** are recreated, remapped to their post by slug, threading rebuilt from
-   `parent_ref`, counts recomputed.
+   the target site actually defines** — a role the target doesn't have is never granted, and a
+   user whose source roles don't exist here keeps the role they have. New accounts get a random
+   password unless a portable hash was exported.
+6. **Comments** are recreated once (matched by their own date, content and author email),
+   remapped to their post by type and slug, with their dates kept, threading rebuilt from
+   `parent_ref`, counts recomputed. A change-set `delete` deletes.
 7. **Settings** options — only if `--with-settings`.
 
 A clean **`--migrate` export → `import --yes` against the same site reports 0 created /
