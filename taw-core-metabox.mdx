@@ -483,7 +483,7 @@ new Metabox([
 ]);
 ```
 
-- `Metabox::get()`, `getMeta()`, `get_repeater()` and the other getters, and `Taw::post()->field()`, return the default while the stored value is empty (`''` or nothing; `'0'` is a value). The page renders as it did with `?:`.
+- `Metabox::get()`, `getMeta()`, `get_repeater()` and the other getters, and `Taw::post()->field()`, return the default while the stored value is empty as `?:` saw it: nothing, `''`, `'0'`, or an empty JSON list (a repeater saved with no rows stores `'[]'`, an image field saved blank `'0'`). A checkbox's `'0'` is a value. The page renders as it did with `?:` (taw/core v1.80.1+).
 - The edit screen shows the default in the field, so saving the post keeps it.
 - Options pages take the same key, and `OptionsPage::get()` falls back to it.
 - A `?:` fallback lives only in code. A default can become a record: **Tools → TAW Data → Defaults** or `php bin/taw content:defaults --apply` writes the defaults into empty fields, with an undo. See [Content Interchange](/content-interchange#defaults-into-records).
