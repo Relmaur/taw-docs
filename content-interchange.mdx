@@ -50,10 +50,14 @@ exist and already run the TAW stack.
 ## What's in a snapshot
 
 `TAW\Core\Content\Exporter::snapshot($scope)` produces a plain array, `json_encode`-ready.
-`schema` is `"1.4"` (`taw/core` v1.82.0+); the importer also accepts `"1.0"`–`"1.3"`, and warns
+`schema` is `"1.5"` (`taw/core` v1.84.0+); the importer also accepts `"1.0"`–`"1.4"`, and warns
 when a file's minor version is newer than its own. Full JSON Schema:
-`resources/schema/content-interchange-1.4.json` in the `taw/core` package.
+`resources/schema/content-interchange-1.5.json` in the `taw/core` package.
 
+- **1.5** keys pages (any hierarchical type) by their `path`, the parents' slugs and its own as in
+  the page URL (`about/team`), so two pages with one slug under different parents stay two records,
+  and names a page's `parent` by its path. Term `meta` values are exported unserialized, and the
+  terms of every taxonomy the exported posts use are exported, not only public taxonomies.
 - **1.4** adds `refs`: the natural keys of every post, term and user the snapshot references by
   numeric ID (`post_select` values, and IDs in block attributes), keyed by the source ID, e.g.
   `"refs": {"posts": {"135": {"type": "case_study", "slug": "studio"}}}`. It also adds
@@ -72,8 +76,8 @@ post type, taxonomy or users, so two fieldsets sharing a field id each keep thei
 | --- | --- | --- |
 | `meta` | yes | `schema`, `generated_at`, `source` (URL, `taw/core` version, theme), and a `registry_fingerprint` (block IDs + `field_id → type`) so the importer can warn when the target's registry has drifted |
 | `options` | yes | Every `_taw_*` option (repeater / files **decoded to arrays**), plus a core allowlist — `blogname`, `blogdescription`, `show_on_front`, `page_on_front` / `page_for_posts` (**as slugs**) |
-| `terms` | yes | Per public taxonomy except `nav_menu`: `slug`, `name`, `description`, `parent` (by slug), `meta`, plus `fields` (decoded, keyed like post fields) when the taxonomy has [term fieldsets](/data-layer#fields-on-terms) |
-| `posts` | yes | `page` / `post`, every **public** CPT, **and every CPT with a `Metabox` attached** — except `taw_submission` and framework-internal types. Per post: `type`, `slug`, `status`, `title`, `excerpt`, `content`, `menu_order`, `date`, `author` (`{login, email}`), `comment_status`, `ping_status`, `parent` (by slug), `template`, `terms`, `featured_media` (filename), `fields` (each field's value decoded by its registered type, any prefix) |
+| `terms` | yes | Per public taxonomy, and every taxonomy the exported posts use, except `nav_menu`: `slug`, `name`, `description`, `parent` (by slug), `meta` (keys not starting with `_`, unserialized), plus `fields` (decoded, keyed like post fields) when the taxonomy has [term fieldsets](/data-layer#fields-on-terms) |
+| `posts` | yes | `page` / `post`, every **public** CPT, **and every CPT with a `Metabox` attached** — except `taw_submission` and framework-internal types. Per post: `type`, `slug`, `path` (pages and other hierarchical types), `status`, `title`, `excerpt`, `content`, `menu_order`, `date`, `author` (`{login, email}`), `comment_status`, `ping_status`, `parent` (by path for pages, else by slug), `template`, `terms`, `featured_media` (filename), `fields` (each field's value decoded by its registered type, any prefix) |
 | `media` | yes | Every referenced attachment: `id`, `ref` / `filename`, `url`, `title`, `description`, `alt`, `caption`, `mime` |
 | `users` | **opt-in** — `--with-users` | `login`, `email`, `display_name`, `roles[]`, `meta` (`first_name`, `last_name`, `description`, `nickname`, `locale`), `user_registered`, plus `fields` when a fieldset targets [users](/data-layer#fields-on-users). Password hashes **only** with the separate `--with-user-passwords` |
 | `comments` | **opt-in** — `--with-comments` | Comments on exported posts: `post_ref` (slug), author fields, `content`, `date_gmt`, `approved`, `type`, `parent_ref` (in-file id for threading) |
@@ -138,8 +142,9 @@ These are **import-gated as well** — `content:import` skips them unless you al
 (`{ taw_changeset, operations: [...] }`, which `content:diff` emits). Records match by
 **natural key**, never by numeric ID:
 
-- posts by `(type, slug)`, or `(type, match_key)` for a slug-less draft. Drafts and private posts
-  match by slug too, even from `bin/taw` with no user (`taw/core` v1.52.1+)
+- posts by `(type, slug)`; pages and other hierarchical types by `(type, path)` (1.5); a slug-less
+  draft by `(type, match_key)`. Drafts and private posts match too, even from `bin/taw` with no
+  user (`taw/core` v1.52.1+)
 - options by key · terms by `(taxonomy, slug)`
 - users by login, then email · comments by a content hash
 
@@ -178,7 +183,7 @@ users → terms → media (sideload + build old→new ID map) → posts → comm
      the source's uploads that this site doesn't have keeps its source URL, so it still loads;
    - so importing a snapshot from another site twice reports nothing to change the second time.
 4. **Portable transforms are reversed.** `page_on_front` / `page_for_posts` / `sticky_posts`
-   (slugs), `post.parent` (slug), `featured_media` (filename) and `author` (`{login,email}`)
+   (slugs), `post.parent` (path or slug), `featured_media` (filename) and `author` (`{login,email}`)
    all resolve back to a local ID before the diff and the write.
 5. **Posts** via `wp_insert_post` / `wp_update_post`, written as an admin's save would be:
    kses is lifted for the run (embeds, SVG and forms survive; `&` stays `&`), and
@@ -195,6 +200,15 @@ users → terms → media (sideload + build old→new ID map) → posts → comm
    remapped to their post by type and slug, with their dates kept, threading rebuilt from
    `parent_ref`, counts recomputed. A change-set `delete` deletes.
 8. **Settings** options — only if `--with-settings`.
+
+**Page and category trees (1.5, v1.84.0).** Parents are applied before their children, pages and
+terms alike, whatever order the source lists them in, and a parent removed at the source is removed
+here. A page that isn't at its path on this site is paired, for the whole import at once, with this
+site's page of the same slug that isn't at any path of the import (a page moved at the source): one
+of each, or by a title only one page on each side has. Anything else is created, never written over
+another page. A parent that's neither on this site nor in the import shows in the dry run's warnings
+instead of as a change. Term `meta` is compared (`meta.<key>`) and written; an older snapshot's
+serialized value is decoded (never into objects).
 
 A clean **`--migrate` export → `import --yes` against the same site reports 0 created /
 0 updated / 0 deleted.** `plan()` reports zero changes and `apply()` skips every record the

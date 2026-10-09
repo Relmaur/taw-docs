@@ -4,6 +4,18 @@ description: >-
   Release history for TAW Theme and the taw/core framework package.
 ---
 
+<Update label="2026-10-09" description="taw/core v1.84.0: content imports keep page and category trees (schema 1.5). taw-theme v1.12.51, taw-gutenberg v0.3.51." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026 — page and category trees that survive a move
+
+- **taw/core v1.84.0:** pages are matched by their path (`about/team`), so two pages with the same slug under different parents no longer overwrite each other, and a page moved at the source is moved here, not duplicated.
+- Parents are set whatever order the source lists pages and categories in, and a parent removed at the source is removed here.
+- Category and tag meta is imported (it was exported but never written), and terms of private taxonomies arrive with their names.
+- Snapshot schema 1.5. Older snapshots still import; production sites need this release for their snapshots to carry page paths.
+- **taw-theme v1.12.51, taw-gutenberg v0.3.51:** taw/core 1.84.0.
+
+</Update>
+
 <Update label="2026-10-09" description="taw/core v1.83.0: content imports carry media metadata. taw-gutenberg v0.3.50." tags={["taw/core", "taw-gutenberg"]}>
 
 ## October 2026 — images keep their alt text and captions across a move
