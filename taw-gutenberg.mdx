@@ -48,7 +48,7 @@ way.
     Edit the JSON files in `taw-schema/`. The theme ships a working example (a `book` post type, a `genre` taxonomy and a `book_details` fieldset). Check your changes without WordPress:
 
     ```bash
-    php bin/taw schema:validate
+    vendor/bin/taw schema:validate
     ```
   </Step>
 </Steps>
@@ -64,7 +64,8 @@ way.
 | `app/Setup/Blocks.php` | Registers every `src/blocks/*/block.json` through taw/core's `Assets\Vite` |
 | `src/blocks/` | Custom blocks (TypeScript + SCSS), built into `dist/` by Vite |
 | `taw-schema/*.json` | Your content model |
-| `bin/taw` | `schema:validate` |
+| `taw.json` | The update policy; see [Updating a site](/updating) |
+| `bin/taw` | Hands over to taw/core's `vendor/bin/taw` (6 commands in a block theme) |
 
 Every service implements a small `Bootable` contract whose `register()` only adds WordPress hooks.
 That keeps the theme unit-testable without WordPress. CI runs PHPStan at level max, the unit tests,
@@ -118,7 +119,16 @@ define('TAW_EDITING_BYPASS_USERS', ['your-login']);
 `define('TAW_EDITING_OFF', true);` turns every lock off if you lock yourself out. Tools → TAW Editing
 shows what's in effect.
 
-## What's next
+## Show your fields in the block editor
 
-Block Bindings (bind core blocks to taw fields in templates) and a loop block are on the taw/core
-roadmap. TAW Gutenberg adopts each one first.
+taw/core's block-editor features work in TAW Gutenberg, and `templates/single-book.html` shows each one:
+
+- [Block Bindings](/block-bindings): a core block's content from a TAW field.
+- [Dynamic tags and expressions](/dynamic-tags): live values inside text, with [functions](/expression-functions).
+- [Conditions](/conditions): show a value or a block only when rules hold.
+- [Dynamic block settings](/dynamic-block-settings): classes, colors and attributes from your data.
+- [TAW Loop](/loop): repeat a design for each repeater row, related post, term or image.
+
+## The taw command
+
+A block theme gets the 6 [`taw` commands](/taw-command) that don't need the classic scaffold: `update`, `upgrade`, `policy`, `skills:sync`, `docs:sync` and `schema:validate`. See [Updating a site](/updating).

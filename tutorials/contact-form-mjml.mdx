@@ -27,7 +27,7 @@ By the end of this tutorial you will have a `ContactBlock` that registers a cont
     Generate a UI Block for the contact form. A UI Block (not MetaBlock) is the right choice here — the form doesn't need metabox fields; it manages its own data through the Forms API.
 
     ```bash
-    php bin/taw make:block ContactBlock --type=ui --with-style
+    vendor/bin/taw make:block ContactBlock --type=ui --with-style
     composer dump-autoload
     ```
 
@@ -88,7 +88,7 @@ By the end of this tutorial you will have a `ContactBlock` that registers a cont
             });
         }
 
-        protected function defaultData(): array
+        protected function defaults(): array
         {
             return [];
         }

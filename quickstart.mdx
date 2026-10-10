@@ -1,34 +1,40 @@
 ---
 title: Quickstart
 description: >-
-  Install TAW Theme, start the Vite dev server, scaffold your first MetaBlock,
-  and render it on a page — in under 10 minutes.
+  Create a TAW site, scaffold your first block with the taw command, render it on a page, and keep the
+  site current with one command.
 ---
 
-## Before you start
+This guide builds a site on **TAW Theme**, the classic theme: PHP blocks with metabox fields, Vite, Tailwind and Alpine. For a block (full site editing) site, install **TAW Gutenberg** the same way and continue with [TAW Gutenberg](/taw-gutenberg).
 
-Make sure your environment meets these requirements:
+## Before you start
 
 <Callout kind="alert" collapsed="false">
   - **WordPress** 6.0+
   - **PHP** 8.2+
   - **Composer** 2.0+
-  - **Node.js** 20.19+
-  - **npm** 8+
-  - **Git**, plus an empty repository already created on GitHub (or your git host of choice) for this project
-</Callout>
-
-<Callout kind="info" collapsed="false">
-  TAW does not use Gutenberg blocks or ACF. Blocks are plain PHP classes and templates — no block editor registration needed.
+  - **Node.js** 20.19+ and npm (TAW Gutenberg needs Node 22.12+)
+  - **Git**, and a GitHub account for the theme's repository
 </Callout>
 
 ---
 
-## Step 1 — Install the theme
+## Step 1 — Create the site
 
-<Steps>
-  <Step title="Scaffold a new TAW Theme project" icon="terminal" title-type="p">
-    Run this from your WordPress `wp-content/themes` directory. Replace `my-theme` with your desired folder name.
+<Tabs>
+  <Tab title="With taw-fleet" icon="layout-dashboard">
+    [taw-fleet](/taw-fleet) creates the Local site and the theme together. You need macOS with [Local](https://localwp.com) open.
+
+    ```bash
+    brew install Relmaur/tap/taw-fleet
+    taw-fleet create "Acme Shop" --classic
+    ```
+
+    It asks for the WordPress admin's username and email, creates and starts the Local site, installs TAW Theme into `wp-content/themes/acme-shop`, builds the front-end assets, activates the theme, and makes the theme folder a git repository with a first commit. The admin password is shown once at the end. Press `n` in the dashboard for the same thing as a form.
+  </Tab>
+
+  <Tab title="With Composer" icon="terminal">
+    Run the installer from your WordPress `wp-content/themes` folder:
 
     ```bash
     cd wp-content/themes
@@ -37,73 +43,32 @@ Make sure your environment meets these requirements:
       --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-create"}'
     ```
 
-    This creates the theme folder with the correct structure, pulls in the `taw/core` framework package, and runs `npm install`. Without `TAW_STARTER`, the installer asks which TAW theme you want: this guide covers **taw-theme** (the classic theme). For the block theme, see [TAW Gutenberg](/taw-gutenberg).
+    It installs TAW Theme with taw/core and runs `npm install`. Without `TAW_STARTER`, it asks which theme you want. Then activate the theme in **WordPress Admin → Appearance → Themes**, and make the folder a repository:
 
-    <Callout kind="info" collapsed="true">
-      You can also install the theme package directly:
-      `composer create-project taw/theme my-theme --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-theme"}'`
-    </Callout>
-  </Step>
-
-  <Step title="Initialize git and push to your own repository" icon="git-branch" title-type="p">
     ```bash
     cd my-theme
-
-    git init
-    git add -A
-    git commit -m "Initial commit"
-    git remote add origin <your-repo-url>
-    git push -u origin main
+    git init && git add -A && git commit -m "Initial commit"
     ```
+  </Tab>
+</Tabs>
 
-    <Callout kind="info" collapsed="false">
-      `<your-repo-url>` assumes an empty repository already exists for this project — create one on github.com first, or use `gh repo create <name> --private --source=. --remote=origin --push` to create it, add the remote, and push in one step (in which case skip the last two lines above).
-    </Callout>
+Then push the theme to a new GitHub repository of its own, for example with `gh repo create acme-shop --private --source=. --push`. The theme shares no git history with the TAW Theme repository, and doesn't need to: framework updates arrive through taw/core, not through a merge.
 
-    A shared git history with the canonical `taw-theme` repo isn't required — framework updates sync via direct file copy (`update-theme`), not a git merge. A single clean commit is enough.
-  </Step>
+Check that the `taw` command works:
 
-  <Step title="Install PHP and JS dependencies" icon="download" title-type="p">
-    ```bash
-    cd my-theme
+```bash
+vendor/bin/taw list
+```
 
-    composer install   # PHP deps — pulls taw/core
-    npm install        # Frontend dependencies
-    ```
-  </Step>
+<Callout kind="success" collapsed="false">
+  You see the TAW CLI with its commands, such as `make:block`, `update` and `content:export`. See [The taw command](/taw-command).
+</Callout>
 
-  <Step title="Start the Vite dev server" icon="zap" title-type="p">
-    ```bash
-    npm run dev
-    ```
+Start Vite while you work. It serves CSS and JS with hot reload on port 5173:
 
-    Vite starts on port 5173 with hot module reloading. Leave this running while you develop — CSS and JS changes reflect instantly in the browser without a full reload.
-  </Step>
-
-  <Step title="Activate the theme in WordPress" icon="monitor" title-type="p">
-    - Log in to your WordPress admin.
-    - Go to **Appearance → Themes**.
-    - Find your new theme and click **Activate**.
-
-    Visit the frontend — you should see the TAW Theme layout rendered with Vite-powered assets.
-  </Step>
-
-  <Step title="Set up framework-sync and optional integrations" icon="refresh-cw" title-type="p">
-    Your new project ships with `.github/workflows/framework-sync.yml` from the first commit — a weekly check that bumps `taw/core`, syncs framework-owned scaffold files, and opens a pull request if anything changed.
-
-    <Callout kind="tip" collapsed="false">
-      If you're working with Claude Code, run the **`project-init`** skill now — it checks `gh` CLI auth, enables the required GitHub setting below with confirmation, triggers a real run to verify the whole pipeline works, and walks through optional integrations (Cloudflare Turnstile, transactional email, CSS Studio, Visual Editor) as explicit yes/no questions.
-    </Callout>
-
-    Setting it up by hand instead just needs one manual setting enabled on the new repo:
-
-    **Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"**
-
-    <Callout kind="alert" collapsed="false">
-      This is off by default on every new GitHub repo. Without it, the workflow still runs on schedule, but its PR-opening step silently fails — nothing breaks loudly, it just never surfaces the update.
-    </Callout>
-  </Step>
-</Steps>
+```bash
+npm run dev
+```
 
 ---
 
@@ -116,7 +81,7 @@ TAW has two block types. For this quickstart we'll build a **MetaBlock** — a p
     Run the block generator from your theme root:
 
     ```bash
-    php bin/taw make:block Hero --type=meta --with-style
+    vendor/bin/taw make:block Hero --type=meta --with-style
     composer dump-autoload
     ```
 
@@ -207,7 +172,7 @@ TAW has two block types. For this quickstart we'll build a **MetaBlock** — a p
 
 ## Step 3 — Render the block on a page
 
-TAW blocks are not Gutenberg blocks. You queue and render them from your PHP templates.
+In TAW Theme, blocks aren't Gutenberg blocks: you queue and render them from your PHP templates.
 
 <Steps>
   <Step title="Queue and render in a WordPress template" icon="play" title-type="p">
@@ -267,7 +232,7 @@ flowchart TD
 UI Blocks are stateless components that receive props at render time — no metaboxes, no post_meta.
 
 ```bash
-php bin/taw make:block Button --type=ui --with-style
+vendor/bin/taw make:block Button --type=ui --with-style
 composer dump-autoload
 ```
 
@@ -281,7 +246,7 @@ class Button extends Block
 {
     protected string $id = 'button';
 
-    protected function defaultData(): array
+    protected function defaults(): array
     {
         return [
             'text'  => '',
@@ -341,38 +306,34 @@ Vite outputs content-hashed CSS and JS to `public/build/`. WordPress loads these
 
 ---
 
-## Useful CLI commands
+## Keep the site current
 
-| Command | What it does |
-| --- | --- |
-| `php bin/taw make:block Name --type=meta` | Scaffold a MetaBlock |
-| `php bin/taw make:block Name --type=ui` | Scaffold a UI Block |
-| `php bin/taw make:block Name --group=sections` | Scaffold inside `Blocks/sections/Name/` |
-| `php bin/taw make:block Name --with-style --with-script` | Include `style.scss` and `script.js` |
-| `php bin/taw export:block Hero` | Export a block as a portable ZIP |
-| `php bin/taw import:block path/to/Hero.zip` | Import a block from a ZIP |
-| `php bin/taw sync --json` | Check for drift: `taw/core` version + `taw-theme` scaffold |
-| `php bin/taw sync --apply` | Also write safe (Tier 1) scaffold changes |
-| `composer dump-autoload` | Rebuild classmap after adding new block classes |
+When taw/core releases a new version, update the theme in one step:
+
+```bash
+vendor/bin/taw update
+```
+
+It works on a new branch, updates taw/core and the framework's files, runs the migrations and the checks, and opens a pull request. The theme's `taw.json` decides what it may change. See [Updating a site](/updating).
 
 ---
 
 ## Next steps
 
 <Columns cols="2">
-  {/* <Card title="Core Concepts" href="/concepts" icon="book-open" horizontal="false">
-    Understand how blocks, MetaBlocks, assets, and the boot process fit together.
-  </Card> */}
-
-  <Card title="TAW Core tools" href="/taw-core" icon="settings" horizontal="false">
-    Metabox engine, forms, mail, options pages, navigation menus, SVG, and the REST API.
+  <Card title="The taw command" href="/taw-command" icon="terminal" horizontal="false">
+    Every command a theme gets, and how to add your own.
   </Card>
 
-  <Card title="Theme boot and performance" href="/taw-theme" icon="rocket" horizontal="false">
-    `Theme::boot()`, performance flags, Vite helpers, and image optimization.
+  <Card title="taw-fleet" href="/taw-fleet" icon="layout-dashboard" horizontal="false">
+    One dashboard for every TAW site on your Mac and its production copy.
   </Card>
 
-  {/* <Card title="Help Center" href="/help-center" icon="help-circle" horizontal="false">
-    FAQs and troubleshooting for common setup issues.
-  </Card> */}
+  <Card title="Core concepts" href="/concepts" icon="book-open" horizontal="false">
+    How blocks, MetaBlocks, assets and the boot process fit together.
+  </Card>
+
+  <Card title="Metabox and editor tooling" href="/taw-core-metabox" icon="edit" horizontal="false">
+    Every field type and option for your blocks' metaboxes.
+  </Card>
 </Columns>

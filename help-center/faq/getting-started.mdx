@@ -8,7 +8,7 @@ description: >-
 
 **Do I need Gutenberg or the classic editor?**
 
-Neither is required. TAW does not use Gutenberg blocks. Your blocks are plain PHP classes and templates — no block editor registration, no `block.json`. The classic editor works fine, and so does Gutenberg (it just won't have TAW blocks in the inserter, which is intentional).
+It depends on the theme. In TAW Theme, the classic theme this FAQ covers, blocks are plain PHP classes and templates, with no block editor registration and no `block.json`. The classic editor works fine, and so does Gutenberg (it just won't have TAW Theme's blocks in the inserter, which is intentional). [TAW Gutenberg](/taw-gutenberg) is the block theme, built for the Site Editor.
 
 **Do I need ACF or any other plugin?**
 
@@ -52,8 +52,8 @@ Two common causes:
 Yes. Use `--group=` when scaffolding:
 
 ```bash
-php bin/taw make:block Hero --group=sections   # → Blocks/sections/Hero/
-php bin/taw make:block Badge --group=ui/cards  # → Blocks/ui/cards/Badge/
+vendor/bin/taw make:block Hero --group=sections   # → Blocks/sections/Hero/
+vendor/bin/taw make:block Badge --group=ui/cards  # → Blocks/ui/cards/Badge/
 ```
 
 `BlockLoader::loadAll()` scans recursively to any depth.
@@ -97,16 +97,14 @@ This returns the correct URL whether the Vite dev server is running or not.
 
 **How do I update the framework?**
 
+On taw/core 1.91 or later:
+
 ```bash
-composer update taw/core
+vendor/bin/taw update
 ```
 
-`taw/core` is versioned independently of your theme. You can update it across all your TAW projects without touching blocks or templates.
+It updates taw/core and the framework's files on a new branch, runs the checks, and opens a pull request, without touching your blocks or templates. On an older taw/core, run `composer update taw/core --with-dependencies`. See [Updating a site](/updating) and [Upgrading taw/core](/help-center/guides/upgrading-taw-core).
 
 **Does TAW have auto-updates in WordPress admin?**
 
-No. The `ThemeUpdater` class has been removed from TAW Theme. Theme and framework updates are managed through Composer:
-
-```bash
-composer update taw/core
-```
+Not by default. taw/core has a `TAW\Core\Theme\ThemeUpdater` that shows WordPress's **Update Available** notice from a theme's GitHub Releases, but TAW Theme doesn't turn it on (see [Theme updates](/taw-theme#theme-updates-auto-updater)). Updates normally go through Composer and `vendor/bin/taw update`, so the theme's code changes in git, with a pull request.

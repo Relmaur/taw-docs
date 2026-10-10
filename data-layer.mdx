@@ -114,8 +114,8 @@ cached until one of them changes.
 ### Validate without WordPress
 
 ```bash
-php bin/taw schema:validate            # this theme's taw-schema/
-php bin/taw schema:validate path/ --json
+vendor/bin/taw schema:validate            # this theme's taw-schema/
+vendor/bin/taw schema:validate path/ --json
 ```
 
 It exits with an error on invalid files, pointing at each problem (for example
@@ -134,7 +134,7 @@ taxonomies that target a post type these files don't define. Run it in CI.
   </Expandable>
 
   <Expandable title="Field ids: qualified, but still namespace them" default-open="false">
-    Since `taw/core` v1.52.0, every field also has a qualified id, `"{fieldset}.{field}"` (group sub-fields `"{fieldset}.{group}_{sub}"`). REST meta, content export and import, the data panel, the visual editor and `bin/taw fields:get` / `fields:set` look fields up per post type (or taxonomy, or users) through it, so two fieldsets can share a field id and each keeps its own type and sanitizer. `Metabox::fieldsFor('post', 'book')` lists the fields stored on a post type.
+    Since `taw/core` v1.52.0, every field also has a qualified id, `"{fieldset}.{field}"` (group sub-fields `"{fieldset}.{group}_{sub}"`). REST meta, content export and import, the data panel, the visual editor and `vendor/bin/taw fields:get` / `fields:set` look fields up per post type (or taxonomy, or users) through it, so two fieldsets can share a field id and each keeps its own type and sanitizer. `Metabox::fieldsFor('post', 'book')` lists the fields stored on a post type.
 
     The bare-id helpers are still ambiguous: `Metabox::get_field_config($id)` keeps one entry per id, and on a post type with both, `Metabox::get($postId, $id)` reads the `_taw_` one. So a shared id is still reported with a debug notice (and an admin notice when `WP_DEBUG` is on). Prefix ids by entity (`book_author`, not `author`).
   </Expandable>

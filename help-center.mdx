@@ -27,7 +27,7 @@ Find what you need below, or browse the sections directly.
 ## Frequently asked questions
 
 **Does TAW use Gutenberg blocks or ACF?**
-No. TAW has its own block system (PHP classes + templates) and its own metabox engine. No Gutenberg block registration, no ACF, no plugin dependencies.
+No ACF, and no plugin dependencies: TAW has its own data layer and metabox engine. Gutenberg depends on the theme. [TAW Theme](/taw-theme), the classic theme, builds pages from its own PHP blocks (classes and templates), not Gutenberg blocks. [TAW Gutenberg](/taw-gutenberg) is a block theme: pages are core blocks, and your fields reach them through [Block Bindings](/block-bindings) and [dynamic tags](/dynamic-tags).
 
 **What's the difference between a MetaBlock and a UI Block?**
 MetaBlocks own their data through metaboxes — editors fill in content in the WordPress admin and the block renders it automatically. UI Blocks are stateless components that receive props at render time and have no admin UI of their own. See [Quickstart](/quickstart#add-a-second-block-type-ui-block) for examples of both.

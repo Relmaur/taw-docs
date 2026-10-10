@@ -1,0 +1,93 @@
+---
+title: "The taw command"
+description: "vendor/bin/taw: the command-line tool every TAW theme gets from taw/core. Scaffold blocks, read and write fields, move content, sync the framework and update the site."
+---
+
+`taw` is TAW's command-line tool. It ships inside taw/core as `vendor/bin/taw`, so every theme that installs taw/core has it, and new commands arrive with `composer update taw/core`. You use it to scaffold blocks, read and write fields, move content between sites, keep the theme in step with the framework, and update the whole site in one step.
+
+```bash
+vendor/bin/taw list              # every command this theme has
+vendor/bin/taw help content:import
+```
+
+<Callout kind="info">
+  The tool ships with taw/core 1.90 and later. Before that, each theme carried its own `bin/taw` with a fixed list of commands.
+</Callout>
+
+## `vendor/bin/taw` and `bin/taw`
+
+Both TAW themes still have a `bin/taw` file. It hands over to taw/core's tool, so these two lines do the same thing:
+
+```bash
+vendor/bin/taw make:block Hero --type=meta
+php bin/taw make:block Hero --type=meta
+```
+
+These docs write `vendor/bin/taw`. Use `php bin/taw` in a theme whose taw/core is older than 1.90: there, `bin/taw` builds the old command list from whatever taw/core has.
+
+The tool works on one theme: the folder that holds `vendor/`. To point it somewhere else, set `TAW_THEME_DIR`.
+
+## What a theme gets
+
+WordPress treats a folder with `theme.json` and a `templates/` folder as a block theme, and so does `taw`. A classic theme ([TAW Theme](/taw-theme)) gets all 33 commands. A block theme ([TAW Gutenberg](/taw-gutenberg)) gets the 6 that don't depend on the classic scaffold.
+
+| Family | Commands | Classic | Block |
+|---|---|---|---|
+| Updates | `update`, `upgrade`, `policy` | ✓ | ✓ |
+| Framework files | `skills:sync`, `docs:sync` | ✓ | ✓ |
+| | `sync`, `configs:sync` | ✓ | |
+| Schema | `schema:validate` | ✓ | ✓ |
+| Blocks | `make:block`, `export:block`, `import:block` | ✓ | |
+| Site state | `inspect`, `fields:get`, `fields:set` | ✓ | |
+| Content | `content:export`, `content:import`, `content:diff`, `content:defaults` | ✓ | |
+| WordPress | `wp`, `log:tail` | ✓ | |
+| SEO and static export | `seo:extract`, `seo:inject`, `export:static` | ✓ | |
+| Chatbot | `content:reindex`, `content:reindex-kb`, `rag:usage` | ✓ | |
+| Reference corpora | `corpus:*`, `catechism:*`, `canon-law:*` | ✓ | |
+| Icons | `icons:sync` | ✓ | |
+
+Every command, with its arguments and options: [Command reference](/taw-command-reference).
+
+## Commands that need WordPress
+
+Some commands read or write the site's database, so they load WordPress first:
+
+- `inspect` and `fields:*`;
+- `content:export`, `content:import`, `content:defaults`, `content:reindex*`;
+- `seo:*`, `export:static`, `rag:usage`;
+- the `*:install` corpus commands.
+
+They find `wp-load.php` by walking up from the theme folder, up to six levels. On a Local site, the site must be running. `taw` finds Local's database socket for you, and `vendor/bin/taw wp` does the same for WordPress's own WP-CLI.
+
+Everything else works on files alone: scaffolding, schema checks, `content:diff`, syncs, migrations and updates. You can run those in CI or with the site stopped.
+
+## Habits shared by every command
+
+- **Check first, then write.** Commands that change files only report until you add `--apply`, like `skills:sync`, `docs:sync`, `configs:sync`, `upgrade` and `content:defaults`. `content:import` previews until you add `--yes`.
+- **`--json` for scripts.** Most commands take it. taw-fleet and the theme CI read that output.
+- **Undo is built in where data changes.** `content:import --undo` reverses an import from its journal, and `content:defaults --undo=<journal>` reverses saved defaults.
+
+## Where `taw` runs for you
+
+- **`composer update`** runs the theme's pending migrations through taw/core's Composer hook. See [Updating a site](/updating).
+- **Theme CI** runs `vendor/bin/taw schema:validate` in taw/core's shared workflow, and the weekly framework-sync workflow runs `vendor/bin/taw sync --apply`, then `vendor/bin/taw upgrade --apply`.
+- **[taw-fleet](/taw-fleet)** runs `php bin/taw sync`, `inspect` and `content:import` in the theme folder for its scaffold check, site view and content pull.
+
+## Add your own commands
+
+A site can add commands without touching `bin/`, which the framework owns and replaces on sync. Write a [Symfony Console](https://symfony.com/doc/current/console.html) command, then register it from a file the theme's `composer.json` autoloads:
+
+```php inc/cli.php
+<?php
+TAW\CLI\CommandRegistry::add(fn (string $themeDir) => new App\Cli\ReportCommand($themeDir));
+```
+
+```json composer.json
+"autoload": { "files": ["inc/cli.php"] }
+```
+
+Run `composer dump-autoload`, then `vendor/bin/taw list` to see it. The factory gets the theme folder, so the command can work on the right theme.
+
+<Callout kind="info">
+  A registered command can't take a built-in command's name: if two names clash, `taw` keeps the built-in one. Pick a prefix of your own, like `site:report`.
+</Callout>

@@ -38,7 +38,7 @@ my-theme/
 ├── .claude/skills/         ← Claude Code skills (make-metablock, project-init, update-theme, …)
 ├── .github/workflows/      ← CI (lint, phpstan, smoke test) + weekly framework-sync, from commit 1
 ├── Blocks/                 ← your blocks go here
-├── bin/taw                ← CLI entry point
+├── bin/taw                ← hands over to vendor/bin/taw (the taw command)
 ├── inc/
 │   ├── customizations.php ← theme supports, nav menus, any other site-specific hooks
 │   ├── options.php        ← theme options page config
@@ -161,7 +161,7 @@ That's the whole file. `bootstrapFullSite()` does everything a theme used to hav
 Use the CLI to generate the files:
 
 ```bash
-php bin/taw make:block Hero --type=meta --with-style
+vendor/bin/taw make:block Hero --type=meta --with-style
 composer dump-autoload
 ```
 
@@ -250,7 +250,7 @@ Vite outputs content-hashed files to `public/build/`. WordPress loads these when
 
 - **Add more blocks** — repeat the scaffold + dump-autoload cycle for each new section.
 - **Organise into groups** — `--group=sections` puts the block inside `Blocks/sections/Hero/`.
-- **Export and reuse blocks** — `php bin/taw export:block Hero` creates a ZIP you can import into any TAW project.
+- **Export and reuse blocks** — `vendor/bin/taw export:block Hero` creates a ZIP you can import into any TAW project.
 - **Add site-wide options** — configure `inc/options.php` with an `OptionsPage` for settings like phone number, logo, and footer text.
 - **Add a contact form** — drop a `Form` config into any template for CSRF-protected, validated form handling.
 - **Finish onboarding checks** — if you skipped step 6 above, run the `project-init` skill (or its manual equivalent) before shipping any real feature work.

@@ -1,8 +1,32 @@
 ---
 title: Changelog
 description: >-
-  Release history for TAW Theme and the taw/core framework package.
+  Release history for every TAW piece: taw/core and its taw command, TAW Theme, TAW Gutenberg,
+  taw-fleet and the TAW Companion.
 ---
+
+<Update label="2026-10-09" description="taw/core v1.91.1: migrations follow taw.json, edited agent docs are kept, and update shows its progress." tags={["taw/core"]}>
+
+## October 2026: updates that respect the site's choices
+
+- **taw/core v1.91.1:** migrations follow `taw.json` wherever they run: in `vendor/bin/taw update`, in the Composer hook and in `vendor/bin/taw upgrade --apply`. With `"scaffold": "off"` or `"docs": "off"`, the matching migration is held back, with a line that says how to do it by hand. See [Updating a site](/updating#what-the-policy-governs).
+- **Edited agent docs are kept.** The `1.91.0/agent-docs` migration and `docs:sync --apply` replace only copies identical to a version the scaffolds shipped. An edited copy stays, with the steps to move your notes; `docs:sync --apply --force` replaces it anyway. In 1.91.0 they replaced edited copies too: if that happened to a theme, its notes are in git history.
+- **`sync --apply`** now only reports the agent docs and the configs; `docs:sync` and `configs:sync` write them. The weekly framework-sync workflow runs `vendor/bin/taw upgrade --apply` after `sync`.
+- **`vendor/bin/taw update`** prints its progress as it goes (on stderr with `--json`), keeps quoted parts of `--composer` whole, so Local's paths with spaces work, and `--plan --json` prints JSON.
+
+</Update>
+
+<Update label="2026-10-09" description="Docs: the taw command and taw-fleet at the center, every page checked against the code." tags={["docs"]}>
+
+## October 2026: the docs, built around the tools
+
+- **New navigation:** Start here, then [the `taw` command](/taw-command), then [taw-fleet](/taw-fleet), then the themes, the data layer, the block editor and the taw/core PHP reference. Every existing page keeps its URL.
+- **New pages:** [How TAW fits together](/ecosystem), the [taw command reference](/taw-command-reference) (all 33 commands with their options), and for taw-fleet [Dashboard and keys](/taw-fleet-dashboard), the [Command reference](/taw-fleet-commands) and [Production, PRs and deploys](/taw-fleet-production).
+- **Rewritten:** the Introduction and the Quickstart (create a site with taw-fleet or Composer, then `vendor/bin/taw`), and the [upgrading guide](/help-center/guides/upgrading-taw-core).
+- **Fixed:** the pages that said TAW has no Gutenberg blocks (true only of TAW Theme), the UI Block example (`defaults()`, not `defaultData()`), the Vite dev-server port notes, the companion's version constraint, and links to pages that don't exist. Commands are written `vendor/bin/taw` throughout.
+- **Removed:** the documentation template's sample pages (`authentication`, `notice`, `components`).
+
+</Update>
 
 <Update label="2026-10-09" description="taw/core v1.91.0: one-step updates. taw.json decides, vendor/bin/taw update does it all, and a written guide covers what a person must finish." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
 
@@ -24,6 +48,16 @@ description: >-
 - **taw/core v1.90.0** ships the `taw` command as `vendor/bin/taw`, so new commands arrive with `composer update taw/core`. Add your own with `TAW\CLI\CommandRegistry`. See [The taw command](/taw-core#the-taw-command).
 - **taw-theme v1.12.57** and **taw-gutenberg v0.3.59**: `bin/taw` now hands over to it, so `php bin/taw` keeps working.
 - This is the first step toward updates that need no questions: a TAW update becomes a plain `composer update`.
+
+</Update>
+
+<Update label="2026-10-09" description="taw-fleet v1.13.0: one palette for every action and skill, with the reason when one isn’t available." tags={["taw-fleet"]}>
+
+## October 2026: menus that explain themselves
+
+- **taw-fleet v1.13.0:** `:` (all actions) and `a` (ask Claude…) open one two-pane palette. The list is on the left, in groups: Recent, Site, Theme, Code & GitHub, Production, Claude and App. The highlighted entry's full description is on the right; for a skill, that includes where it comes from (taw/core, the scaffold or the site itself) and how to ask for it.
+- Entries that can't run right now stay listed, dimmed, with the reason, such as "no open pull request". Typing filters the list, and recently used entries come first.
+- See [Dashboard and keys](/taw-fleet-dashboard).
 
 </Update>
 
@@ -2071,7 +2105,7 @@ Two real bugs found fixing CI: (1) `composer install` needs the GitHub API to re
 
 ### Block system
 
-- **`defaultData()` method** — UI Blocks now use `defaultData()` instead of `defaults()` to define prop fallbacks.
+- **`defaultData()` method** — UI Blocks now use `defaultData()` instead of `defaults()` to define prop fallbacks. *(Correction, October 2026: this never shipped. UI Blocks define their prop fallbacks in `defaults()`, as `TAW\Core\Block\Block` requires.)*
 - **`getData(int|false $postId)`** — `MetaBlock::getData()` now accepts `int|false` so blocks return safe empty values on 404 pages.
 - **`boot()` for all blocks** — `BlockLoader` now calls `boot()` on every block type (not just UI Blocks) during discovery.
 

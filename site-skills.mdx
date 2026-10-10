@@ -18,13 +18,17 @@ A site's own skills and notes win over the framework's when they disagree. Put c
 
 ## Get them into a theme
 
+From taw/core 1.91, updates install them for you: `vendor/bin/taw update`, or a plain `composer update` through taw/core's Composer hook, runs the `1.89.0/site-skills` migration. It's skipped when the theme's `taw.json` sets `"scaffold": "off"`. See [Updating a site](/updating).
+
+To install them by hand (on taw/core 1.89, use `php bin/taw` instead of `vendor/bin/taw`):
+
 <Tabs>
   <Tab title="Classic theme" icon="layout-template">
-    `bin/taw sync` installs them with the rest of the scaffold. In taw-fleet, press `S` on the theme, or `U` to update every theme.
+    `vendor/bin/taw sync` installs them with the rest of the scaffold. In taw-fleet, press `S` on the theme, or `U` to update every theme.
 
     ```bash
     composer update taw/core
-    php bin/taw sync --apply
+    vendor/bin/taw sync --apply
     ```
   </Tab>
 
@@ -33,7 +37,7 @@ A site's own skills and notes win over the framework's when they disagree. Put c
 
     ```bash
     composer update taw/core
-    php bin/taw skills:sync --apply
+    vendor/bin/taw skills:sync --apply
     ```
   </Tab>
 </Tabs>
@@ -91,7 +95,7 @@ taw-fleet wp-remote ls-mxico POST /wp/v2/media --file hero.webp
 
 <ExpandableGroup>
   <Expandable title="X says the theme doesn't have the resolve-comments skill" default-open="false">
-    The theme's taw/core is older than 1.89, or the skills haven't been installed yet. Run `composer update taw/core` in the theme, then `S` in taw-fleet (classic) or `php bin/taw skills:sync --apply` (block).
+    The theme's taw/core is older than 1.89, or the skills haven't been installed yet. Run `composer update taw/core` in the theme, then `S` in taw-fleet (classic) or `vendor/bin/taw skills:sync --apply` (block).
   </Expandable>
 
   <Expandable title="wp-remote says there are no bot credentials" default-open="false">

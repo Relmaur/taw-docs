@@ -13,26 +13,26 @@ vendor/bin/taw update
 
 <Steps>
   <Step title="Checks it can start safely">
-    `taw.json` is valid, git has no uncommitted changes, and no earlier update is still waiting to be merged. Otherwise nothing changes, and it says what to do first.
+    `taw.json` is valid, the theme is a git repository on a branch, git has no uncommitted changes, and no earlier update is still waiting to be merged. Otherwise nothing changes, and it says what to do first.
   </Step>
   <Step title="Opens a branch">
-    All the work goes on `taw/update-<date>`. Your main branch is untouched until you merge.
+    All the work goes on `taw/update-<date>-<time>`. Your main branch is untouched until you merge.
   </Step>
   <Step title="Updates taw/core">
     Within the range the policy allows: any 1.x release, patch releases only, or a fixed version.
   </Step>
   <Step title="Applies the framework's files and the migrations">
-    Files the framework owns are replaced, and `composer.json` gets only what the new taw/core needs, never a removal. Each change a release makes to a theme runs as a migration. A migration that would overwrite your own edits stops and leaves you a "For you" step instead.
+    In a classic theme, files the framework owns are replaced, and `composer.json` and `package.json` get only what the new taw/core needs, never a removal. A block theme has no scaffold files to replace. Then the migrations run, through the taw/core just installed: each change a release makes to a theme is one migration. A migration that would overwrite your own edits leaves the file alone and gives you a "For you" step instead.
   </Step>
   <Step title="Runs the checks">
-    Lint, PHPStan, tests and the front-end build, as the policy lists them. A check that can't run on this machine, such as the build without `node_modules`, is marked "not run here", never passed.
+    Lint, PHPStan, tests and the front-end build, as the policy lists them. A check that can't run on this machine, such as the build without `node_modules`, is marked "not run here", never passed. The `smoke` check needs WordPress running, so the update leaves it to the pull request's CI.
   </Step>
   <Step title="Commits and delivers">
     One commit, then a branch, a pull request, or a pull request that merges itself when CI passes. Merging deploys production, as it always does.
   </Step>
 </Steps>
 
-`--plan` says what it would do without changing anything. `--no-deliver` stops at the commit.
+`--plan` says what it would do without changing anything. `--no-deliver` stops at the commit. Every option: [`update` in the command reference](/taw-command-reference#update).
 
 ## The policy: `taw.json`
 
@@ -55,13 +55,29 @@ The theme's `taw.json` belongs to the site, and updates never change it. Every s
 | Setting | Values |
 |---|---|
 | `core` | `minor` (every 1.x release), `patch` (bug fixes only), `pinned:<version>` |
-| `scaffold` | `auto` (replace framework-owned files), `off` |
+| `scaffold` | `auto` (replace framework-owned files, and point unedited `vite.config.js` and `phpstan.neon` at taw/core's base), `off` |
 | `manifests` | `add+bump` (what a new taw/core needs; never removals), `off` |
-| `docs` | `framework-sections`, `off` |
+| `docs` | `framework-sections` (the framework's part of the agent docs comes from taw/core: unedited copies become short files that import or point to it), `off` (updates leave the agent docs alone) |
 | `checks` | any of `lint`, `phpstan`, `test`, `build`, `smoke` (needs the site running) |
 | `deliver` | `pr`, `pr+merge` (merged when checks pass, which deploys), `branch` |
 
 `vendor/bin/taw policy` explains the current settings in words, and `--init` writes a starter file. If the file is invalid, updates refuse to run until it's fixed, so nothing is ever half applied.
+
+### What the policy governs
+
+Migrations follow `taw.json` wherever they run: in `vendor/bin/taw update`, in the Composer hook below, and in `vendor/bin/taw upgrade --apply`. `scaffold: off` holds back the `site-skills` and `configs` migrations, and `docs: off` holds back `agent-docs`. A held-back migration doesn't run, and it says so:
+
+```
+1.91.0/agent-docs is off in taw.json ("docs": "off"), so it didn't run. To do it anyway: vendor/bin/taw upgrade --explain 1.91.0/agent-docs (By hand).
+```
+
+The update report lists it under "Off in taw.json", and `upgrade --json` under `held`. With `scaffold: off`, `update` also skips the framework files.
+
+The commands for one part of the framework do what you ask, whatever the policy says: `sync --apply` (Tier 1 files), `skills:sync --apply`, `docs:sync --apply` and `configs:sync --apply`.
+
+<Callout kind="info">
+  The weekly `framework-sync.yml` workflow reads only part of `taw.json`. It updates taw/core within the theme's `composer.json` constraint, applies Tier 1 files, runs the migrations (which follow the policy), runs its own checks, and opens a pull request. Moving it onto `vendor/bin/taw update` is planned.
+</Callout>
 
 ## When something fails
 
@@ -71,11 +87,11 @@ Nothing is pushed. The work stays on the update branch, and `.taw/update-report.
 - why that kind of failure usually happens, and the steps to fix it;
 - how to check the fix, how to finish the update, and how to undo it.
 
-It's written for whoever picks it up. The site owner reads the summary at the top; a developer follows the steps. With "Fix with Claude", Claude gets the same file, so you can always finish an update by hand. When everything passes, the report is the pull request's description.
+It's written for whoever picks it up. The site owner reads the summary at the top; a developer follows the steps. It's also a complete prompt: to have Claude finish the update, give it this file. A person and an agent follow the same guide, so you can always finish an update by hand. When everything passes, the report is the pull request's description.
 
 ## Plain `composer update` works too
 
-Both scaffolds list taw/core's Composer hook, so `composer update` also runs any migrations the theme still needs, quietly when there are none. It never fails the update. `composer install` doesn't run them, because it must reproduce the lock file exactly.
+Both scaffolds list taw/core's Composer hook, so `composer update` also runs any migrations the theme still needs and `taw.json` allows, quietly when there are none. It never fails the update: a migration that fails prints how to do it by hand. Review the changes and commit them with `composer.lock`. `composer install` doesn't run migrations, because it must reproduce the lock file exactly.
 
 ```json
 "scripts": {
@@ -91,6 +107,24 @@ Turn it off with `TAW_NO_UPGRADE=1`, or `"extra": {"taw": {"upgrade": false}}` i
 | `vendor/bin/taw upgrade --apply` | Runs them |
 | `vendor/bin/taw upgrade --explain <id>` | What one does, why, how to do it by hand, how to undo it |
 
+<Callout kind="alert">
+  Add the hook only to a theme on taw/core 1.91 or later. On an older taw/core the class doesn't exist, and `composer update` fails.
+</Callout>
+
+The migrations so far:
+
+| Migration | Themes | Does |
+|---|---|---|
+| `1.89.0/site-skills` | classic and block | Installs or refreshes taw/core's [site skills](/site-skills) in `.claude/skills/` |
+| `1.91.0/agent-docs` | classic and block | Points `AGENTS.md`, `CLAUDE.md` and the Copilot and Windsurf rules at taw/core's copy |
+| `1.91.0/configs` | classic | Loads `vite.config.js` and `phpstan.neon` from taw/core's base |
+
+A migration keeps no record of having run: it looks at the theme each time, so running it again changes nothing.
+
+## From taw-fleet
+
+taw-fleet doesn't run `vendor/bin/taw update` yet. Its `u` key runs `composer update taw/core`, which runs the migrations through the hook above when the theme has it, and then lists the `UPGRADING.md` sections to check. Run `vendor/bin/taw update` in the theme folder for the one-step update. More: [Dashboard and keys](/taw-fleet-dashboard).
+
 ## What the framework keeps for you
 
 Since taw/core 1.91, the parts of a theme that only the framework changes ship with taw/core and update with it. The theme keeps short files of its own, so an update never has to merge your edits:
@@ -103,7 +137,11 @@ Since taw/core 1.91, the parts of a theme that only the framework changes ship w
 | `.github/workflows/ci.yml`, `framework-sync.yml` | Shared workflows in taw/core, at `@v1` |
 | `.claude/skills/` | taw/core's [site skills](/site-skills); a skill marked `owner: site` is never replaced |
 
-The migrations convert older themes. A file you edited is left as it is, with a "For you" step that says how to move your changes.
+The migrations convert older themes. A file you edited is left as it is, with a "For you" step that says how to move your changes. To replace an edited agent doc anyway, run `vendor/bin/taw docs:sync --apply --force`, then put your notes back under "This site".
+
+<Callout kind="alert">
+  In taw/core 1.91.0 only, the agent-docs migration also replaced copies a site had edited. If a theme updated to 1.91.0 and its `AGENTS.md` or `CLAUDE.md` held your own notes, they're in git history: `git log -p -- AGENTS.md`. Move them under "This site". From 1.91.1 on, edited copies are kept.
+</Callout>
 
 ## Theme CI
 

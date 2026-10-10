@@ -1,6 +1,6 @@
 {
-  "name": "TAW \u2014 Build with WordPress",
-  "description": "Build custom WordPress pages like assembling components \u2014 not fighting WordPress.",
+  "name": "TAW — Build with WordPress",
+  "description": "Build custom WordPress sites with TAW: a framework with its own data layer, the taw command in every theme, and taw-fleet to run them all.",
   "colors": {
     "light": {
       "brand": "#F97316"
@@ -16,7 +16,7 @@
         "icon": "book",
         "groups": [
           {
-            "group": "Start Here",
+            "group": "Start here",
             "icon": "rocket",
             "pages": [
               {
@@ -30,19 +30,87 @@
                 "icon": "zap"
               },
               {
-                "title": "AI Integration",
+                "title": "How TAW fits together",
+                "path": "ecosystem",
+                "icon": "network"
+              }
+            ]
+          },
+          {
+            "group": "The taw command",
+            "icon": "terminal",
+            "pages": [
+              {
+                "title": "Overview",
+                "path": "taw-command",
+                "icon": "terminal"
+              },
+              {
+                "title": "Command reference",
+                "path": "taw-command-reference",
+                "icon": "list"
+              },
+              {
+                "title": "Updating a site",
+                "path": "updating",
+                "icon": "refresh-cw"
+              },
+              {
+                "title": "Content Interchange",
+                "path": "content-interchange",
+                "icon": "arrow-left-right"
+              },
+              {
+                "title": "Site skills",
+                "path": "site-skills",
+                "icon": "sparkles"
+              },
+              {
+                "title": "AI integration",
                 "path": "ai-integration",
                 "icon": "bot"
               }
             ]
           },
           {
-            "group": "TAW Framework",
+            "group": "taw-fleet",
+            "icon": "layout-dashboard",
+            "pages": [
+              {
+                "title": "Overview and install",
+                "path": "taw-fleet",
+                "icon": "layout-dashboard"
+              },
+              {
+                "title": "Dashboard and keys",
+                "path": "taw-fleet-dashboard",
+                "icon": "keyboard"
+              },
+              {
+                "title": "Command reference",
+                "path": "taw-fleet-commands",
+                "icon": "list"
+              },
+              {
+                "title": "Production, PRs and deploys",
+                "path": "taw-fleet-production",
+                "icon": "rocket"
+              },
+              {
+                "title": "TAW Companion",
+                "path": "taw-hub-companion",
+                "icon": "satellite-dish"
+              }
+            ]
+          },
+          {
+            "group": "Themes",
+            "icon": "paint-roller",
             "pages": [
               {
                 "title": "TAW Theme",
                 "path": "taw-theme",
-                "icon": "lucide-paint-roller"
+                "icon": "paint-roller"
               },
               {
                 "title": "TAW Gutenberg",
@@ -50,10 +118,16 @@
                 "icon": "blocks"
               },
               {
-                "title": "TAW Core",
-                "path": "taw-core",
-                "icon": "hammer"
-              },
+                "title": "Core concepts",
+                "path": "concepts",
+                "icon": "book-open"
+              }
+            ]
+          },
+          {
+            "group": "Data layer",
+            "icon": "database",
+            "pages": [
               {
                 "title": "Data layer (schema)",
                 "path": "data-layer",
@@ -64,6 +138,22 @@
                 "path": "reading-fields",
                 "icon": "book-open-check"
               },
+              {
+                "title": "Data panel",
+                "path": "data-panel",
+                "icon": "panel-right"
+              },
+              {
+                "title": "Editing policies",
+                "path": "editing-policies",
+                "icon": "lock"
+              }
+            ]
+          },
+          {
+            "group": "Block editor",
+            "icon": "blocks",
+            "pages": [
               {
                 "title": "Block Bindings",
                 "path": "block-bindings",
@@ -93,41 +183,17 @@
                 "title": "TAW Loop",
                 "path": "loop",
                 "icon": "repeat"
-              },
+              }
+            ]
+          },
+          {
+            "group": "taw/core PHP reference",
+            "icon": "hammer",
+            "pages": [
               {
-                "title": "Editing policies",
-                "path": "editing-policies",
-                "icon": "lock"
-              },
-              {
-                "title": "Data panel",
-                "path": "data-panel",
-                "icon": "panel-right"
-              },
-              {
-                "title": "TAW Companion",
-                "path": "taw-hub-companion",
-                "icon": "satellite-dish"
-              },
-              {
-                "title": "taw-fleet",
-                "path": "taw-fleet",
-                "icon": "layout-dashboard"
-              },
-              {
-                "title": "Site skills",
-                "path": "site-skills",
-                "icon": "sparkles"
-              },
-              {
-                "title": "Updating a site",
-                "path": "updating",
-                "icon": "refresh-cw"
-              },
-              {
-                "title": "Content Interchange",
-                "path": "content-interchange",
-                "icon": "arrow-left-right"
+                "title": "TAW Core tools",
+                "path": "taw-core",
+                "icon": "hammer"
               },
               {
                 "title": "Blocks and block registry",
@@ -135,17 +201,16 @@
                 "icon": "package"
               },
               {
-                "title": "Assets and Vite integration",
-                "path": "taw-core-assets-vite",
-                "icon": "code"
-              },
-              {
                 "title": "Metabox and editor tooling",
                 "path": "taw-core-metabox",
                 "icon": "edit"
+              },
+              {
+                "title": "Assets and Vite integration",
+                "path": "taw-core-assets-vite",
+                "icon": "code"
               }
-            ],
-            "icon": "lucide-hammer"
+            ]
           }
         ]
       },
@@ -164,7 +229,7 @@
             "expandable": false,
             "pages": [
               {
-                "title": "Documentation Source",
+                "title": "Getting started FAQ",
                 "path": "help-center/faq/getting-started"
               }
             ]
@@ -175,7 +240,7 @@
             "expandable": false,
             "pages": [
               {
-                "title": "Page Missing in Sidebar",
+                "title": "Common errors and fixes",
                 "path": "help-center/troubleshooting/install-error"
               }
             ]
@@ -186,7 +251,7 @@
             "expandable": false,
             "pages": [
               {
-                "title": "Create Your First Page",
+                "title": "Set up a new TAW project",
                 "path": "help-center/guides/setup-project"
               },
               {
@@ -247,7 +312,7 @@
     "actions": {
       "primary": {
         "title": "Get Started",
-        "link": ""
+        "link": "/quickstart"
       }
     }
   },

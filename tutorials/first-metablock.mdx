@@ -9,7 +9,7 @@ This tutorial walks you through building a **Hero** section — the most common 
 
 ## What is a MetaBlock?
 
-A MetaBlock is a page section that owns its own data. Editors fill in fields in the WordPress admin; the block reads those values and renders them. No Gutenberg, no ACF, no external plugin.
+A MetaBlock is a page section that owns its own data. Editors fill in fields in the WordPress admin; the block reads those values and renders them. It's a TAW Theme (classic) block: no Gutenberg block registration, no ACF, no external plugin.
 
 ```mermaid
 flowchart LR
@@ -34,7 +34,7 @@ flowchart LR
     Run the `make:block` CLI command from your theme root. The `--type=meta` flag generates a MetaBlock skeleton; `--with-style` adds a `style.scss` wired into the Vite pipeline.
 
     ```bash
-    php bin/taw make:block Hero --type=meta --with-style
+    vendor/bin/taw make:block Hero --type=meta --with-style
     composer dump-autoload
     ```
 

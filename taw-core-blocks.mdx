@@ -106,7 +106,7 @@ The template receives the `getData()` return value via `extract()` — every key
 
 ## Creating a UI Block
 
-UI Blocks extend `TAW\Core\Block\Block`. Instead of metaboxes they define a `defaultData()` method. Props passed to `render()` are merged over these defaults, so missing props always have safe fallbacks.
+UI Blocks extend `TAW\Core\Block\Block`. Instead of metaboxes they define a `defaults()` method. Props passed to `render()` are merged over these defaults, so missing props always have safe fallbacks.
 
 ```php
 // Blocks/Button/Button.php
@@ -118,7 +118,7 @@ class Button extends Block
 {
     protected string $id = 'button';
 
-    protected function defaultData(): array
+    protected function defaults(): array
     {
         return [
             'text'  => '',
@@ -198,12 +198,12 @@ UI Blocks compose naturally inside MetaBlock templates:
 The fastest way to create a block is the `make:block` command:
 
 ```bash
-php bin/taw make:block Hero --type=meta --with-style
-php bin/taw make:block Button --type=ui --with-style --with-script
+vendor/bin/taw make:block Hero --type=meta --with-style
+vendor/bin/taw make:block Button --type=ui --with-style --with-script
 
 # Inside a subgroup (great for organisation)
-php bin/taw make:block Hero --group=sections      # → Blocks/sections/Hero/
-php bin/taw make:block Badge --group=ui/cards     # → Blocks/ui/cards/Badge/
+vendor/bin/taw make:block Hero --group=sections      # → Blocks/sections/Hero/
+vendor/bin/taw make:block Badge --group=ui/cards     # → Blocks/ui/cards/Badge/
 
 composer dump-autoload
 ```
@@ -223,12 +223,12 @@ Blocks can be exported as portable ZIPs and imported into any TAW Theme project.
 
 ```bash
 # Export
-php bin/taw export:block Hero
-php bin/taw export:block sections/Hero -o ./exports
+vendor/bin/taw export:block Hero
+vendor/bin/taw export:block sections/Hero -o ./exports
 
 # Import
-php bin/taw import:block path/to/Hero.zip
-php bin/taw import:block path/to/Hero.zip --group=sections --force
+vendor/bin/taw import:block path/to/Hero.zip
+vendor/bin/taw import:block path/to/Hero.zip --group=sections --force
 ```
 
 ## Block variations

@@ -1,0 +1,182 @@
+---
+title: "Production, pull requests and deploys"
+description: "How taw-fleet reads your production sites through the TAW companion, pulls their content into Local, writes through the REST API, merges pull requests and follows deploys, and reads BugSmash comments."
+---
+
+taw-fleet reads each production site through the [TAW companion](/taw-hub-companion), a small plugin that ships with every TAW theme. It also reads GitHub for pull requests and deploys, and BugSmash for the client's comments. Each part turns on with a setting for the site, in `[sites.<folder>]` of the [settings file](/taw-fleet#settings).
+
+| Part | Needs | Shows as |
+|---|---|---|
+| [Production checks](#check-production) | `production_url`, taw-fleet's signing key, a pinned site key | LIVE column, `live`, `live.*` findings |
+| [Content pull](#pull-production-content) | The same, and companion 0.4+ | `C`, `pull` |
+| [REST writes](#write-to-production) | `production_url`, a bot user | `wp-remote` |
+| [Pull requests and deploys](#pull-requests-and-deploys) | A GitHub token | PR and DEPLOY columns, `prs`, `M`, `merge` |
+| [BugSmash comments](#bugsmash-comments) | `bugsmash_project`, the BugSmash API key | FB column, `F`, `X`, `comments` |
+
+## Check production
+
+`taw-fleet live` asks each production site's companion how the site is doing: WordPress, PHP, taw/core and companion versions, plugins with updates waiting, known vulnerabilities from the site's scanner (Defender or Wordfence), and recent taw/core log lines. In the dashboard, that's the LIVE column and the detail pane's LIVE section. `doctor` adds the `live.*` findings.
+
+### How it's secured
+
+Every request is a signed `GET` to the companion's `/wp-json/taw-hub/v1/` routes: `health`, `inventory`, `vulnerabilities` and `logs`, and `content` for a pull. Nothing is written on the site.
+
+- **Requests** carry taw-fleet's Ed25519 signature. The key lives in your macOS Keychain, never in a file. A site answers only when it trusts that key's public half.
+- **Answers** carry the site's own signature. taw-fleet checks it against the key you pinned for the site, like SSH's `known_hosts`. Pinned keys live in `~/.config/taw-fleet/companion-keys.json`.
+- **An answer from a site with no pinned key** is shown but not trusted: `◐` in the LIVE column and a `live.untrusted` note. A signature that doesn't match the pinned key is a `live.signature` error.
+
+### Set it up
+
+<Steps>
+  <Step title="Add the production URL" icon="globe">
+    ```toml title="config.toml"
+    [sites.ls-mxico]
+    production_url = "https://lsmexico.mx"
+    ```
+  </Step>
+  <Step title="Create taw-fleet's signing key" icon="key-round">
+    ```bash
+    taw-fleet live key new
+    taw-fleet live key show
+    ```
+
+    `show` prints the key id (`taw-fleet`) and the public key, never the secret. To use an existing key instead, pipe it into `taw-fleet live key import --key-id <id>`. Each Mac needs the key in its own Keychain.
+
+    <Callout kind="alert" collapsed="false">
+      `live key new --force` replaces the stored key. Every site stops trusting taw-fleet until it gets the new public key.
+    </Callout>
+  </Step>
+  <Step title="Give the sites the public key" icon="shield-check">
+    Put the public key in the theme's `composer.json`, then deploy. See [Install the companion](/taw-hub-companion#install).
+  </Step>
+  <Step title="Pin each site's key" icon="pin">
+    ```bash
+    taw-fleet live trust ls-mxico
+    ```
+
+    taw-fleet asks the site for the key it signs with, checks that the answer is signed by that key, shows it, and asks you to confirm (trust on first use). With a key you already have, pin it as given: `--key <base64> --key-id <id>`.
+  </Step>
+  <Step title="Check" icon="check">
+    ```bash
+    taw-fleet live ls-mxico --logs 20
+    ```
+
+    <Callout kind="success" collapsed="false">
+      The site shows `●` and “verified”, with its versions, plugin updates, vulnerabilities and the last 20 log lines.
+    </Callout>
+  </Step>
+</Steps>
+
+`taw-fleet live` always asks the sites now. The dashboard, `doctor` and `show` reuse an answer for 5 minutes; `L` in the dashboard asks again. Log lines are never cached.
+
+### When a site doesn't answer
+
+| Message | Means |
+|---|---|
+| no companion on this site (404) | The companion isn't installed or loaded |
+| the companion has no public key configured (501) | The site trusts no key yet |
+| the site doesn't trust taw-fleet's signing key yet (401 unknown_key_id) | The site has no key with taw-fleet's key id. Give it the public key from `live key show` |
+| the site doesn't trust taw-fleet's signing key (401 invalid_signature) | The site has another public key for that id |
+| this Mac's clock is more than 60 s off (401) | Fix the Mac's clock |
+| needs a newer companion | One route (inventory, vulnerabilities, logs) is missing. Update the companion |
+
+## Pull production content
+
+`C` in the dashboard, or `taw-fleet pull <site>`, copies a production site's published content into its Local copy: posts and custom post type entries, TAW fields and options, terms, and the media they use. Drafts, users, comments and settings never come over.
+
+It needs companion 0.4+ on production with taw/core's [Content Interchange](/content-interchange), and a Local theme with `bin/taw` and `content:import`.
+
+<Steps>
+  <Step title="Fetch" icon="download">
+    taw-fleet starts the Local site if it's stopped (it asks first), then fetches the snapshot from the companion's `content` route. It only accepts an answer signed by the site's pinned key, that is a content snapshot, and that says it comes from the `production_url` host. The snapshot is saved in `~/Library/Caches/taw-fleet/content/`.
+  </Step>
+  <Step title="Preview" icon="eye">
+    It runs `php bin/taw content:import <file> --json` in the theme folder: taw/core's dry run, which writes nothing. You see each record that would be created or changed, with its changed fields. If the Local site already matches, it stops there.
+  </Step>
+  <Step title="Import, after you confirm" icon="upload">
+    It runs `php bin/taw content:import <file> --json --yes --policy=update`. Production wins, media is downloaded from production, and taw/core saves a rollback snapshot in `wp-content/uploads/taw-private/` first. The summary shows what was created and updated, and the rollback snapshot's path.
+  </Step>
+</Steps>
+
+To undo the last import, run `php bin/taw content:import --undo` in the theme folder to preview it, then again with `--yes`.
+
+`pull --yes` skips both questions. Pull refuses the umbrella's own taw-theme and taw-gutenberg. A site with no pinned key is refused: run `taw-fleet live trust <site>` first.
+
+## Write to production
+
+Site skills that change the live site, like `resolve-comments`, write through `taw-fleet wp-remote`. It calls the site's WordPress REST API as a bot user whose Application Password stays in your Keychain, so it never appears in a Claude transcript or a file. Setting up the bot is on [Site skills](/site-skills#production-writes).
+
+```bash
+taw-fleet wp-remote ls-mxico GET '/wp/v2/pages?slug=nosotros&context=edit'
+taw-fleet wp-remote ls-mxico POST /wp/v2/pages/12 --data @meta.json
+taw-fleet wp-remote ls-mxico POST /wp/v2/media --file hero.webp
+```
+
+- **Methods:** `GET`, `POST`, `PUT` and `PATCH`. There is no `DELETE`: taw-fleet never deletes on production.
+- **Body:** `--data` takes inline JSON, `@file`, or `-` for stdin. `--file` uploads a file as the body, with its type from the extension or `--type`. The two can't go together.
+- **URL:** each request uses the `?rest_route=` form, because some hosts' firewalls block `/wp-json/wp/v2/users`. It uses HTTP/1.1, and retries an empty, unreadable or server-error answer up to twice, a second apart.
+- **Output:** the JSON answer goes to stdout. A WordPress error exits non-zero with its code and message.
+- **Credentials:** `wp-remote key import <site>` reads `user:application password` from stdin into the Keychain item `wp-<folder>`. `wp-remote key show <site>` says which bot is stored and checks it against the site, showing its name and role.
+
+## Pull requests and deploys
+
+With a GitHub token, the dashboard shows each theme's open pull requests and its deploy. taw-fleet uses `GITHUB_TOKEN` or `GH_TOKEN`, else `gh auth token`. Without a token, the PR and DEPLOY cells show `?`. Run `gh auth login`.
+
+- **Pull requests:** up to 20 open ones per repository, with their CI result and whether they conflict.
+- **Deploy:** the repository's active workflow whose file name starts with `deploy`. Production “has” the commit of its newest successful run. A skipped or cancelled run isn't a failure.
+
+| Column | Symbol | Means |
+|---|---|---|
+| PR | `2✓` `2…` `2✗` `2!` `2◇` | Two open: CI passed (or none), CI running, CI failed, a conflict, drafts |
+| DEPLOY | `✓` `↑2` `⟳` `✗` | Production is current, two commits not deployed, a deploy or CI runs, the deploy or CI failed |
+
+The columns refresh every 5 minutes, and every 15 seconds while a deploy runs. `L` refreshes them now. `taw-fleet prs` shows the same, with the commits not deployed yet. `doctor` adds `pr.ready`, `pr.failing`, `pr.conflict`, `deploy.failed`, `deploy.blocked` and `deploy.pending`.
+
+### Merge a pull request
+
+`M` in the dashboard, or `taw-fleet merge <site>`, merges a theme's pull request.
+
+1. **Pick.** With several open, the dashboard asks which, by number. On the command line, use `--pr <number>`.
+2. **Refusals.** A draft, a conflict, CI that failed, and CI that still runs are refused, each with the reason.
+3. **Ask.** The question names what the merge does: “Merge #12 “Hero copy” into main? CI passed. This deploys https://lsmexico.mx (production).”
+4. **Merge.** taw-fleet uses the repository's default merge method for you, and only if the branch is still at the commit taw-fleet read. If someone pushed since, it stops: refresh with `L` and look again.
+5. **Clean up.** It deletes the branch on GitHub, when the branch is in the same repository. If the local theme is clean and on that branch or the default one, it switches to the default branch, pulls, and deletes the local branch. Otherwise it leaves the theme alone and says why.
+6. **Follow the deploy.** The dashboard checks GitHub every 15 seconds for up to 30 minutes. It says when production has the merge and how long it took, or that the deploy or CI failed, with the run's link. Then it checks the live site again.
+
+## BugSmash comments
+
+Clients review their live site in [BugSmash](https://bugsmash.io) and pin comments to the page. taw-fleet shows them per site.
+
+<Steps>
+  <Step title="Store the API key" icon="key-round">
+    Copy the key from BugSmash → Settings → API Key, then:
+
+    ```bash
+    pbpaste | taw-fleet comments key import
+    taw-fleet comments key show
+    ```
+
+    `show` says where the key comes from and whether BugSmash accepts it. `BUGSMASH_API_KEY` is used when the Keychain has none.
+  </Step>
+  <Step title="Link each site to its project" icon="link">
+    ```bash
+    taw-fleet comments projects
+    ```
+
+    Put the site's project id in the settings:
+
+    ```toml title="config.toml"
+    [sites.ls-mxico]
+    bugsmash_project = "a2f16102-91d0-4968-a010-fca3146f4596"
+    ```
+  </Step>
+</Steps>
+
+- **FB column:** how many comments are open, in the warning color once the oldest has waited more than two days. The second line shows the oldest's age.
+- **Detail pane:** the FEEDBACK section quotes the three latest comments with their number, page, author and age.
+- **`doctor`:** `comments.open`, `comments.unreachable` and `comments.no-key`.
+- **`F`:** opens the site's review page in BugSmash.
+- **`X`:** opens Claude Code beside the dashboard, in the theme folder, with the theme's `resolve-comments` skill. Its first message has the open comments, the project, the review page and the production URL, and asks it to show its plan first, ask before anything reaches production, and resolve a comment only once its change is live. `X` needs open comments and a theme with the skill (taw/core 1.89+). When Claude Code exits, the dashboard checks BugSmash again.
+- **`taw-fleet comments`:** the open comments of every site, or one (`--json` for scripts).
+
+taw-fleet only reads BugSmash, and caches each answer for 5 minutes (`L` asks again). Replying and resolving happen in the skill: see [Site skills](/site-skills).

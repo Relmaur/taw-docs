@@ -12,8 +12,8 @@ TAW isn't just documented for AI coding assistants — it ships a working toolki
 
 Two separate, independently-versioned sources of truth back all of this — don't conflate them:
 
-- **[`taw-theme`](https://github.com/Relmaur/taw-theme)** — the canonical scaffold. Synced into a client site via the `update-theme` skill.
-- **[`taw/core`](https://github.com/Relmaur/taw-core)** — the framework package. Synced via `composer update taw/core`.
+- **[`taw-theme`](https://github.com/Relmaur/taw-theme)** — the canonical scaffold. Its framework-owned files reach a client site through `vendor/bin/taw update` (or `vendor/bin/taw sync --apply`, or the `update-theme` skill).
+- **[`taw/core`](https://github.com/Relmaur/taw-core)** — the framework package, with the [`taw` command](/taw-command), the agent docs and the site skills. Updated with `vendor/bin/taw update` or `composer update taw/core`.
 
 ---
 
@@ -28,7 +28,9 @@ Any LLM-powered coding tool reads these on its own — no manual pointer needed:
 | `.github/copilot-instructions.md` | GitHub Copilot |
 | `.windsurfrules` | Windsurf / Codeium |
 
-`AGENTS.md` is the deepest of the four and the one the others point back to for full detail — if you're deciding where to add something, it goes there first.
+`AGENTS.md` is the deepest of the four and the one the others point back to for full detail.
+
+Since taw/core 1.91, the framework's part of these files ships with taw/core, in `vendor/taw/core/resources/agents/`, and updates with it. The theme keeps short files of its own: `CLAUDE.md` imports taw/core's copy with an `@vendor/...` line, and the others point to it. Write the site's own notes under **This site** in each file: updates never change them, and they win over the framework's text when the two disagree. An older theme moves to these short files through the `1.91.0/agent-docs` migration (see [Updating a site](/updating)).
 
 ---
 
@@ -82,11 +84,11 @@ Invoked by name (`/make-metablock`, etc.) or triggered automatically by a plain-
   </Card>
 
   <Card title="export-static" icon="globe" horizontal="false">
-    "export the site as static" → a self-contained HTML/CSS/JS bundle for edge hosting (Cloudflare Pages, Vercel), via `php bin/taw export:static`. Forms and search deliberately stay live against WordPress rather than being frozen into the export.
+    "export the site as static" → a self-contained HTML/CSS/JS bundle for edge hosting (Cloudflare Pages, Vercel), via `vendor/bin/taw export:static`. Forms and search deliberately stay live against WordPress rather than being frozen into the export.
   </Card>
 
   <Card title="audit-seo" icon="search" horizontal="false">
-    "audit SEO for page 42" (or the whole site) → extracts a post's text-bearing copy and SEO meta (title tag, meta description, social image — Yoast-aware) via `php bin/taw seo:extract`, analyzes keyword presence, copywriting impact, and readability, then asks whether to apply directly or generate a shareable client-approval report before — only with explicit approval — writing rewrites back via `php bin/taw seo:inject`.
+    "audit SEO for page 42" (or the whole site) → extracts a post's text-bearing copy and SEO meta (title tag, meta description, social image — Yoast-aware) via `vendor/bin/taw seo:extract`, analyzes keyword presence, copywriting impact, and readability, then asks whether to apply directly or generate a shareable client-approval report before — only with explicit approval — writing rewrites back via `vendor/bin/taw seo:inject`.
   </Card>
 </Columns>
 
@@ -102,24 +104,24 @@ For a Figma or screenshot brief, `build-page` asks **once**, for the whole page,
 
 ---
 
-## Live introspection — `php bin/taw inspect`
+## Live introspection — `vendor/bin/taw inspect`
 
 Reports the site's actual current state: registered blocks and their real metabox field schemas, registered forms, the installed `taw/core` version, whether `MetaboxOrder` is locked. An agent queries this instead of reconstructing it by grepping PHP source — which can drift from what's actually registered at runtime.
 
 ```bash
-php bin/taw inspect          # human-readable summary
-php bin/taw inspect --json   # machine-readable
+vendor/bin/taw inspect          # human-readable summary
+vendor/bin/taw inspect --json   # machine-readable
 ```
 
 ---
 
-## Direct field read/write — `php bin/taw fields:get` / `fields:set`
+## Direct field read/write — `vendor/bin/taw fields:get` / `fields:set`
 
 Read or write any Metabox/OptionsPage field's value directly, sanitized with the exact same rules a real admin form save uses — the same primitive `VisualEditorEndpoint` uses for its own REST-driven saves. No hand-encoding a repeater's JSON shape, no guessing which sanitizer applies to which field type.
 
 ```bash
-php bin/taw fields:get 42 team_members --json                        # repeater comes back as a decoded array
-php bin/taw fields:set 42 hero_heading "Welcome" --dry-run           # preview the sanitized result without writing
+vendor/bin/taw fields:get 42 team_members --json                        # repeater comes back as a decoded array
+vendor/bin/taw fields:set 42 hero_heading "Welcome" --dry-run           # preview the sanitized result without writing
 ```
 
 This is what turns "build this page from a Figma design" into something that can also populate the content, not just scaffold empty fields.
@@ -160,7 +162,7 @@ Writing content is inherently higher-stakes than scaffolding it, so every skill 
 
 ## WP-CLI — live site data access
 
-`bin/taw` covers the framework (scaffolding, introspection, and now field-level content). For everything else — posts, users, terms, transients, arbitrary PHP via `wp eval`, an interactive `wp shell` — use WordPress's own official CLI. It's a host-level tool, not bundled by this theme, but present on virtually every real WordPress host and every local dev environment.
+The [`taw` command](/taw-command) covers the framework (scaffolding, introspection, field-level content and updates). For everything else — posts, users, terms, transients, arbitrary PHP via `wp eval`, an interactive `wp shell` — use WordPress's own official CLI. It's a host-level tool, not bundled by this theme, but present on virtually every real WordPress host and every local dev environment.
 
 <Callout kind="info" collapsed="false">
   Full walkthrough, including the Local by Flywheel connection quirk that makes a bare `wp` command fail with a DB connection error even though the site works fine in the browser, is in the [TAW Theme](/taw-theme#wp-cli-live-site-data-access) page.

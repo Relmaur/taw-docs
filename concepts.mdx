@@ -24,18 +24,16 @@ Think of TAW Core as the engine and TAW Theme as the car body and interior. You 
 
 TAW Core exposes the base classes (`BaseBlock`, `MetaBlock`) and services (BlockRegistry, ViteLoader, metabox engine) that power the framework.
 
-TAW Theme wires those pieces together by calling `Theme::boot()`, configuring performance options, defining blocks under `Blocks/`, and shipping the built assets.
+TAW Theme wires those pieces together with one call in `functions.php`, defines blocks under `Blocks/`, and ships the built assets. `functions.php` belongs to the framework and is replaced on sync:
 
 ```php
 // functions.php in your theme
-use TAW\Core\Theme;
+require_once get_template_directory() . '/vendor/autoload.php';
 
-Theme::boot();
-Theme::performance([
-    'disable_comments' => true,
-    'clean_head'       => true,
-]);
+TAW\Core\Theme\Theme::bootstrapFullSite(get_template_directory());
 ```
+
+Your own setup goes in three files the theme owns, which `bootstrapFullSite()` loads when they exist: `inc/options.php` (options pages), `inc/performance.php` (returns the array passed to `Theme::performance()`) and `inc/customizations.php` (theme supports, menus, any other hooks).
 
 When this code runs, TAW Core discovers your blocks, registers metaboxes and options pages, and configures the asset pipeline for the current environment.
 
@@ -240,11 +238,11 @@ Beyond blocks, metaboxes, and assets, TAW Core also ships with additional runtim
 These modules stay out of the way until you use them. Reach for them when your theme needs SVG helpers, form handling, or mail delivery, not by default.
 </Callout>
 
-TAW Core includes SVG helpers under `TAW\Helpers\Svg` for safe SVG uploads and rendering, which you often use alongside performance helpers documented in the TAW Theme guide. Start with the [TAW Theme page](/taw-core-theme) to see how these helpers fit into a concrete theme.
+TAW Core includes SVG helpers under `TAW\Helpers\Svg` for safe SVG uploads and rendering, which you often use alongside performance helpers documented in the TAW Theme guide. Start with the [TAW Theme page](/taw-theme) to see how these helpers fit into a concrete theme.
 
 For interactive experiences, TAW Core provides a Forms runtime via `TAW\Core\Form\Form` plus a submissions handler that stores form submissions and can trigger webhooks. When you need user input stored and processed in a structured way, this forms layer gives you a consistent API inside your theme rather than ad-hoc handling.
 
-For email, the Mail runtime exposes `TAW\Core\Mail\Mailer` together with `MailTemplate` so you can send templated HTML or MJML emails from your theme using the same conventions as the rest of the framework. The [TAW Core overview](/taw-framework) shows how these tools sit alongside blocks and the asset pipeline, and points you to deeper docs for each area.
+For email, the Mail runtime exposes `TAW\Core\Mail\Mailer` together with `MailTemplate` so you can send templated HTML or MJML emails from your theme using the same conventions as the rest of the framework. The [TAW Core overview](/taw-core) shows how these tools sit alongside blocks and the asset pipeline, and points you to deeper docs for each area.
 
 ## Recommended mental model and next steps
 

@@ -1,183 +1,119 @@
 ---
 title: Introduction
 description: >-
-  TAW is a WordPress framework with its own data layer — post types, fields and options defined
-  in code or JSON — and two themes on top: a classic, component-based theme and a Gutenberg block
-  theme. No ACF, no plugin dependencies.
+  TAW builds and runs custom WordPress sites: a framework with its own data layer, two themes on top,
+  the taw command inside every theme, and taw-fleet to run all your sites from one terminal.
 ---
 
 ## What is TAW?
 
-TAW is a component-based WordPress theme framework. Every section of a page — hero, stats, testimonials — is a self-contained **block** that owns its data, markup, styles, and scripts.
+TAW is a way to build and run custom WordPress sites without a stack of plugins. It's a framework, **taw/core**, with its own data layer: post types, fields and options defined in PHP or JSON, with no ACF. Two themes are built on it: **TAW Theme**, classic and component-based, and **TAW Gutenberg**, a block theme.
+
+Two tools do the everyday work:
+
+<Columns cols="2">
+  <Card title="The taw command" href="/taw-command" icon="terminal" horizontal="false">
+    `vendor/bin/taw`, inside every theme. It scaffolds blocks, reads and writes fields, moves content between sites, and updates the whole theme in one step with `vendor/bin/taw update`.
+  </Card>
+
+  <Card title="taw-fleet" href="/taw-fleet" icon="layout-dashboard" horizontal="false">
+    A terminal dashboard for every TAW site on your Mac. It shows versions, git, pull requests, deploys, production health and client feedback, creates sites, and starts Claude Code on a site's skills.
+  </Card>
+</Columns>
 
 <Callout kind="tip" collapsed="false">
-  TAW is built for PHP and WordPress developers who prefer code-first workflows. You work in PHP classes, Composer, and Vite — not theme builders or click-driven admin panels.
+  TAW is for PHP and WordPress developers who like to work in code: PHP classes, Composer and Vite, not page builders.
 </Callout>
 
-The framework ships as three pieces:
-
-- **`taw/core`** — a versioned Composer package: the **data layer** (post types, taxonomies, fields and options pages, defined in PHP or JSON — see [Data layer](/data-layer)) plus the classic-theme toolkit (block system, metabox engine, CLI, forms, mail, helpers). Update it across all your projects with a single `composer update taw/core`.
-- **TAW Theme** — the classic starter theme you install per project. Holds your PHP blocks, templates, and `functions.php`.
-- **[TAW Gutenberg](/taw-gutenberg)** — the block (full site editing) theme. Presentation is plain Gutenberg, and the data comes from `taw/core`.
+How the pieces relate, and how a release reaches a live site: [How TAW fits together](/ecosystem).
 
 ---
 
 ## Why TAW?
 
-**No ACF. No plugin dependencies. You own your data layer.**
-
-TAW is its own stack. The data layer, metabox engine, form system, image helpers, and SVG support are all built in, so no third-party field plugin can be abandoned under you. Build classic, component-based sites with TAW Theme (no Gutenberg involved) or block-editor sites with TAW Gutenberg. The data works the same way in both.
+**No ACF, no plugin dependencies: you own your data layer.** The data layer, the metabox engine, forms, mail, image helpers and SVG support are built in, so no third-party field plugin can be abandoned under you. The data works the same way in both themes.
 
 <Columns cols="2">
-  <Card title="Zero-config blocks" href="/quickstart" icon="layers" horizontal="false">
-    Create a folder, drop in a class and a template — it's live. No registration, no `functions.php` edits, no build step required for new blocks.
+  <Card title="Updates like a package" href="/updating" icon="refresh-cw" horizontal="false">
+    `vendor/bin/taw update` updates taw/core and the framework's files, runs the migrations and the checks, and opens a pull request. The theme's `taw.json` decides what changes, so nothing asks you questions.
   </Card>
 
-  <Card title="CLI scaffolding" href="/quickstart" icon="terminal" horizontal="false">
-    `php bin/taw make:block Hero --type=meta --with-style` creates the folder, class, template, and stylesheet in one command. Export and import blocks between projects as portable ZIPs.
+  <Card title="One data layer, two themes" href="/data-layer" icon="database" horizontal="false">
+    Post types, taxonomies, fieldsets and options pages, defined in PHP or `taw-schema/*.json`. Read them with typed values through `Taw::post()`, or show them in the block editor with Block Bindings.
   </Card>
 
-  <Card title="Scoped asset loading" href="/taw-core" icon="zap" horizontal="false">
-    Each block ships its own CSS and JS. Assets are only enqueued on pages that actually use that block. Your homepage doesn't load your blog's scripts.
+  <Card title="Data in the block editor" href="/dynamic-tags" icon="braces" horizontal="false">
+    Dynamic tags, expressions, conditions, dynamic block settings and the TAW Loop put your fields into any core block, with no custom block code.
   </Card>
 
-  <Card title="Rich metabox engine" href="/taw-core" icon="database" horizontal="false">
-    14+ field types including `repeater`, `group`, `post_select`, `datepicker`, and `color` — with conditional AND/OR logic, tabbed layouts, repeater row layouts, and responsive grid placement. No plugin required.
+  <Card title="Zero-config blocks" href="/taw-core-blocks" icon="layers" horizontal="false">
+    In TAW Theme, a block is a folder with a class and a template. `vendor/bin/taw make:block Hero --type=meta --with-style` creates it; each block loads its own CSS and JS only on pages that use it.
   </Card>
 
-  <Card title="Built-in form system" href="/taw-core" icon="edit" horizontal="false">
-    `Form` handles CSRF, honeypot spam protection, field validation, AJAX submission (no page reload), multi-step wizards, conditional fields, and email delivery. No plugin required.
+  <Card title="Rich metabox engine" href="/taw-core-metabox" icon="list" horizontal="false">
+    19 field types, including `repeater`, `group`, `post_select`, `link`, `icon` and `datepicker`, with conditional logic, tabs and grid layouts. The same fields work on options pages, terms and users.
   </Card>
 
-  <Card title="Transactional email" href="/taw-core" icon="mail" horizontal="false">
-    `Mailer` wraps `wp_mail()` with a fluent API and MJML/HTML template support. Write templates once, compile to HTML, deploy. Includes a `MailTester` admin page.
+  <Card title="Forms and email" href="/taw-core#forms" icon="mail" horizontal="false">
+    `Form` handles CSRF, spam protection, validation, AJAX submission and multi-step wizards. `Mailer` sends transactional email from MJML or HTML templates.
   </Card>
 
-  <Card title="Theme-level options" href="/taw-core" icon="settings" horizontal="false">
-    `OptionsPage` brings the same config-driven field experience to site-wide settings stored in `wp_options` — tabbed UI, validation, and a clean retrieval API included.
+  <Card title="Content that moves" href="/content-interchange" icon="arrow-left-right" horizontal="false">
+    `vendor/bin/taw content:export` and `content:import` move a site's content, fields, media and settings as one reviewable JSON file, with a preview first and an undo after.
   </Card>
 
-  <Card title="Navigation menus" href="/taw-core" icon="menu" horizontal="false">
-    `Menu::get()` wraps WordPress nav menus into a typed tree, giving you full control over markup without `wp_nav_menu()`.
-  </Card>
-
-  <Card title="Modern frontend" href="/taw-theme" icon="monitor" horizontal="false">
-    Tailwind v4 for utility CSS, Alpine.js for interactivity, Vite for instant HMR — all wired into WordPress through a lightweight bridge. No React, no REST API overhead.
-  </Card>
-
-  <Card title="One-file site migration" href="/content-interchange" icon="arrow-left-right" horizontal="false">
-    Because state lives in `_taw_` fields and options instead of a plugin stack, [Content Interchange](/content-interchange) moves a whole site — content, media, users, settings — as one reviewable, diffable, rollback-able JSON file. `content:export --migrate`.
+  <Card title="Production at a glance" href="/taw-fleet-production" icon="satellite-dish" horizontal="false">
+    The TAW Companion on each live site answers taw-fleet's signed requests: health, plugin updates, vulnerabilities, logs and published content. No passwords, no SSH.
   </Card>
 </Columns>
 
 ---
 
-## Two types of blocks
+## Two themes
 
-TAW has two block types. Pick the one that fits your use case.
-
-| | MetaBlock | Block (UI) |
+| | TAW Theme | TAW Gutenberg |
 | --- | --- | --- |
-| **Purpose** | Page sections that own their data | Reusable UI components |
-| **Data source** | Metaboxes → `post_meta` | Props passed at render time |
-| **Rendered via** | `BlockRegistry::render('id')` | `(new Button())->render([...])` |
-| **Examples** | Hero, Stats, Testimonials, CTA | Button, Card, Badge |
+| **Kind** | Classic theme | Block theme (full site editing) |
+| **Pages are built from** | PHP blocks: MetaBlocks with metabox fields, and UI blocks | Core blocks in the Site Editor, with your fields through Block Bindings and dynamic tags |
+| **taw/core boots** | Everything: `Theme::bootstrapFullSite()` | The data layer: `Boot::data()` |
+| **`taw` commands** | All 33 | The 6 that don't need the classic scaffold |
+| **Front end** | Vite, Tailwind CSS v4, Alpine.js v3 | Vite and TypeScript blocks |
 
-**MetaBlocks** register their own metabox and pull data from `post_meta`. Editors fill in content through the WordPress admin UI and the block renders it automatically.
-
-**UI Blocks** are stateless components — they receive props and render markup. Use them to build design-system primitives that MetaBlocks compose together.
-
----
-
-## Tech stack
-
-| Technology | Role |
-| --- | --- |
-| Tailwind CSS v4 | Utility-first CSS via the official Vite plugin |
-| Alpine.js v3 | Lightweight reactivity for interactive components |
-| Vite v7 | Build tool with instant HMR in development |
-| SCSS | Optional custom styles — global and per-block |
-| PHP 8.2+ | PSR-4 autoloading via Composer |
-| `taw/core` | Versioned Composer package with all framework internals |
+Read more: [TAW Theme](/taw-theme) · [TAW Gutenberg](/taw-gutenberg).
 
 ---
 
 ## Get started
 
 <Steps>
-  <Step title="Install the theme" icon="download" title-type="p">
-    Run the TAW installer inside your WordPress `wp-content/themes` directory. It asks which TAW theme to start from and installs it, with its PHP and JS dependencies, in `my-theme/`.
+  <Step title="Create a site" icon="download" title-type="p">
+    With taw-fleet on a Mac with Local:
 
     ```bash
-    cd wp-content/themes
+    brew install Relmaur/tap/taw-fleet
+    taw-fleet create "Acme Shop" --classic
+    ```
 
+    Or with Composer, in any WordPress install's `wp-content/themes`:
+
+    ```bash
     composer create-project taw/create my-theme \
       --repository='{"type":"vcs","url":"https://github.com/Relmaur/taw-create"}'
     ```
-
-    Pick **taw-theme** for the classic theme described below, or **taw-gutenberg** for the block theme ([TAW Gutenberg](/taw-gutenberg)). In scripts, skip the question with `TAW_STARTER=theme` or `TAW_STARTER=gutenberg`.
   </Step>
 
-  <Step title="Start the dev server" icon="zap" title-type="p">
-    Start Vite for hot module reloading during development, then activate the theme in **WordPress Admin → Appearance → Themes**.
-
+  <Step title="Scaffold a block" icon="terminal" title-type="p">
     ```bash
-    npm run dev
-    ```
-  </Step>
-
-  <Step title="Scaffold your first block" icon="terminal" title-type="p">
-    Use the TAW CLI to create a MetaBlock with styles in one command.
-
-    ```bash
-    php bin/taw make:block Hero --type=meta --with-style
+    vendor/bin/taw make:block Hero --type=meta --with-style
     composer dump-autoload
     ```
   </Step>
 
-  <Step title="Render it in a template" icon="play" title-type="p">
-    Queue the block's assets and render it from your WordPress template.
-
-    ```php
-    <?php
-    // front-page.php
-    use TAW\Core\Block\BlockRegistry;
-
-    BlockRegistry::queue('hero');
-    get_header();
-    ?>
-
-    <?php BlockRegistry::render('hero'); ?>
-
-    <?php get_footer(); ?>
+  <Step title="Keep it current" icon="refresh-cw" title-type="p">
+    ```bash
+    vendor/bin/taw update
     ```
   </Step>
 </Steps>
 
-See the [Quickstart](/quickstart) for the full walkthrough, including how to define metabox fields and wire up a complete block.
-
----
-
-## Continue through the docs
-
-<Columns cols="2">
-  <Card title="Quickstart" href="/quickstart" icon="zap" horizontal="false">
-    End-to-end setup: install, first block, metabox fields, and template rendering.
-  </Card>
-
-  <Card title="AI Integration" href="/ai-integration" icon="bot" horizontal="false">
-    Skills, live introspection, direct field read/write with a safety model, static analysis, and CI — a working toolkit for AI agents, not just docs for them.
-  </Card>
-
-  {/* <Card title="Core Concepts" href="/concepts" icon="book-open" horizontal="false">
-    Understand how blocks, MetaBlocks, assets, and the boot process fit together.
-  </Card> */}
-
-  <Card title="TAW Core tools" href="/taw-core" icon="settings" horizontal="false">
-    Metabox engine, forms, mail, options pages, navigation menus, and the REST API.
-  </Card>
-
-  <Card title="Theme boot and performance" href="/taw-theme" icon="rocket" horizontal="false">
-    `Theme::boot()`, performance flags, Vite helpers, Image, and SVG utilities.
-  </Card>
-</Columns>
+The [Quickstart](/quickstart) walks through all of it, including the block's fields and template.

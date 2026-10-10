@@ -1,0 +1,325 @@
+---
+title: "taw command reference"
+description: "Every vendor/bin/taw command in taw/core: arguments, options, defaults, and whether it needs WordPress."
+---
+
+This page lists every command of `vendor/bin/taw` as of taw/core 1.91, grouped by what it's for. For how the tool works and how to add your own commands, see [The taw command](/taw-command). `vendor/bin/taw help <command>` prints the same details on your machine.
+
+**Key:** <b>Block</b> means the command also exists in block themes; every command exists in classic themes. <b>WP</b> means it loads WordPress, so the site must be running.
+
+## Updates
+
+### `update`
+
+Updates the theme as its `taw.json` says: taw/core, the framework's files, migrations, checks, then a branch or a pull request. No questions. Block · git, Composer, and `gh` for pull requests. Full walkthrough: [Updating a site](/updating).
+
+```bash
+vendor/bin/taw update [--plan] [--no-deliver] [--composer <cmd>] [--json]
+```
+
+| Option | Does |
+|---|---|
+| `--plan` | Says what it would do; changes nothing |
+| `--no-deliver` | Commits on the update branch; doesn't push or open a pull request |
+| `--composer <cmd>` | The command that runs Composer (default `composer`). Quoted parts stay whole, so a path with spaces works |
+| `--json` | The result as JSON; progress lines go to stderr. With `--plan`: `valid`, `errors`, `policy` and `would` |
+
+It exits with 0 when the theme was updated or was already up to date, and with 1 when it refused to start or a step failed. It always writes `.taw/update-report.md` and `.taw/update-report.json`.
+
+### `upgrade`
+
+Runs the migrations the theme still needs after a taw/core update. Without `--apply`, it only lists them. Block.
+
+```bash
+vendor/bin/taw upgrade [--apply] [--explain <id>|all] [--json]
+```
+
+| Option | Does |
+|---|---|
+| `--apply` | Runs the pending migrations |
+| `--explain <id>` | What one migration does, why, how to do it by hand, and how to undo it. `--explain all` explains every one |
+| `--json` | `pending`, `applied` and `manual` as JSON |
+
+Migrations follow `taw.json`: one whose setting is off (`scaffold` for `site-skills` and `configs`, `docs` for `agent-docs`) is held back. It's listed with a note and doesn't run; `--json` lists it under `held`. To do that work anyway, follow `--explain <id>`, or run `docs:sync --apply` or `configs:sync --apply`, which don't read the policy.
+
+### `policy`
+
+Shows the theme's update policy, `taw.json`, in words: what an update changes on its own. Block.
+
+| Option | Does |
+|---|---|
+| `--init` | Writes a starter `taw.json` with every default. Never overwrites one |
+| `--json` | The settings as JSON |
+
+## Framework files
+
+### `sync`
+
+Compares the theme with the newest taw-theme scaffold and taw/core release, and can write the framework's Tier 1 files. It needs the network: it reads taw/core's tags from GitHub and clones taw-theme.
+
+| Option | Does |
+|---|---|
+| `--apply` | Writes Tier 1 changes. Tier 2 files (`composer.json`, `package.json`) are only reported, with a diff, and so are the agent docs and configs, which `docs:sync` and `configs:sync` handle |
+| `--apply-manifests` | Writes the suggested `composer.json` and `package.json` additions and bumps. Never removes anything |
+| `--json` | The report as JSON |
+
+### `skills:sync`
+
+Installs taw/core's [site skills](/site-skills) into `.claude/skills/`. A site's own skill with the same name (`owner: site`) is kept and reported. Other skills in the folder are never touched. Block.
+
+| Option | Does |
+|---|---|
+| `--apply` | Writes the changes; without it, only reports them |
+| `--json` | The plan as JSON |
+
+### `docs:sync`
+
+Points the theme's agent docs (`AGENTS.md`, `CLAUDE.md`, Copilot and Windsurf rules) at taw/core's copy, so the framework's part updates with taw/core. It replaces only copies identical to a version the scaffolds shipped; a copy the site edited is left as is, with the steps to move its changes. Block.
+
+| Option | Does |
+|---|---|
+| `--apply` | Writes the changes |
+| `--force` | With `--apply`: replaces copies the site edited too |
+| `--json` | The plan as JSON |
+
+### `configs:sync`
+
+Points `vite.config.js` and `phpstan.neon` at taw/core's Vite and PHPStan base. It replaces only copies identical to a version the scaffold shipped; an edited one is left for you, with the steps. Options: `--apply`, `--json`.
+
+## Schema
+
+### `schema:validate`
+
+Validates `taw-schema/*.json` definition files without WordPress. See [Data layer](/data-layer). Block.
+
+```bash
+vendor/bin/taw schema:validate [<paths>...] [--json]
+```
+
+`paths` are files or folders; the default is the theme's `taw-schema/`.
+
+## Blocks
+
+### `make:block`
+
+Scaffolds a block in `Blocks/<group>/<Name>/`: a class and an `index.php` template, plus a stylesheet or a script if you ask for them. See [Blocks and block registry](/taw-core-blocks).
+
+```bash
+vendor/bin/taw make:block <Name> [-t meta|ui] [-g <group>] [-s] [-j] [-f]
+```
+
+| Argument / option | Does |
+|---|---|
+| `Name` | The block's name in PascalCase, e.g. `PricingTable` |
+| `-t`, `--type` | `meta` (owns its data) or `ui` (takes props). Asked if left out |
+| `-g`, `--group` | A subfolder, e.g. `sections` or `ui/cards` |
+| `-s`, `--with-style` | Adds `style.scss` |
+| `-j`, `--with-script` | Adds `script.js` |
+| `-f`, `--force` | Overwrites an existing block |
+
+### `export:block`
+
+Exports a block as a portable ZIP named `taw-block-<slug>.zip`, with a manifest.
+
+| Argument / option | Does |
+|---|---|
+| `name` | The block's name or path, e.g. `Hero`, `sections/Hero`, `ui/cards/Badge` |
+| `-o`, `--output` | Where to write the ZIP (default: the current folder) |
+
+### `import:block`
+
+Imports a block from a TAW block ZIP.
+
+| Argument / option | Does |
+|---|---|
+| `path` | The ZIP file |
+| `-g`, `--group` | A subfolder to import into, instead of the manifest's group |
+| `-f`, `--force` | Overwrites a block that already exists |
+
+## Site state
+
+### `inspect`
+
+Reports the live state of the site: registered blocks, metabox fields, forms and the framework version. WP. Option: `--json`.
+
+### `fields:get`
+
+Reads a field's current value, decoded by its type. WP.
+
+```bash
+vendor/bin/taw fields:get <post_id|options> <field_id> [--json]
+```
+
+`post_id` is the post the field belongs to, or `options` for an options-page field. `field_id` is the field's id without the meta prefix (`hero_heading`), a qualified id (`hero.hero_heading`), or the full meta key.
+
+### `fields:set`
+
+Writes a field's value, sanitized exactly like the admin form's save. WP.
+
+```bash
+vendor/bin/taw fields:set <post_id|options> <field_id> [<value>] [--file <path>] [--dry-run] [--json]
+```
+
+| Argument / option | Does |
+|---|---|
+| `value` | The new value. A repeater, a `files` field or a multiple `post_select` takes a JSON string. Required unless you pass `--file` |
+| `--file` | Reads the value from a file, which avoids shell quoting for JSON |
+| `--dry-run` | Sanitizes and reports what would be saved, without writing |
+| `--json` | The result as JSON |
+
+The safety model behind both commands is in [AI integration](/ai-integration).
+
+## Content
+
+The full guide to these commands is [Content Interchange](/content-interchange).
+
+### `content:export`
+
+Exports a portable JSON snapshot of the site's content, TAW fields, options, terms and referenced media. WP.
+
+| Option | Does |
+|---|---|
+| `--output <file>` | Where to write (default `.taw/content-export.json`) |
+| `--types <list>` | Only these post types (comma-separated) |
+| `--since <Y-m-d>` | Only posts dated on or after this day |
+| `--posts <list>` | Only these post IDs or slugs |
+| `--no-media` | Leaves out the media section |
+| `--all-media` | Also exports attachments nothing references |
+| `--include-drafts` | Includes drafts and pending posts |
+| `--with-users` | Exports users, without password hashes |
+| `--with-user-passwords` | Includes portable password hashes (implies `--with-users`) |
+| `--with-comments` | Exports the comments on exported posts |
+| `--with-settings` | Exports the allowlist of environment settings |
+| `--with-options` | With `--posts`, `--types` or `--since`: also exports options, which a scoped export leaves out |
+| `--with-terms` | With a scoped export: every term, not only the ones the posts use |
+| `--meta <prefixes>` | Also carries post meta whose keys start with these prefixes, e.g. `_wds_` |
+| `--migrate` | The same as `--with-users --with-settings --all-media --include-drafts` |
+
+### `content:import`
+
+Imports a snapshot or a change-set. It only previews until you pass `--yes`, and it writes a rollback snapshot before it changes anything. WP.
+
+```bash
+vendor/bin/taw content:import [<file>] [--yes] [--dry-run] [--policy update|create|skip] [--with-settings] [--user <who>] [--json]
+vendor/bin/taw content:import --undo[=<journal>] --yes
+```
+
+| Option | Does |
+|---|---|
+| `--yes` | Applies the changes |
+| `--dry-run` | Forces a preview even with `--yes` |
+| `--policy` | What to do with records that already exist: `update` (default), `create` or `skip` |
+| `--with-settings` | Also applies environment settings such as the permalink structure and time zone |
+| `--user` | Imports as this user (login, email or ID). Default: the first administrator |
+| `--undo[=<journal>]` | Undoes an import from its journal; the last one when no journal is given. Needs `--yes` |
+| `--json` | The plan or report as JSON |
+
+### `content:diff`
+
+Diffs two snapshots into a change-set that `content:import` can apply. It works on the files alone.
+
+```bash
+vendor/bin/taw content:diff <from.json> <to.json> [--out <file>]
+```
+
+Without `--out`, the change-set goes to standard output.
+
+### `content:defaults`
+
+Saves the fields' `defaults` into the database, for fields that are still empty. Without `--apply`, it only previews. WP.
+
+| Option | Does |
+|---|---|
+| `--apply` | Writes the defaults |
+| `--undo <journal>` | Reverses a journal from `uploads/taw-private`. Fields edited since are kept |
+| `--user` | Writes as this user. Default: the first administrator |
+| `--json` | The plan or report as JSON |
+
+## WordPress and logs
+
+### `wp`
+
+Runs WordPress's own WP-CLI with `--path` and Local's database socket filled in. Every argument goes to `wp` as is, and `wp` must be on your `PATH`.
+
+```bash
+vendor/bin/taw wp post list --post_type=page
+vendor/bin/taw wp db query "SELECT COUNT(*) FROM wp_posts"
+```
+
+### `log:tail`
+
+Shows the newest entries of TAW's structured log from `wp-content/taw-logs`. See [Logging](/taw-core#logging).
+
+| Option | Does |
+|---|---|
+| `--limit <n>` | How many entries (default 50) |
+| `--level <level>` | Only `debug`, `info`, `notice`, `warning`, `error` or `critical` |
+| `--code <prefix>` | Only codes starting with this, e.g. `form` or `mail.emailit` |
+| `--since <timestamp>` | Only entries at or after this ISO-8601 time |
+| `--json` | The raw JSON entries |
+
+## SEO and static export
+
+### `seo:extract`
+
+Extracts a post's text from its Metabox fields into a JSON file for copy and SEO review. WP.
+
+| Argument / option | Does |
+|---|---|
+| `post_id` | The post. Leave it out with `--all` |
+| `--all` | Every published page and post |
+| `--output <file>` | Where to write (default `.taw/seo-dump.json`, or `.taw/seo-site-dump.json` with `--all`) |
+
+### `seo:inject`
+
+Writes an edited dump from `seo:extract` back to the post's fields and SEO meta. WP.
+
+| Argument / option | Does |
+|---|---|
+| `post_id` | The post. Leave it out with `--all` |
+| `--all` | Applies a site-wide dump |
+| `--input <file>` | Where to read (default `.taw/seo-optimized.json`, or `.taw/seo-site-optimized.json` with `--all`) |
+| `--dry-run` | Checks and reports without writing |
+| `--json` | The result as JSON |
+
+### `export:static`
+
+Exports published pages and posts as a static HTML bundle for edge hosting. WP.
+
+| Option | Does |
+|---|---|
+| `--dir <folder>` | Where to write the bundle (default `static-export/` in the theme) |
+| `--prod-url <url>` | The URL the bundle will be served from. Without it, links become root-relative and work on any domain |
+
+## Chatbot
+
+These commands belong to the [Hybrid-RAG chatbot](/taw-core#sovereign-hybrid-rag-chatbot). All of them need WP.
+
+| Command | Does | Options |
+|---|---|---|
+| `content:reindex` | Builds or refreshes the vector index of the archive | `--post-type <list>`, `--batch <n>` (default 20), `--yes` |
+| `content:reindex-kb <id>` | Runs ingestion again for one uploaded knowledge base (ids: Settings → TAW Chatbot → Knowledge Bases) | — |
+| `rag:usage` | The chatbot's metered LLM spend against its budgets | `--days <n>` (default 30), `--uninstall` (drops the usage table and its options), `-y`, `--yes` |
+
+## Reference corpora
+
+Each corpus installs from a `.sqlite` file or from its portable JSON export. A JSON export works on hosts whose PHP has no SQLite. The `install` commands need WP; the `export` commands work on files alone. See [Bible Reader Corpus](/taw-core#bible-reader-corpus) and [Catechism Reader Corpus](/taw-core#catechism-reader-corpus).
+
+| Command | Arguments |
+|---|---|
+| `corpus:install` | `<path> <filename>`: the source and, for a `.sqlite` source, its file name (e.g. `bible-straubinger.sqlite`) |
+| `corpus:export` | `<path> <output>`: a Bible `.sqlite` file to JSON |
+| `catechism:install` | `<edition> <path> [<filename>]`: an edition slug such as `pius-x` |
+| `catechism:export` | `<path> <output>` |
+| `canon-law:install` | `<edition> <path>`: an edition slug such as `cic-1983` |
+| `canon-law:export` | `<path> <output>` |
+
+## Icons
+
+### `icons:sync`
+
+Copies the newest Lucide icon set into `resources/icons/lucide/`. It needs git and the network, and it's meant for taw/core's own repository: themes get the icons with taw/core.
+
+## Retired commands
+
+`hub:install` and `hub:enroll` were retired with TAW Hub in taw/core 1.77.0. They're hidden from `list`; running one prints what replaced it and exits with an error. Production sites are read through the [TAW Companion](/taw-hub-companion), which ships with the theme, and [taw-fleet](/taw-fleet).

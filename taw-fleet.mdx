@@ -1,220 +1,218 @@
 ---
 title: "taw-fleet"
-description: "A terminal dashboard for every TAW site on your Mac: status, taw/core versions, git state, shortcuts, updates and new sites."
+description: "A terminal dashboard for every TAW site on your Mac and its production copy: what it is, how to install it, and its settings."
 ---
 
-`taw-fleet` finds the TAW themes in your Local by Flywheel sites and shows them in one terminal screen: which sites run, which themes are behind on taw/core, what's uncommitted or unpushed, and whether a theme still matches the taw-theme scaffold. From there you open a theme in your editor, update it, hand the update to an agent, or create a new site.
+`taw-fleet` finds the TAW themes in your Local by Flywheel sites and shows them in one terminal screen. You see which sites run, which themes are behind on taw/core, what's uncommitted or unpushed, and whether a classic theme still matches the taw-theme scaffold. With a few settings it also shows each production site, its pull requests and deploys, and the client's open BugSmash comments.
 
-It needs no setup. It reads Local's own files, so on a new Mac you install it and run it.
+From the dashboard you open a theme in your editor, update it, hand work to Claude Code in the theme folder, or create a new site. Everything it does also runs on the command line.
 
-<Callout kind="info">
-  taw-fleet also reads your **production** sites, through the [companion](/taw-hub-companion) that ships with each TAW theme: `taw-fleet live`.
-</Callout>
+<Columns cols="3">
+  <Card title="Dashboard and keys" href="/taw-fleet-dashboard" icon="layout-dashboard">
+    The cards and columns, every key, the action palette, skills, updating and new sites.
+  </Card>
+  <Card title="Command reference" href="/taw-fleet-commands" icon="terminal">
+    Every command and flag, the JSON output, the `doctor` codes, Keychain items and files.
+  </Card>
+  <Card title="Production, pull requests and deploys" href="/taw-fleet-production" icon="globe">
+    `live`, pulling content, `wp-remote`, merging and deploys, BugSmash.
+  </Card>
+</Columns>
 
 ## Install
 
-<Steps>
-  <Step title="Install with Homebrew" icon="download">
+taw-fleet runs on macOS, Apple silicon or Intel.
+
+<Tabs>
+  <Tab title="Homebrew" icon="beer">
     ```bash
     brew install Relmaur/tap/taw-fleet
     ```
 
-    Update later with `brew upgrade taw-fleet`. Without Homebrew, download `taw-fleet_<version>_darwin_<arm64|amd64>.tar.gz` from the [releases](https://github.com/Relmaur/taw-fleet/releases), put `taw-fleet` on your `PATH`, and update with `taw-fleet self-update`.
-  </Step>
+    Update with `brew upgrade taw-fleet`.
+  </Tab>
+  <Tab title="Download" icon="download">
+    Download `taw-fleet_<version>_darwin_<arm64|amd64>.tar.gz` from the [releases](https://github.com/Relmaur/taw-fleet/releases) and put `taw-fleet` on your `PATH`, for example in `~/.local/bin`.
+
+    Update with `taw-fleet self-update`. It downloads the newest release for this Mac, checks it against the release's `checksums.txt` and replaces the binary. `--check` only says whether a newer one exists.
+  </Tab>
+  <Tab title="Go" icon="code">
+    ```bash
+    go install github.com/Relmaur/taw-fleet/cmd/taw-fleet@latest
+    ```
+  </Tab>
+</Tabs>
+
+`self-update` refuses a Homebrew install and tells you to run `brew upgrade taw-fleet`. When a newer release is out, the dashboard shows `▲ <version>` next to its own version.
+
+## First run
+
+<Steps>
   <Step title="Check the fleet" icon="stethoscope">
     ```bash
     taw-fleet doctor
     ```
 
-    You see every TAW theme with what needs attention: taw/core behind, uncommitted changes, unpushed commits, a broken symlink, a missing PHP version.
+    You see every TAW site with what needs attention, most serious first, each with its fix: taw/core behind, uncommitted changes, unpushed commits, a broken symlink, a missing PHP build. `doctor` only reads.
   </Step>
   <Step title="Open the dashboard" icon="layout-dashboard">
     ```bash
     taw-fleet
     ```
 
-    It opens in its own terminal window and fills it; quitting closes the window. `taw-fleet --window=false` (or `window = false` in the config) keeps it in the current terminal. Press `?` for every key.
+    It opens in a new window of your terminal and gives the current one back. Press `?` for every key and symbol.
+  </Step>
+  <Step title="Keep it in this terminal, if you prefer" icon="square-terminal">
+    ```bash
+    taw-fleet --window=false
+    ```
+
+    Or set `window = false` in the settings. When taw-fleet can't open a window, it says why and opens the dashboard where you are. When the output isn't a terminal (piped, CI), `taw-fleet` prints the `list` table instead.
   </Step>
 </Steps>
+
+## How it finds sites
+
+There is nothing to set up. taw-fleet reads Local's own files for the current user:
+
+| What | Where |
+|---|---|
+| Sites | `~/Library/Application Support/Local/sites.json` |
+| Running or halted | Live from the Local app while it's open; otherwise Local's `site-statuses.json` |
+| TAW themes | Each `wp-content/themes/*/composer.json` that requires `taw/core`. Symlinked themes are followed |
+| taw/core installed and locked | The theme's `vendor/composer/installed.json` and `composer.lock` |
+| Git state | `git` in the theme folder |
+| Newest releases | GitHub tags of taw-core, taw-theme, taw-gutenberg and taw-fleet, cached for an hour |
+
+A theme named `taw/gutenberg`, or a `wordpress-theme` with `theme.json` and `templates/`, is a **block** theme. Any other TAW theme is **classic**.
 
 ## The dashboard
 
-One two-line card per TAW theme. The top line is the site: its status (`●` running, `○` halted), the installed taw/core (`1.59.2 ▲ 1.76.1` when behind), the last scaffold check, production (**LIVE**), open BugSmash comments (**FB**), pull requests and deploys, and git (`±` uncommitted, `↑` to push, `↓` to pull). Underneath: the theme, its kind (`classic` for taw-theme, `block` for taw-gutenberg), the production host when there's room, how old the oldest open comment is, and when the last commit was.
-
-The selected card is tinted. While every card fits, a blank line separates them; with more sites than fit, they sit tight and the rule under the column names shows where you are (`1–19 of 24`). The TAW ecosystem's own themes (the umbrella's taw-theme and taw-gutenberg) come last, under a **TAW ECOSYSTEM** label, and the header counts only client sites.
-
-At 120 columns or wider, a detail pane shows the selected site in sections that say where each part comes from: **LOCAL** (this Mac), **LIVE** (the production site's companion), **FEEDBACK** (BugSmash) and **FINDINGS** (`doctor`).
-
-The bottom line shows the everyday keys. Press `:` to find any other action, or `?` for all of them.
-
-| Key | Does |
-|---|---|
-| `enter` | The selected site in full |
-| `/` | Filter by site, theme, branch or version, or by `behind`, `dirty`, `unpushed`, `running`, `live`, `vite` |
-| `w` | Work on it: start the site, open the editor, run Vite and open the site. Again to stop Vite and the site |
-| `M` | Merge the theme's pull request (deploys production), then follow the deploy |
-| `C` | Pull the production site's content into the Local site (preview, then asks) |
-| `F` | Open the site's BugSmash review page |
-| `X` | Resolve the site's open comments with Claude: Claude Code beside the dashboard, in the theme folder, with its `resolve-comments` skill |
-| `a` | Ask Claude…: pick one of the theme's skills, and Claude Code starts on it in the theme folder (see [Site skills](/site-skills)) |
-| `e` `f` `t` | Open the theme in your editor, in Finder, in a terminal |
-| `b` `B` `P` | Open the site, its wp-admin, its production site |
-| `g` `G` | Open the theme's GitHub repository, its pull requests |
-| `s` `R` | Start or stop the site, restart it (Local must be open). When Local's leftover processes are in the way, it asks to end them first |
-| `A` | Update with agent: Claude Code in a window beside the dashboard, with the update prompt |
-| `U` | Update all with agents: every client theme that needs it, in one Claude Code session |
-| `y` `S` | Check the theme against the taw-theme scaffold; apply Tier 1 |
-| `Y` | Check every theme against the scaffold at once |
-| `ctrl+r` | Refresh everything for every site, skipping the caches: Local, the newest versions, pull requests and deploys, production, and the sync check of every theme (`taw-fleet refresh` on the command line) |
-| `:` | All actions: type to find one, enter runs it |
-| `u` | Update taw/core |
-| `h` | Hand the update to an agent |
-| `n` | Create a new site |
-| `o` | Show the last task's output again |
-
-`w` runs Vite in its own terminal window, so you see its output. The dashboard shows `vite` after the theme's name while it runs, and the page you open already has hot reload.
-
-Anything that changes a site or a theme asks first. On the command line it asks too, and `--yes` skips the question in scripts.
-
-## Client feedback
-
-Clients review their live site in BugSmash and pin comments to the page. With `bugsmash_project` set for a site, the **FB** column shows how many comments are open, in the warning color once the oldest has waited more than two days, and `doctor` lists them (`comments.open`). The detail pane quotes the latest ones with their page, author and age.
-
-Press `F` to open the site's review page in BugSmash. Press `X` to hand the open comments to Claude Code: it opens beside the dashboard in the theme folder and starts the theme's `resolve-comments` skill on them. The skill shows its plan first and asks before anything reaches production. When Claude Code closes, the dashboard checks BugSmash again.
-
-taw-fleet itself only reads the comments. The skill writes to production through `taw-fleet wp-remote` (see [Site skills](/site-skills)).
-
-Store the BugSmash API key once (BugSmash → Settings → API Key): `taw-fleet comments key import`. It stays in your macOS Keychain.
+One two-line card per TAW theme, with columns for taw/core, the scaffold check, production, BugSmash, pull requests, deploys and git. See [Dashboard and keys](/taw-fleet-dashboard).
 
 ## Update a theme
 
-You have two ways to update a client theme.
+You have four ways, all on [Dashboard and keys](/taw-fleet-dashboard#update-a-theme):
 
-**Update taw/core yourself.** `u` in the dashboard (or `taw-fleet update <site>`) runs `composer update taw/core` with the site's PHP and Local's Composer. Only `composer.lock` and `vendor/` change. When it finishes, it lists the sections of `vendor/taw/core/UPGRADING.md` between the old and new version; each section has a check to run. Commit the result yourself.
+- `u` (`taw-fleet update <site>`) runs `composer update taw/core` and lists the `UPGRADING.md` sections to check.
+- `A` hands the whole update to Claude Code in the theme folder, beside the dashboard. `h` shows the prompt first.
+- `U` updates every client theme that needs it in one Claude Code session.
+- `y` and `S` check a classic theme against the taw-theme scaffold and apply its framework files.
 
-**Hand the whole update to an agent.** `h` (or `taw-fleet handoff <site>`) builds a prompt for the `update-theme` skill with everything an agent needs: where the theme and the site are, how to run PHP, Composer and wp-cli for this site, what `doctor` found, and the rules. The agent works on a branch, commits, and asks you before pushing. In the dashboard, `A` opens Claude Code with it in the theme folder: in Terminal, the dashboard takes the left half of the screen and Claude the right half. When Claude exits, its window closes and the dashboard rescans. `A` is also offered as an answer when `u` asks, and `c` on the `h` screen copies the prompt.
-
-**Update every theme at once.** `U` (or `taw-fleet handoff --all --launch`) updates every client TAW theme that needs it in one Claude Code session. A coordinator runs one subagent per theme, at most three at a time, each following the `update-theme` skill's batch mode. When they're done, it asks you once which docs changes to apply, which sites to start for checks that need WordPress, and which branches to push. Themes with uncommitted changes or on another branch are left out, and `U` says why before it starts. Nothing is pushed without your answer.
-
-To check the theme's framework files against the newest taw-theme, use `y` (or `taw-fleet sync <site>`). It only reads. `S` (or `sync --apply`) writes the Tier 1 files after asking. Tier 2 files (docs and config) are never written; review them by hand.
-
-<Callout kind="alert">
-  taw-fleet refuses to update or sync the umbrella's own `taw-theme` and `taw-gutenberg`. They change through the taw-core release flow.
-</Callout>
-
-## Pull requests and deploys
-
-With a GitHub token (`gh auth login`), the dashboard shows each theme's open pull requests and its deploy:
-- **PR column:** `✓` when CI passed, `✗` when it failed.
-- **DEPLOY column:** `✓` when production has the newest commit, `↑2` when two commits aren't deployed, `⟳` while it deploys, `✗` when it failed.
-
-`M` merges a pull request once CI has passed. It asks first, naming the production site the merge deploys. Then it deletes the branch, pulls the default branch into the local theme, and follows the deploy until production has it. `L` refreshes everything now.
-
-## Pull production content
-
-`C` (or `taw-fleet pull <site>`) copies a live site's published content into its Local copy:
-- **What comes over:** posts and CPT entries, TAW fields and options, terms, and the media they use.
-- **How:** it's fetched through the site's TAW companion (0.4+), signed with the fleet key and checked, so no passwords are involved.
-- **Preview first:** you see what would be created or changed. After you confirm, production wins, and a rollback snapshot is saved first.
-- **Never:** drafts, users, comments or settings.
+taw-fleet doesn't run `vendor/bin/taw update` yet. For the one-step update, see [Updating a site](/updating).
 
 ## Create a site
 
-`n` in the dashboard (or `taw-fleet create`) makes a new Local site with a fresh TAW theme:
+`n` in the dashboard, or `taw-fleet create`, makes a Local site with a fresh classic or block TAW theme, built, activated and committed. The admin password is shown once. See [Create a site](/taw-fleet-dashboard#create-a-site).
 
-<Steps>
-  <Step title="Answer the form" icon="list">
-    Site name, classic or block theme, and the WordPress admin username and email. The domain (`<name>.local`), the site folder and the theme folder come from the name; PHP and the web server default to Local's preferred versions. A name, domain or folder that Local already has is refused here.
-  </Step>
-  <Step title="Watch it build" icon="hammer">
-    Local creates and starts the site. [taw-create](https://github.com/Relmaur/taw-create) installs taw-theme or taw-gutenberg into `wp-content/themes/<name>`, the front-end assets are built, wp-cli activates the theme, and the theme folder becomes a git repository with a first commit. This takes one to two minutes.
-  </Step>
-  <Step title="Save the password" icon="key">
-    The admin password is generated and shown once at the end. Press `c` to copy it. taw-fleet never stores it.
-  </Step>
-</Steps>
+## Client feedback
 
-Without the form:
+The FB column, `F`, `X` and `taw-fleet comments` moved to [BugSmash comments](/taw-fleet-production#bugsmash-comments).
 
-```bash
-taw-fleet create "Acme Shop" --block --admin-user marco --admin-email me@example.com --yes
-```
+## Pull requests and deploys
 
-<Callout kind="info">
-  Local's API can't delete sites. To remove a site, use Local's window.
-</Callout>
+The PR and DEPLOY columns, `M` and `taw-fleet merge` moved to [Pull requests and deploys](/taw-fleet-production#pull-requests-and-deploys).
+
+## Pull production content
+
+`C` and `taw-fleet pull` moved to [Pull production content](/taw-fleet-production#pull-production-content).
 
 ## Commands
 
-| Command | Does |
-|---|---|
-| `taw-fleet` | The dashboard (the `list` table when not in a terminal) |
-| `list [--all] [--json]` | Every site and its TAW themes |
-| `show <site>` | One site in full |
-| `doctor [--json]` | What needs attention, with stable finding codes |
-| `open <site> --editor` | Open the theme (also `--finder`, `--terminal`, `--browser`, `--admin`, `--production`, `--github`, `--prs`) |
-| `prs [site]` | Open pull requests with their CI, and what each theme has deployed |
-| `merge <site> [--pr N]` | Merge a pull request (deploys production) |
-| `pull <site>` | Production content into the Local site (preview, then asks) |
-| `work <site> [--stop]` | Start the site, open the editor, run Vite, open the site (`--stop` stops Vite and the site) |
-| `start`, `stop`, `restart <site>` | Through the Local app |
-| `unstick <site>` | End Local's leftover nginx or php-fpm processes that keep the site from starting or stopping (asks first) |
-| `wp-remote <site> <method> <route>` | Call the production site's WordPress REST API as its bot user; `wp-remote key import\|show <site>` stores and checks the bot's credentials |
-| `wp <site> <args>` | wp-cli with the site's PHP and database socket |
-| `sync <site> [--apply]` | `bin/taw sync`: compare with the taw-theme scaffold (`--all`: every theme) |
-| `update <site>` | `composer update taw/core` and the UPGRADING.md sections to check |
-| `inspect <site>` | `bin/taw inspect`: blocks, fields and forms of a running site |
-| `handoff <site> [--copy]` or `[--launch]` | The agent prompt for the update |
-| `create [name]` | A new Local site with a TAW theme |
-| `config init`, `show`, `path` | The settings file |
-| `live [site]` | The production sites through their companion: versions, plugin updates, vulnerabilities, logs |
-| `live key new`, `live key show`, `live trust <site>` | taw-fleet's signing key (Keychain) and the sites' pinned keys |
-| `comments [site]` | Open review comments in each site's BugSmash project, newest first |
-| `comments projects`, `comments key import`, `comments key show` | Your BugSmash projects and their ids; the API key (Keychain) |
-| `self-update [--check]` | Replace taw-fleet with the newest release |
-
-Add `--json` to `list`, `show`, `doctor`, `sync` and `comments` for scripts. The JSON keys and the `doctor` codes are stable.
+Every command, flag and JSON shape is in the [Command reference](/taw-fleet-commands).
 
 ## Settings
 
-Everything is optional. `taw-fleet config init` writes a commented `~/.config/taw-fleet/config.toml`:
+Everything is optional: taw-fleet works with no settings file. The file is `~/.config/taw-fleet/config.toml`, or `$XDG_CONFIG_HOME/taw-fleet/config.toml` when that variable is set.
 
-```toml
-editor = "vscode"        # or "Cursor", "PhpStorm"…
-terminal = "Ghostty"
-
-[create]                 # defaults for new sites
-kind = "classic"         # or "block"
-admin_user = "marco"
-admin_email = "me@example.com"
-
-[sites.ls-mxico]         # keyed by the site's folder in ~/Local Sites
-production_url = "https://lsmexico.mx"
-notes = "Deploys from main."
-bugsmash_project = "a2f16102-91d0-4968-a010-fca3146f4596"   # from taw-fleet comments projects
-
-[sites.parallelstaff]
-github_account = "parallelstaff"   # its theme belongs to another GitHub account
+```bash
+taw-fleet config init   # write a commented starter file (never overwrites)
+taw-fleet config show   # the settings in effect and the apps found
+taw-fleet config path   # where the file is
 ```
 
-A theme of another GitHub account shows `@account` in the dashboard. taw-fleet spots it from an SSH alias remote (`github.com-parallel`), from an owner outside `github_owners = [...]`, or from `github_account`.
+```toml title="config.toml"
+editor = "Cursor"
+terminal = "Ghostty"
+window = false
+github_owners = ["Relmaur", "EmeLambda"]
+
+[create]
+kind = "classic"
+admin_user = "marco"
+admin_email = "me@example.com"
+php = "8.2.30"
+web_server = "nginx"
+
+[sites.ls-mxico]
+production_url = "https://lsmexico.mx"
+notes = "Deploys from main."
+bugsmash_project = "a2f16102-91d0-4968-a010-fca3146f4596"
+
+[sites.parallelstaff]
+github_account = "parallelstaff"
+```
+
+| Key | What it does | Checked when the file loads |
+|---|---|---|
+| `editor` | The editor for `e`, `w` and `open --editor`. Empty: the first installed of Cursor, Visual Studio Code, PhpStorm, Zed, Sublime Text, Nova. Names are case-insensitive; `code`, `vscode` and `sublime` work too | No. An editor that isn't installed is an error when you open something |
+| `terminal` | The terminal for `t`, the dashboard's window, Claude Code and Vite windows. Empty: the first installed of Ghostty, iTerm2, Warp, kitty, Terminal. `iterm` works too. Warp can't run a script, so windows that run something open in Terminal instead | No, same as `editor` |
+| `window` | `false` keeps the dashboard in the current terminal. Default `true`. `--window` on the command line wins | Must be a boolean |
+| `github_owners` | Your GitHub accounts and organizations. A theme whose repository belongs to another owner is marked `@account` | Must be a list of strings |
+| `[create] kind` | `"classic"` or `"block"`: the default theme for new sites | Anything else is an error |
+| `[create] admin_user`, `admin_email` | The default WordPress admin for new sites | No; checked when you create a site |
+| `[create] php` | A PHP version Local has downloaded, such as `"8.2.30"`. Empty: Local's preferred | No; checked when you create a site |
+| `[create] web_server` | `"nginx"` or `"apache"`, optionally with a version. Empty: Local's preferred | No; checked when you create a site |
+| `[sites.<folder>] production_url` | The production site. Turns on the LIVE column, `P`, `C`, `live` and `wp-remote` for that site | Must start with `https://` or `http://` |
+| `[sites.<folder>] notes` | Free text added to the update prompt `h` and `A` build | No |
+| `[sites.<folder>] github_account` | The GitHub account the site's theme belongs to, when it isn't yours (for example before it has a remote) | No |
+| `[sites.<folder>] bugsmash_project` | The site's BugSmash project id. Turns on the FB column, `F` and `X`. `taw-fleet comments projects` lists the ids | Must be a UUID |
+| `umbrella` | Unused since v1.12.0. It's still accepted so older files load | No |
+
+`<folder>` is the site's folder name in `~/Local Sites`. Any other key is an error that names it (`unknown keys: …`). With a broken file, the dashboard still opens, but its shortcuts are off until you fix it.
+
+## Other GitHub accounts
+
+A theme of another GitHub account shows `@account` in the GIT column and the detail pane, and `/other` filters to those themes. taw-fleet marks a theme when one of these is true:
+
+- Its remote uses an SSH host alias such as `github.com-parallel`, the usual way to use a second account.
+- Its repository's owner isn't in `github_owners`. Without `github_owners`, this rule is off.
+- The site sets `github_account`, for example for a theme inside a larger repository.
+
+An account listed in `github_owners` is never marked.
 
 ## Troubleshooting
 
 <ExpandableGroup>
-<Expandable default-open="false" title="A site shows as halted but it's running">
-  Live statuses come from the Local app. With Local closed, taw-fleet falls back to Local's last saved statuses. Open Local and press `r`.
-</Expandable>
+  <Expandable title="A site shows as halted but it's running" default-open="false">
+    Live statuses come from the Local app. With Local closed, taw-fleet falls back to Local's last saved statuses. Open Local and press `r`.
+  </Expandable>
 
-<Expandable default-open="false" title="Start, stop or create says Local isn't open">
-  These go through the Local app's own API. Open the Local app and try again.
-</Expandable>
+  <Expandable title="Start, stop or create says Local isn't open" default-open="false">
+    These go through the Local app's own API. Open the Local app and try again.
+  </Expandable>
 
-<Expandable default-open="false" title="taw/core shows no newest version">
-  The newest versions come from GitHub and are cached for an hour. Without network access, taw-fleet uses the last cached answer. Set `GITHUB_TOKEN`, or sign in with `gh auth login`, if you hit GitHub's rate limit.
-</Expandable>
+  <Expandable title="A site hangs on start or stop, or Local reports a port conflict" default-open="false">
+    Local can leave nginx or php-fpm workers behind whose master is gone. In the dashboard, `s` names them and offers to end them. On the command line, run `taw-fleet unstick <site>`.
+  </Expandable>
 
-<Expandable default-open="false" title="The editor doesn't open">
-  Check which editor taw-fleet picked with `taw-fleet config show`, and set `editor` in the settings. taw-fleet v0.7.2 and later also open editors correctly from a VS Code terminal.
-</Expandable>
+  <Expandable title="taw/core shows no newest version" default-open="false">
+    The newest versions come from GitHub and are cached for an hour. Without network access, taw-fleet uses the last cached answer. If you hit GitHub's rate limit, set `GITHUB_TOKEN` or sign in with `gh auth login`.
+  </Expandable>
+
+  <Expandable title="The PR and DEPLOY columns show ?" default-open="false">
+    Pull requests and deploys need a GitHub token. Run `gh auth login`, or set `GITHUB_TOKEN`. With `--offline`, the columns don't show at all.
+  </Expandable>
+
+  <Expandable title="The editor or terminal doesn't open" default-open="false">
+    Check which apps taw-fleet found with `taw-fleet config show`, and set `editor` or `terminal` in the settings.
+  </Expandable>
+
+  <Expandable title="The dashboard says its shortcuts are unavailable" default-open="false">
+    The settings file doesn't load. Run `taw-fleet config show` to see the error, which names the bad key or value.
+  </Expandable>
+
+  <Expandable title="A, X or a says Claude Code isn't installed" default-open="false">
+    taw-fleet starts the `claude` command. Install [Claude Code](https://claude.com/claude-code), or use `h` and `c` to copy the update prompt instead.
+  </Expandable>
 </ExpandableGroup>

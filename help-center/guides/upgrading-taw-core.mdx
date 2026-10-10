@@ -1,21 +1,29 @@
 ---
 title: Upgrading taw/core on an existing site
 description: >-
-  How to bring a live TAW site's taw/core up to date, what changes by default
-  between versions, and what to check afterwards.
+  How to bring a TAW site's taw/core up to date: one command from taw/core 1.91 on, the steps by hand
+  for older sites, what changes by default between versions, and what to check afterwards.
 ---
 
 ## The short version
 
-Every 1.x release of `taw/core` keeps existing theme code working and never changes stored data. A few
-releases changed a default, though, so the upgrade comes with a checklist organized by the version the
-site is coming from:
-- **In any theme:** `vendor/taw/core/UPGRADING.md` (the copy that came with the new version);
-- **Online:** [UPGRADING.md on GitHub](https://github.com/Relmaur/taw-core/blob/main/UPGRADING.md).
+Every 1.x release of `taw/core` keeps existing theme code working and never changes stored data.
 
-It's written so an AI agent working on the site can follow it step by step.
+- **On taw/core 1.91 or later**, one command does the whole update and opens a pull request: `vendor/bin/taw update`. See [Updating a site](/updating).
+- **On an older taw/core**, follow the steps below once. After that, the site has the command too.
 
-## Steps
+Releases that change a default come with a checklist, organized by the version the site is coming from. It's in `vendor/taw/core/UPGRADING.md` (the copy that came with the new version) and [on GitHub](https://github.com/Relmaur/taw-core/blob/main/UPGRADING.md). It's written so a person or an AI agent can follow it step by step.
+
+## On taw/core 1.91 or later
+
+```bash
+vendor/bin/taw update --plan   # what it would do
+vendor/bin/taw update          # do it: a branch, the checks, a pull request
+```
+
+If a check fails, nothing is pushed, and `.taw/update-report.md` says how to fix, finish or undo the update.
+
+## On an older taw/core
 
 <Steps>
   <Step title="Check the installed version" icon="search" title-type="p">
@@ -24,34 +32,46 @@ It's written so an AI agent working on the site can follow it step by step.
     ```
   </Step>
 
-  <Step title="Sync the theme scaffold (recommended)" icon="refresh-cw" title-type="p">
-    Ask your agent to "update the theme". The `update-theme` skill runs `php bin/taw sync`, which updates `functions.php`, `bin/`, CI and the framework skills, and never touches `Blocks/`, `inc/` or templates. For `composer.json` and `package.json` it lists only what the scaffold has and your site lacks (since taw/core v1.78.0). It never proposes removing your own packages, and optional starter features (Reactiph, the chatbot's packages) are marked optional so an existing site can skip them.
-  </Step>
-
   <Step title="Update the package" icon="download" title-type="p">
     ```bash
     composer update taw/core --with-dependencies
     ```
 
-    `--with-dependencies` lets Composer update the packages taw/core itself needs. Without it, an update that needs a newer one finishes without changing anything. Check the version moved: `composer show taw/core | grep versions`.
+    `--with-dependencies` lets Composer update the packages taw/core itself needs. Without it, an update that needs a newer one finishes without changing anything. Check that the version moved; if it didn't, `composer why-not taw/core <version>` says what holds it back.
+  </Step>
+
+  <Step title="Sync the theme scaffold (classic themes)" icon="refresh-cw" title-type="p">
+    ```bash
+    php bin/taw sync --apply --apply-manifests
+    ```
+
+    This updates `functions.php`, `bin/`, CI and the framework skills, and never touches `Blocks/`, `inc/` or templates. `--apply-manifests` adds what the scaffold's `composer.json` and `package.json` have and the site lacks, such as the Composer hook that runs migrations. It never removes your own packages. The `update-theme` skill does the same with an agent. A block theme skips this step.
+  </Step>
+
+  <Step title="Run the migrations (taw/core 1.91+)" icon="wand" title-type="p">
+    ```bash
+    vendor/bin/taw upgrade --apply
+    ```
+
+    Each change a release makes to a theme ships as a migration. Anything it shouldn't decide, like a file the site edited, is listed with steps marked "For you". `vendor/bin/taw upgrade --explain <id>` says what a migration does and how to undo it.
   </Step>
 
   <Step title="Work through UPGRADING.md" icon="list-checks" title-type="p">
-    Read every section newer than the version you came from, and run the checks it marks. The `update-theme` skill does this for you when you let it update `taw/core`.
+    Read every section newer than the version you came from, and do the checks marked **Check**. From v1.91.0 on, a change to a theme is a migration, not a check.
   </Step>
 
   <Step title="Verify and commit" icon="check" title-type="p">
-    Run the tests, load the front page and a page with a form (the `visual-check` skill), and open a few wp-admin screens with metaboxes and options pages. Then commit `composer.lock`.
+    Run the tests, load the front page and a page with a form (the `visual-check` skill), and open a few wp-admin screens with metaboxes and options pages. Then commit `composer.lock` and the changed files.
 
     <Callout kind="alert">
-      A real form submission can email a client or create a post. To check validation, send a form with a required field left empty: nothing is saved or sent. Under Local, start the site first; `php bin/taw` commands need its database.
+      A real form submission can email a client or create a post. To check validation, send a form with a required field left empty: nothing is saved or sent. Under Local, start the site first; commands like `inspect` and `fields:get` need its database.
     </Callout>
   </Step>
 </Steps>
 
 ## What changed by default since v1.22
 
-These are the changes a site gets without asking. Everything else since v1.22 is opt-in.
+These are the changes a site gets without asking. Everything else since v1.22 is opt-in. `UPGRADING.md` has the full text of each.
 
 | Since | Change | What to check |
 |---|---|---|
@@ -60,8 +80,11 @@ These are the changes a site gets without asking. Everything else since v1.22 is
 | v1.30 | The RAG chatbot needs `RagSettings::enable()` | Only if the site uses the chatbot |
 | v1.39.1 | Forms reject an empty required email | Submit each form once |
 | v1.41 | Metaboxes with `tabs` show tabs | Open a post whose block uses metabox tabs |
+| v1.42 | Performance tweaks register only when the theme boots | Only a theme that never calls `Theme::boot()` or `bootstrapFullSite()` needs `TAW_PERFORMANCE_AUTOLOAD` (no TAW site does) |
 | v1.56 | taw-core has its own translations | Nothing: the theme's own translations still win |
 | v1.59.2 | taw-core's Spanish loads in classic themes; tabs work by keyboard | On a Spanish site, a required-field message is in Spanish |
+| v1.76.1 | Options-page and metabox tabs have a new look | Theme admin CSS that restyles `.taw-tabbed .tabs` or `.tab-title` |
+| v1.81 | Per-IP limits stop trusting `X-Forwarded-For`; an enabled chatbot needs a human check | Behind Cloudflare or another public proxy: list it in `TAW_TRUSTED_PROXIES`, then compare the IP saved on a form submission with your own |
 
 To roll back, reinstall the previous version: `composer update taw/core:<previous version>`, or restore
 `composer.lock`. Nothing needs migrating either way.

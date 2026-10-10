@@ -94,11 +94,11 @@ description: >-
     ➜  Local:   http://localhost:5173/
     ```
 
-    If the port changed, update `vite.config.js` or stop the conflicting process.
+    A different port is fine: the dev server writes its real URL to `public/build/hot`, and WordPress reads it from there.
   </Step>
 
-  <Step title="Check the server URL in vite.config.js" icon="settings" title-type="p">
-    The `server.origin` in `vite.config.js` must match the URL Vite is actually listening on. The TAW Vite bridge reads this to proxy asset URLs from WordPress.
+  <Step title="Check the hot file" icon="settings" title-type="p">
+    While `npm run dev` runs, `public/build/hot` must exist and hold the dev server's URL. If it's missing, the theme's `vite.config.js` doesn't load taw/core's `classicTheme()` preset (it adds the hot file). Since taw/core 1.91, the `1.91.0/configs` migration moves an unedited config to it; see [Assets and Vite integration](/taw-core-assets-vite).
   </Step>
 </Steps>
 

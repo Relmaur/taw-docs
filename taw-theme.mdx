@@ -1,5 +1,5 @@
 ---
-title: Theme boot and performance
+title: TAW Theme — boot, performance and helpers
 description: >-
   Initialize the TAW Core theme bootstrap, configure performance optimizations,
   and discover helper classes you will use in your templates.
@@ -45,7 +45,7 @@ Call `TAW\Core\Theme::boot()` once from your theme to wire up block loading, Vit
 </Callout>
 
 <Callout kind="info" collapsed="false">
-  `bin/taw` includes `content:export` / `content:import` / `content:diff` for moving a site's state — posts, TAW fields, options, terms, media, and optionally authorship, users, comments and settings — between environments, and wp-admin gets a **Tools → TAW Data** screen. Import is always a dry-run first, with an automatic rollback snapshot. `content:export --migrate` plus `content:import --yes` is a full TAW-site state transfer. See [Content Interchange](/content-interchange).
+  The [`taw` command](/taw-command) includes `content:export` / `content:import` / `content:diff` for moving a site's state — posts, TAW fields, options, terms, media, and optionally authorship, users, comments and settings — between environments, and wp-admin gets a **Tools → TAW Data** screen. Import is always a dry-run first, with an automatic rollback snapshot. `content:export --migrate` plus `content:import --yes` is a full TAW-site state transfer. See [Content Interchange](/content-interchange).
 </Callout>
 
 <Callout kind="info" collapsed="false">
@@ -53,7 +53,7 @@ Call `TAW\Core\Theme::boot()` once from your theme to wire up block loading, Vit
 </Callout>
 
 <Callout kind="info" collapsed="false">
-  The Bible Reader Corpus is opt-in — call `BibleEndpoint::enable()` in `inc/customizations.php` before `Theme::boot()`. A developer-installed reference corpus (`bin/taw corpus:install`), not bundled with the theme scaffold. See [Bible Reader Corpus](/taw-core#bible-reader-corpus).
+  The Bible Reader Corpus is opt-in — call `BibleEndpoint::enable()` in `inc/customizations.php` before `Theme::boot()`. A developer-installed reference corpus (`vendor/bin/taw corpus:install`), not bundled with the theme scaffold. See [Bible Reader Corpus](/taw-core#bible-reader-corpus).
 </Callout>
 
 ## Recommended bootstrap flow
@@ -502,19 +502,21 @@ It talks only to `POST /wp-json/taw/v1/chat` — see [Sovereign Hybrid-RAG Chatb
 
 ## Framework updates
 
-TAW Core is distributed as a Composer package (`taw/core`). To update the framework to the latest version, run:
+TAW Core is distributed as a Composer package (`taw/core`). On taw/core 1.91 or later, update the theme in one step:
 
 ```bash
-composer update taw/core
+vendor/bin/taw update
 ```
 
+It updates taw/core within the theme's `taw.json` policy, applies the framework's files, runs the migrations and the checks, and opens a pull request. See [Updating a site](/updating).
+
 <Callout kind="info">
-  Adopting a new minor can add `bin/taw` commands. After `composer update taw/core`, run your scaffold's `bin/taw` sync (or copy the current `bin/taw` from the [taw-theme scaffold](https://github.com/Relmaur/taw-theme)) so new commands — for example `content:export` / `content:import` / `content:diff` for [Content Interchange](/content-interchange) — are registered.
+  New commands arrive with taw/core itself: the [`taw` command](/taw-command) ships as `vendor/bin/taw` since taw/core 1.90. On an older theme, run `composer update taw/core`, then `vendor/bin/taw sync --apply` to get the newer `bin/taw`.
 </Callout>
 
 ## Static analysis
 
-TAW Theme ships `phpstan.neon` (level 5, `Blocks/` and `inc/` only) with WordPress core stubs via `szepeviktor/phpstan-wordpress`, so core functions/classes resolve correctly instead of erroring as unknown.
+TAW Theme runs PHPStan at level 5 on `Blocks/` and `inc/`, with WordPress core stubs via `szepeviktor/phpstan-wordpress`, so core functions and classes resolve instead of erroring as unknown. That base ships with taw/core (`vendor/taw/core/resources/phpstan/classic.neon`) and updates with it. The theme's `phpstan.neon` includes it and holds only the site's own settings, such as `ignoreErrors` or extra paths.
 
 ```bash
 composer run phpstan
@@ -524,15 +526,15 @@ Runs automatically in CI on every push/PR. Prefer fixing types over adding `igno
 
 ## Direct field read/write — `fields:get` / `fields:set`
 
-`php bin/taw fields:get`/`fields:set` read or write a single Metabox/OptionsPage field's value directly — the same primitive `VisualEditorEndpoint` uses for its REST-driven saves, exposed as a CLI command. The field's type is resolved from the live `Metabox` registry (the same one `inspect` reports), then dispatched to the matching type-aware getter/sanitizer, so a repeater comes back as a decoded array and gets sanitized exactly like a real admin form save — not a hand-rolled approximation.
+`vendor/bin/taw fields:get`/`fields:set` read or write a single Metabox/OptionsPage field's value directly — the same primitive `VisualEditorEndpoint` uses for its REST-driven saves, exposed as a CLI command. The field's type is resolved from the live `Metabox` registry (the same one `inspect` reports), then dispatched to the matching type-aware getter/sanitizer, so a repeater comes back as a decoded array and gets sanitized exactly like a real admin form save — not a hand-rolled approximation.
 
 ```bash
-php bin/taw fields:get 42 hero_heading --json
-php bin/taw fields:get 42 team_members --json                        # repeater comes back as a decoded array
+vendor/bin/taw fields:get 42 hero_heading --json
+vendor/bin/taw fields:get 42 team_members --json                        # repeater comes back as a decoded array
 
-php bin/taw fields:set 42 hero_heading "Welcome"
-php bin/taw fields:set 42 team_members --file=/tmp/team.json         # --file avoids shell JSON-quoting for repeater/array values
-php bin/taw fields:set 42 hero_heading "Welcome" --dry-run           # preview the sanitized result without writing
+vendor/bin/taw fields:set 42 hero_heading "Welcome"
+vendor/bin/taw fields:set 42 team_members --file=/tmp/team.json         # --file avoids shell JSON-quoting for repeater/array values
+vendor/bin/taw fields:set 42 hero_heading "Welcome" --dry-run           # preview the sanitized result without writing
 ```
 
 <Callout kind="info" collapsed="false">
@@ -553,18 +555,18 @@ See the [AI Integration](/ai-integration) page for the full picture — skills, 
 
 ## WP-CLI — live site data access
 
-`bin/taw` scaffolds, introspects, and (via `fields:get`/`fields:set` above) can now read/write individual field values — but it has no general-purpose view into site *content* beyond that. For posts, options, users, terms, transients, arbitrary PHP via `wp eval`/`wp eval-file`, or an interactive `wp shell`, use WordPress's own official CLI, **WP-CLI** (the `wp` command). It's a host-level tool, not bundled by this theme, but present on virtually every real WordPress host and every local dev environment (Local, Herd, DDEV).
+The [`taw` command](/taw-command) scaffolds, introspects, and (via `fields:get`/`fields:set` above) can now read/write individual field values — but it has no general-purpose view into site *content* beyond that. For posts, options, users, terms, transients, arbitrary PHP via `wp eval`/`wp eval-file`, or an interactive `wp shell`, use WordPress's own official CLI, **WP-CLI** (the `wp` command). It's a host-level tool, not bundled by this theme, but present on virtually every real WordPress host and every local dev environment (Local, Herd, DDEV).
 
-**Prefer `php bin/taw wp <args>` over a bare `wp` command** — a thin passthrough (every argument forwarded exactly as given) that automatically resolves `--path` and, under Local by Flywheel, the per-site MySQL socket (see the Callout below) — no manual configuration needed:
+**Prefer `vendor/bin/taw wp <args>` over a bare `wp` command** — a thin passthrough (every argument forwarded exactly as given) that automatically resolves `--path` and, under Local by Flywheel, the per-site MySQL socket (see the Callout below) — no manual configuration needed:
 
 ```bash
-php bin/taw wp post list --post_type=page --fields=ID,post_title,post_status
-php bin/taw wp option get siteurl
-php bin/taw wp eval 'echo home_url();'
+vendor/bin/taw wp post list --post_type=page --fields=ID,post_title,post_status
+vendor/bin/taw wp option get siteurl
+vendor/bin/taw wp eval 'echo home_url();'
 ```
 
 <Callout kind="warning" collapsed="false">
-  **Local by Flywheel connection quirk:** `wp-config.php`'s `DB_HOST` is `localhost`, but Local runs a per-site MySQL instance on its own Unix socket, not the system default. A bare `wp` command fails with `Error establishing a database connection` even though the site works fine in the browser — `php bin/taw wp` (above) resolves this automatically. If you need the real `wp` binary directly anyway, the manual fix is the same thing `bin/taw wp` does internally:
+  **Local by Flywheel connection quirk:** `wp-config.php`'s `DB_HOST` is `localhost`, but Local runs a per-site MySQL instance on its own Unix socket, not the system default. A bare `wp` command fails with `Error establishing a database connection` even though the site works fine in the browser — `vendor/bin/taw wp` (above) resolves this automatically. If you need the real `wp` binary directly anyway, the manual fix is the same thing `vendor/bin/taw wp` does internally:
 
   ```bash
   ps aux | grep mysqld   # find the socket path for this site's mysqld — .../Local/run/<SITE_ID>/conf/mysql/my.cnf
@@ -579,11 +581,11 @@ php bin/taw wp eval 'echo home_url();'
 
 ## Theme updates (auto-updater)
 
-`TAW\Core\ThemeUpdater` (shipped in `taw/core`) hooks into WordPress's update system to check a GitHub Releases URL for new versions. When a newer release is found, the standard **Update Available** notice appears in the admin.
+`TAW\Core\Theme\ThemeUpdater` (shipped in `taw/core`) hooks into WordPress's update system to check a GitHub Releases URL for new versions. When a newer release is found, the standard **Update Available** notice appears in the admin. TAW Theme doesn't turn it on; to use it, add it to `inc/customizations.php` (not `functions.php`, which the framework owns and replaces on sync):
 
 ```php
-// functions.php
-new TAW\Core\ThemeUpdater([
+// inc/customizations.php
+new TAW\Core\Theme\ThemeUpdater([
     'slug'       => 'taw-theme',
     'github_url' => 'https://api.github.com/repos/your-username/taw-theme/releases/latest',
 ]);
