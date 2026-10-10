@@ -166,4 +166,4 @@ jobs:
     with: { smoke: true, build: false }
 ```
 
-It runs only the checks the theme has: PHP lint, the block `getData()` check, PHPStan and tests, `schema:validate`, the front-end check or build, and an optional WordPress smoke test. The header of each workflow lists the same steps as commands, so you can run them by hand.
+It runs only the checks the theme has: PHP lint, the block `getData()` check, PHPStan and tests, `schema:validate`, the front-end check or build, and an optional WordPress smoke test. One check always runs (taw/core 1.93): it fails when the repository holds a database dump, a content snapshot (`.sync/`) or a credentials file (`remote.env`, `.env`, `wp-config.php`, a private key). On a pull request it checks every commit, so a dump added and then removed again still fails. Remove it from the branch's history and change any password it held. The header of each workflow lists the same steps as commands, so you can run them by hand.
