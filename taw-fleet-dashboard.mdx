@@ -22,9 +22,11 @@ The dashboard shows one two-line card per TAW theme. The top line is the site an
 
 The theme line has the theme's folder, its kind (`classic` or `block`), and the production host when there's room. After the folder, `↗` means a symlink, `✓` marks the theme WordPress uses when a site has several TAW themes, and `vite` means its Vite dev server runs.
 
+While a theme updates, and for 15 minutes after, its theme line carries one icon in the left margin, under the status dot: `◷` waiting its turn in an update of every theme, a spinner while it runs, `✓` updated (dimmed when there was nothing to update), `✗` stopped or didn't start. The detail pane's UPDATE section has the rest.
+
 Sites with a `production_url` come first, then the others by name. The selected card is tinted. While every card fits, a blank line separates them. With more cards than fit, they sit tight and the rule under the column names shows where you are (`1–19 of 24`).
 
-The header shows taw-fleet's version, `▲ <version>` when a newer release is out, and counts of client sites, themes, running sites and themes behind on taw/core.
+The header shows taw-fleet's version, `▲ <version>` when a newer release is out, and counts of client sites, themes, running sites and themes behind on taw/core. The header, the detail pane's sections and the palette's groups carry icons: plain symbols by default, or Nerd Font icons (see [Nerd Font icons](/taw-fleet#nerd-font-icons)).
 
 ### Symbols
 
@@ -64,12 +66,13 @@ At 120 columns or wider, the selected site's details sit beside the cards. The p
 
 | Section | Comes from | Shows |
 |---|---|---|
+| **UPDATE** | The update `u` or `U` runs | While the selected theme updates, and for 15 minutes after: its bar and current step, or how it ended, with the pull request and the “for you” count. `o` opens the update screen |
 | **LOCAL** | This Mac and Local | The site, then each theme: path, taw/core, git, account, repository, `bin/taw`, Vite, pull requests and deploy |
 | **LIVE** | The production site's companion | Versions, plugin updates, vulnerabilities, recent log lines |
 | **FEEDBACK** | BugSmash | Open comments, the oldest's age, and the three latest with their number, page, author and age |
 | **FINDINGS** | `doctor` | What needs attention, with the fix |
 
-LIVE and FEEDBACK appear once the site has been checked.
+UPDATE appears only around an update. LIVE and FEEDBACK appear once the site has been checked.
 
 ## Keys
 
@@ -105,7 +108,8 @@ These are grouped as the `:` palette groups them.
 | Theme | `y` | Check the theme against the taw-theme scaffold. Read-only |
 | Theme | `Y` | Check every classic theme against the scaffold, three at a time |
 | Theme | `S` | Write the Tier 1 framework files. Asks first |
-| Theme | `u` | Update taw/core. Asks first |
+| Theme | `u` | Update this site: the theme's own `vendor/bin/taw update`. One question first. See [Update a theme](#update-a-theme) |
+| Theme | `U` | Update every client theme that needs it, one after another. One question first |
 | Code & GitHub | `g`, `G` | Open the theme's GitHub repository, its pull requests |
 | Code & GitHub | `M` | Merge a pull request, then follow the deploy. See [Pull requests and deploys](/taw-fleet-production#pull-requests-and-deploys) |
 | Production | `P` | Open the production site |
@@ -113,12 +117,11 @@ These are grouped as the `:` palette groups them.
 | Production | `F` | Open the site's BugSmash review page |
 | Production | `X` | Resolve the open BugSmash comments with Claude Code. See [BugSmash comments](/taw-fleet-production#bugsmash-comments) |
 | Claude | `a` | Ask Claude: pick one of the theme's skills. See [Skills](#skills) |
-| Claude | `A` | Update this theme with Claude Code |
-| Claude | `U` | Update every client theme that needs it, with Claude Code |
+| Claude | `A` | Hand this theme's update to Claude Code |
 | Claude | `h` | Show the update prompt. On that screen, `A` sends it to Claude Code, `c` copies it, `↑` `↓` scroll, `esc` goes back |
 | App | `r` | Read Local again now |
 | App | `ctrl+r` | Refresh everything, past the caches |
-| App | `o` | The last task's output again: sync, update, work, pull, merge or create |
+| App | `o` | The last task's screen again: an update, sync, work, pull, merge or create |
 | App | `/` | Filter the cards |
 | App | `?` | Every key and symbol |
 | App | `:` | Every action (see [The action palette](#the-action-palette)) |
@@ -128,7 +131,7 @@ Anything that changes a site or a theme asks first.
 
 ### Output view
 
-`o` shows the last task's output. Sync, update, pull and create open it while they run. `↑` `↓` (or `k` `j`) and `pgup` `pgdown` scroll, `home` goes to the top, `end` follows new output, and `esc` or `q` goes back while the task keeps running. After `n` creates a site, `c` copies the admin password.
+`o` shows the last task's output. Updates, sync, pull and create open it while they run; an update has its own screen (see [The update screen](#the-update-screen)). `↑` `↓` (or `k` `j`) and `pgup` `pgdown` scroll, `home` goes to the top, `end` follows new output, and `esc` or `q` goes back while the task keeps running. After `n` creates a site, `c` copies the admin password.
 
 ### Confirm dialog
 
@@ -138,8 +141,7 @@ A question shows in the footer.
 |---|---|
 | `y`, `enter` | Yes |
 | `n`, `esc`, `q` | No. Nothing changes |
-| `A` | Let Claude Code do it instead (offered by `u`) |
-| `1`–`9` | Pick an answer, when the question lists numbered choices (`M` with several pull requests) |
+| `1`–`9` | Pick an answer, when the question lists numbered choices: `M` with several pull requests, or `1` Fix with Claude · `2` Do it myself after an update stops |
 
 ## Filter
 
@@ -172,7 +174,7 @@ The newest versions of taw-core, taw-theme, taw-gutenberg and taw-fleet are cach
 `:` opens every action in one palette, and `a` opens the theme's skills in the same palette.
 
 - **Two panes.** The list is on the left. The highlighted entry's details are on the right: what it does, its key and its badge. In a narrow window, only the list shows.
-- **Groups.** Actions come under **Recent**, **Site**, **Theme**, **Code & GitHub**, **Production**, **Claude** and **App**. Recent holds the last three actions you ran from the palette.
+- **Groups.** Actions come under **Recent**, **Site**, **Theme**, **Code & GitHub**, **Production**, **Claude** and **App**, each heading with its icon. Recent holds the last three actions you ran from the palette. Both updates, `u` and `U`, are under Theme; Claude holds `a`, `A` and `h`.
 - **Badges.** Each entry carries its key and a badge: `‹action›`, `‹skill›` or `‹site skill›`.
 - **Unavailable entries** stay in the list, dimmed. The details pane says why under **Not now:**, such as “no open pull request” or “no production URL: add production_url to [sites.ls-mxico]”. `enter` on one shows that reason instead of running it.
 - **Filter.** Type a word, a key, or letters in order. The key itself ranks first, then titles that start with or contain what you typed, then the key's short label, then letters in order, then the description. Matched letters are highlighted. With a filter, the groups disappear and the list is ranked.
@@ -202,23 +204,75 @@ When Claude Code exits, the dashboard rescans. After `resolve-comments`, it chec
 
 ## Update a theme
 
-### Update taw/core yourself
+### Update this site
 
-`u` runs `composer update taw/core --with-dependencies` in the theme, with Local's `composer.phar` and the site's PHP. Its question offers three answers: `y` to update, `A` to hand the whole update to Claude Code instead, `n` to stop.
+`u` updates the selected site in one step. It runs the theme's own `vendor/bin/taw update` with the site's PHP and Local's Composer, and asks one question first, in the words of the theme's `taw.json`:
 
-When it finishes, it lists the sections of `vendor/taw/core/UPGRADING.md` between the old and the new version; each has a check to run. Only `composer.lock` and `vendor/` change. Commit them yourself, on a branch. When the theme has taw/core's Composer hook, `composer update` also runs the theme's migrations: see [Updating a site](/updating).
+> Update ls-mexico? taw/core, framework files, migrations, checks, then a pull request to merge.
 
-`u` says so when taw/core is already the newest. If Composer couldn't move a theme that's behind, it fails and says what to run (`composer why-not taw/core <version>`).
+The question changes with `taw.json`: “taw/core (bug fixes)” for `core = "patch"`, “taw/core (pinned 1.91.2)” for a pinned version, and “a pull request that merges itself (deploys)” or “a commit on a branch” for the other `deliver` values. After that, it asks nothing.
 
-<Callout kind="info">
-  taw-fleet doesn't run `vendor/bin/taw update` yet. For the one-step update, run it in the theme folder: see [Updating a site](/updating).
-</Callout>
+On a new `taw/update-<date>` branch, the update:
 
-### Sync with the scaffold
+1. updates taw/core within the range `taw.json` allows;
+2. applies the framework files (classic themes only, unless `taw.json` turns the scaffold off);
+3. runs the migrations;
+4. runs the checks `taw.json` lists (by default lint, PHPStan, the tests and the front-end build);
+5. commits, then pushes and opens a pull request for you to merge with `M`.
 
-`y` runs the theme's own `php bin/taw sync`. It compares the framework files (Tier 1) and the docs and config (Tier 2) with the newest taw-theme, and writes nothing. `S` runs it with `--apply` after asking: Tier 1 is written, Tier 2 never is. `Y` checks every classic theme at once. The SYNC column shows the last result.
+If the push fails, or the GitHub CLI (`gh`) is missing or not logged in, the update still counts as done: the commit stays on its branch (pushed, when only `gh` was missing), and the result says how to open the pull request yourself. When nothing changed, the branch is removed and the result says “Nothing to update”.
 
-Sync is for classic themes with `bin/taw`. On a block theme, `y` and `S` refuse: block themes don't sync the classic scaffold. To install taw/core's skills in a block theme, run `php bin/taw skills:sync --apply` in its folder.
+`u` refuses before anything runs when the theme isn't a git repository, has uncommitted changes, or isn't on its default branch. If that branch is an earlier update still waiting, merge it first. The update itself also refuses, and changes nothing, when `taw.json` has problems, the delivery remote is missing, an earlier `taw/update-*` branch isn't merged yet, or HEAD is detached.
+
+A theme on taw/core older than 1.91.2 has no one-step update yet. taw-fleet first gets the newest taw/core into `vendor/` and puts `composer.lock` back, so the first update is one step too. That first step shows as **Get the one-step update**. It's refused when `taw.json` keeps taw/core on bug fixes or a pinned version: update such a theme by hand.
+
+In the `:` palette, `u` shows as unavailable when taw/core is already the newest. The key itself still runs the update, which can still bring framework files and migrations.
+
+What the update does inside the theme, and `taw.json`'s settings, are on [Updating a site](/updating).
+
+### The update screen
+
+An update opens its own screen:
+
+- **The header:** the site, the theme, its taw/core and the newest, and what `taw.json` says (or “defaults (no taw.json)”): the version range, the checks, and how it ends.
+- **A progress bar**, with the percentage and how many steps are done.
+- **A checklist** of every step with its time and result: `✓` passed, `✗` failed, `–` not run here (with the reason, such as a check this Mac can't run), `·` never reached.
+- **The latest output** while it runs. `l` switches to the full log, and back.
+- **The result**, when it ends: the pull request (`o` opens it), the files changed on the branch, `r` for the report, and the “For you” steps a migration left for a person. Merging the pull request deploys production.
+
+`esc` goes back to the cards while the update keeps running. Meanwhile the footer shows the percentage and the current step, and the site's card shows its update icon. `o` opens the screen again.
+
+### When an update stops
+
+If a step fails, nothing is pushed. The work so far stays on the branch, and the theme's `.taw/update-report.md` says what failed, why, and how to fix, check, finish and undo it. The result shows the step, the failed command and the first lines of its error, and the footer asks:
+
+| Key | Does |
+|---|---|
+| `1` | **Fix with Claude.** Claude Code opens beside the dashboard, in the theme folder, with the report as its prompt. It works on the branch, asks before pushing or opening the pull request, and never merges |
+| `2` | **Do it myself.** The report opens in your editor: the same steps, for a person |
+| `n` | Neither, for now. `r` on the update screen opens the report later |
+
+On the command line, `taw-fleet update` prints the same summary and exits `1` when the update stops or doesn't start.
+
+### Update every theme at once
+
+`U`, or `taw-fleet update --all`, updates every client theme that needs it, one after another, each the way `u` would: its own `vendor/bin/taw update`, as its `taw.json` says, each ending in its own pull request. No agent is involved.
+
+- **Which themes.** Those behind on taw/core, checked against GitHub right then rather than the cache, and classic themes whose last scaffold check found differences, or that have no check yet.
+- **Left out, with the reason.** Uncommitted changes, a branch other than the default, a detached HEAD, no git. The umbrella's own scaffolds are never included. `U` names both lists in its one question.
+- **One screen.** A line per theme: `◷` waiting, the running one with its own bar and current step, `✓` with its pull request number, `✗` with the step that stopped it. Above them, the overall progress.
+- **A theme that stops doesn't stop the others.** At the end, the screen lists the pull requests opened and the themes that stopped, and the footer offers `1` Fix with Claude (a Claude Code window for each) or `2` Do it myself (each report in your editor).
+
+| Key | Does |
+|---|---|
+| `↑` `↓`, `k` `j` | Select a theme |
+| `enter` | The selected theme's own update screen. `esc` returns to all themes |
+| `o` | The selected theme's pull request |
+| `r` | The selected theme's report |
+| `l` | The full log, and back |
+| `esc` | Back to the cards. The update keeps running |
+
+`taw-fleet update --all` exits `1` when any theme stopped or couldn't run.
 
 ### Hand the update to Claude Code
 
@@ -226,18 +280,16 @@ Sync is for classic themes with `bin/taw`. On a block theme, `y` and `S` refuse:
 
 In Terminal, the dashboard takes the left half of the screen and Claude Code the right half. When Claude Code exits cleanly, its window closes and the dashboard rescans. `h` shows the prompt first; `c` copies it.
 
-### Update every theme at once
+To hand every theme to Claude Code in one session instead (a coordinator with a subagent per theme, every decision asked once at the end), run `taw-fleet handoff --all --launch`.
 
-`U` updates every client theme that needs it in one Claude Code session:
+### Sync with the scaffold
 
-- **Which themes.** Those behind on taw/core, checked against GitHub right then rather than the cache, and classic themes whose last scaffold check found differences, or that have no check yet.
-- **Left out, with the reason.** Uncommitted changes, a branch other than the default (a `chore/…` branch is resumed), a detached HEAD, no git. The umbrella's own scaffolds are never included. `U` lists both and asks first.
-- **How.** Claude Code starts with every theme folder added. A coordinator runs one subagent per theme, at most three at a time, each following the `update-theme` skill's batch mode. When they're done, it asks you once which docs changes to apply, which sites to start for checks that need WordPress, and which branches to push.
+`y` runs the theme's own `php bin/taw sync`. It compares the framework files (Tier 1) and the docs and config (Tier 2) with the newest taw-theme, and writes nothing. `S` runs it with `--apply` after asking: Tier 1 is written, Tier 2 never is. `Y` checks every classic theme at once. The SYNC column shows the last result.
 
-Nothing is pushed without your answer. On the command line: `taw-fleet handoff --all --launch`.
+Sync is for classic themes with `bin/taw`. On a block theme, `y` and `S` refuse: block themes don't sync the classic scaffold. To install taw/core's skills in a block theme, run `php bin/taw skills:sync --apply` in its folder.
 
 <Callout kind="alert">
-  `u`, `y`, `S`, `A`, `h` and `C` refuse the umbrella's own taw-theme and taw-gutenberg. They change through the taw-core release flow.
+  `u`, `U`, `y`, `S`, `A`, `h` and `C` refuse the umbrella's own taw-theme and taw-gutenberg, or leave them out. They change through the taw-core release flow.
 </Callout>
 
 ## Work on a site

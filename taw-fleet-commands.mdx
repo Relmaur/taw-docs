@@ -44,7 +44,7 @@ Only these commands take `--json`:
 | `inspect` | `bin/taw inspect`'s JSON, unchanged |
 | `create` | `{ "name", "slug", "site_id", "url", "admin_url", "admin_user", "admin_password", "kind", "theme_dir", "theme_path", "taw_core", "commit", "warnings" }`. It includes the password |
 
-A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "site", "theme", "message", "fix" }`. A **Site** carries its Local details, its `themes` (each with `core`, `git`, `drift`, `github`, `account`, `skills_missing`…), and `production` and `feedback` once they've been read. `taw-fleet show <site> --json` is the quickest way to see every field.
+A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "site", "theme", "message", "fix" }`. A **Site** carries its Local details, its `themes` (each with `core`, `git`, `drift`, `github`, `account`, `skills_missing`…; `git.remote` is `taw.json`'s delivery remote when it isn't `origin`), and `production` and `feedback` once they've been read. `taw-fleet show <site> --json` is the quickest way to see every field.
 
 ## Commands at a glance
 
@@ -60,7 +60,7 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 | [`unstick`](#unstick) | End Local's leftover processes in a site's way |
 | [`wp`](#wp) | wp-cli on a Local site |
 | [`sync`](#sync) | `bin/taw sync`: compare with the taw-theme scaffold |
-| [`update`](#update) | `composer update taw/core` and the `UPGRADING.md` sections to check |
+| [`update`](#update) | Update a site in one step: the theme's `vendor/bin/taw update`. `--all` for every theme |
 | [`inspect`](#inspect) | `bin/taw inspect`: blocks, fields and forms of a running site |
 | [`handoff`](#handoff) | The update prompt for Claude Code |
 | [`create`](#create) | A new Local site with a TAW theme |
@@ -200,7 +200,7 @@ taw-fleet wp taw plugin list --format=json
 
 ## Theme tools
 
-These run the theme's own tools with the site's PHP and Local's Composer. `sync`, `update` and `handoff` refuse the umbrella's own taw-theme and taw-gutenberg.
+These run the theme's own tools with the site's PHP and Local's Composer. `sync`, `update` and `handoff` refuse the umbrella's own taw-theme and taw-gutenberg; `update --all` and `handoff --all` leave them out.
 
 ### sync
 
@@ -223,12 +223,19 @@ Runs the theme's `php bin/taw sync`: compares its framework files (Tier 1) and d
 
 ```bash
 taw-fleet update <site> [--theme <folder>] [--yes]
+taw-fleet update --all [--yes]
 ```
 
-Runs `composer update taw/core --with-dependencies` in the theme, then lists the `vendor/taw/core/UPGRADING.md` sections between the old and the new version. `composer.lock` and `vendor/` change; commit them yourself. It does nothing when taw/core is already the newest. It doesn't run `vendor/bin/taw update`: see [Updating a site](/updating).
+Runs the theme's own `vendor/bin/taw update` with the site's PHP and Local's Composer, after one question worded from the theme's `taw.json`. On a new branch it updates taw/core, applies the framework files (classic themes), runs the migrations and the checks, commits, and opens a pull request (or what `taw.json`'s `deliver` says). It asks nothing after the first question. See [Update a theme](/taw-fleet-dashboard#update-a-theme).
+
+- It refuses a theme that isn't a git repository, has uncommitted changes, or isn't on its default branch, before anything runs.
+- A theme on taw/core older than 1.91.2 first gets the newest taw/core in `vendor/` (its `composer.lock` goes back), so its first update is one step too.
+- If a step fails, nothing is pushed: the theme's `.taw/update-report.md` says what failed and how to finish it. In the dashboard, `u` offers Fix with Claude on the same report.
+- Progress goes to stderr, the summary to stdout. It exits `1` when the update stops or doesn't start.
 
 | Flag | Does |
 |---|---|
+| `--all` | Every client theme that needs an update, one after another, each ending in its own pull request. Themes with uncommitted changes or off their default branch are left out, with the reason. A theme that stops doesn't stop the others; it exits `1` if any stopped or couldn't run |
 | `--theme <folder>` | Which TAW theme, when the site has several |
 | `-y`, `--yes` | Don't ask |
 
@@ -259,7 +266,7 @@ Prints the prompt that hands the theme's update to Claude Code: the `update-them
 | `--copy` | Copy the prompt to the clipboard |
 | `--launch` | Open a terminal running Claude Code in the theme folder with the prompt |
 | `--out <file>` | Also write the prompt to this file |
-| `--all` | Every client TAW theme that needs an update. Without `--launch`, lists the themes it would take and the ones it leaves out. With `--launch`, one Claude Code session with a subagent per theme |
+| `--all` | Every client TAW theme that needs an update. Without `--launch`, lists the themes it would take and the ones it leaves out. With `--launch`, one Claude Code session with a subagent per theme. To update every theme without an agent, use `update --all` |
 | `--theme <folder>` | Which TAW theme, when the site has several |
 
 ### create
@@ -398,6 +405,7 @@ The open comments in each site's BugSmash project, newest first: the count and t
 | `config init` | Write a commented starter settings file. Never overwrites |
 | `config show` | The settings in effect and the editors and terminals found |
 | `config path` | Print the settings file's path |
+| `config icons [symbols\|nerd]` | With no value, show the icon set in effect. With one, set `icons` in the settings file, keeping the rest of it (the file is created from the starter if it's missing). Any other value is an error |
 
 Every key is on the [taw-fleet page](/taw-fleet#settings).
 
@@ -452,11 +460,11 @@ Codes are stable and dot-namespaced, so scripts can filter `doctor --json` on th
 | `git.none` | note | The theme isn't its own git repository |
 | `git.dirty` | note | Uncommitted changes |
 | `git.detached` | warning | HEAD isn't on a branch |
-| `git.no-upstream` | warning | The branch isn't pushed (no upstream) |
+| `git.no-upstream` | warning | The branch isn't pushed (no upstream). The fix names the delivery remote: `taw.json`'s `update.remote`, else `origin` |
 | `git.behind` | warning | Commits to pull from the upstream |
 | `git.ahead` | note | Commits not pushed |
 | `git.off-default` | note | Not on the default branch |
-| `git.no-remote` | warning | No `origin` remote |
+| `git.no-remote` | warning | No delivery remote: `origin`, or the one `taw.json`'s `update.remote` names |
 | `pr.failing` | warning | A pull request's CI failed |
 | `pr.conflict` | warning | A pull request conflicts with the default branch |
 | `pr.ready` | note | A pull request is ready to merge (`M`) |

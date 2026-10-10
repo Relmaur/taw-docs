@@ -122,6 +122,8 @@ taw-fleet wp-remote ls-mxico POST /wp/v2/media --file hero.webp
 
 With a GitHub token, the dashboard shows each theme's open pull requests and its deploy. taw-fleet uses `GITHUB_TOKEN` or `GH_TOKEN`, else `gh auth token`. Without a token, the PR and DEPLOY cells show `?`. Run `gh auth login`.
 
+The repository is the one behind the theme's delivery remote: `origin`, or the remote the theme's `taw.json` names in `update.remote` (taw/core 1.92.0+), for a site whose production deploys from another organization. It's the same remote the [update](/taw-fleet-dashboard#update-a-theme) pushes to and opens its pull request on.
+
 - **Pull requests:** up to 20 open ones per repository, with their CI result and whether they conflict.
 - **Deploy:** the repository's active workflow whose file name starts with `deploy`. Production “has” the commit of its newest successful run. A skipped or cancelled run isn't a failure.
 
@@ -130,7 +132,7 @@ With a GitHub token, the dashboard shows each theme's open pull requests and its
 | PR | `2✓` `2…` `2✗` `2!` `2◇` | Two open: CI passed (or none), CI running, CI failed, a conflict, drafts |
 | DEPLOY | `✓` `↑2` `⟳` `✗` | Production is current, two commits not deployed, a deploy or CI runs, the deploy or CI failed |
 
-The columns refresh every 5 minutes, and every 15 seconds while a deploy runs. `L` refreshes them now. `taw-fleet prs` shows the same, with the commits not deployed yet. `doctor` adds `pr.ready`, `pr.failing`, `pr.conflict`, `deploy.failed`, `deploy.blocked` and `deploy.pending`.
+The columns refresh every 5 minutes, every 15 seconds while a deploy runs, and right after an update opens a pull request. `L` refreshes them now. `taw-fleet prs` shows the same, with the commits not deployed yet. `doctor` adds `pr.ready`, `pr.failing`, `pr.conflict`, `deploy.failed`, `deploy.blocked` and `deploy.pending`.
 
 ### Merge a pull request
 
@@ -140,7 +142,7 @@ The columns refresh every 5 minutes, and every 15 seconds while a deploy runs. `
 2. **Refusals.** A draft, a conflict, CI that failed, and CI that still runs are refused, each with the reason.
 3. **Ask.** The question names what the merge does: “Merge #12 “Hero copy” into main? CI passed. This deploys https://lsmexico.mx (production).”
 4. **Merge.** taw-fleet uses the repository's default merge method for you, and only if the branch is still at the commit taw-fleet read. If someone pushed since, it stops: refresh with `L` and look again.
-5. **Clean up.** It deletes the branch on GitHub, when the branch is in the same repository. If the local theme is clean and on that branch or the default one, it switches to the default branch, pulls, and deletes the local branch. Otherwise it leaves the theme alone and says why.
+5. **Clean up.** It deletes the branch on GitHub, when the branch is in the same repository. If the local theme is clean and on that branch or the default one, it switches to the default branch, pulls it (from the delivery remote, when `taw.json` names one), and deletes the local branch. Otherwise it leaves the theme alone and says why.
 6. **Follow the deploy.** The dashboard checks GitHub every 15 seconds for up to 30 minutes. It says when production has the merge and how long it took, or that the deploy or CI failed, with the run's link. Then it checks the live site again.
 
 ## BugSmash comments

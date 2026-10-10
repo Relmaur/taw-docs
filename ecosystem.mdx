@@ -37,8 +37,8 @@ graph TD
 
 - **Starting a site:** `taw-fleet create` (or `n` in the dashboard) makes a Local site and installs a TAW theme with `taw/create`. Without taw-fleet, run `composer create-project taw/create` yourself. See the [Quickstart](/quickstart).
 - **Building it:** in the theme folder, `vendor/bin/taw make:block` scaffolds blocks, `fields:get` and `fields:set` read and write content, and `schema:validate` checks the data layer.
-- **Keeping it current:** `vendor/bin/taw update` updates taw/core and the framework's files in one step and opens a pull request. See [Updating a site](/updating).
-- **Running many sites:** taw-fleet shows which sites are behind, dirty, failing CI or waiting on a deploy. It merges pull requests, pulls production content into Local, and starts Claude Code on a site's skills.
+- **Keeping it current:** `vendor/bin/taw update`, or `u` in taw-fleet, updates taw/core and the framework's files in one step and opens a pull request. See [Updating a site](/updating).
+- **Running many sites:** taw-fleet shows which sites are behind, dirty, failing CI or waiting on a deploy. It updates one site or all of them through `vendor/bin/taw update`, merges pull requests, pulls production content into Local, and starts Claude Code on a site's skills.
 - **Moving content:** `vendor/bin/taw content:export` and `content:import` move content as one JSON file. taw-fleet's `pull` brings a live site's published content to Local through the companion.
 
 ## How a release reaches a site
@@ -63,10 +63,10 @@ As of October 9, 2026:
 
 | Piece | Version |
 |---|---|
-| taw/core | 1.91.2 |
-| TAW Theme | 1.12.59 |
-| TAW Gutenberg | 0.3.61 |
-| taw-fleet | 1.13.0 |
+| taw/core | 1.92.0 |
+| TAW Theme | 1.12.60 |
+| TAW Gutenberg | 0.3.62 |
+| taw-fleet | 1.15.0 |
 | TAW Companion | 0.4.0 |
 | taw/create | 0.1.0 |
 

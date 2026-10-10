@@ -71,7 +71,7 @@ Everything else works on files alone: scaffolding, schema checks, `content:diff`
 
 - **`composer update`** runs the theme's pending migrations through taw/core's Composer hook. See [Updating a site](/updating).
 - **Theme CI** runs `vendor/bin/taw schema:validate` in taw/core's shared workflow, and the weekly framework-sync workflow runs `vendor/bin/taw sync --apply`, then `vendor/bin/taw upgrade --apply`.
-- **[taw-fleet](/taw-fleet)** runs `php bin/taw sync`, `inspect` and `content:import` in the theme folder for its scaffold check, site view and content pull.
+- **[taw-fleet](/taw-fleet)** runs `vendor/bin/taw update` for **Update this site** (`u`) and **Update all** (`U`), and `php bin/taw sync`, `inspect` and `content:import` for its scaffold check, site view and content pull.
 
 ## Add your own commands
 

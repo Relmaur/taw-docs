@@ -92,14 +92,11 @@ One two-line card per TAW theme, with columns for taw/core, the scaffold check, 
 
 ## Update a theme
 
-You have four ways, all on [Dashboard and keys](/taw-fleet-dashboard#update-a-theme):
+`u` in the dashboard, or `taw-fleet update <site>`, updates a site in one step. It runs the theme's own `vendor/bin/taw update` with the site's PHP and Local's Composer, after one question in the words of the theme's `taw.json`. On a new branch it updates taw/core, applies the framework files, runs the migrations and the checks, commits, and opens a pull request for you to merge. If a step fails, nothing is pushed, and you choose: Fix with Claude, or Do it myself from the same report.
 
-- `u` (`taw-fleet update <site>`) runs `composer update taw/core` and lists the `UPGRADING.md` sections to check.
-- `A` hands the whole update to Claude Code in the theme folder, beside the dashboard. `h` shows the prompt first.
-- `U` updates every client theme that needs it in one Claude Code session.
-- `y` and `S` check a classic theme against the taw-theme scaffold and apply its framework files.
+`U`, or `taw-fleet update --all`, does the same for every client theme that needs it, one after another, each ending in its own pull request. No agent is involved.
 
-taw-fleet doesn't run `vendor/bin/taw update` yet. For the one-step update, see [Updating a site](/updating).
+All of it is on [Dashboard and keys](/taw-fleet-dashboard#update-a-theme), with `A` and `h` (hand the update to Claude Code) and `y` and `S` (check and apply the taw-theme scaffold). What the update does inside the theme is on [Updating a site](/updating).
 
 ## Create a site
 
@@ -129,12 +126,14 @@ Everything is optional: taw-fleet works with no settings file. The file is `~/.c
 taw-fleet config init   # write a commented starter file (never overwrites)
 taw-fleet config show   # the settings in effect and the apps found
 taw-fleet config path   # where the file is
+taw-fleet config icons nerd   # Nerd Font icons; symbols switches back
 ```
 
 ```toml title="config.toml"
 editor = "Cursor"
 terminal = "Ghostty"
 window = false
+icons = "nerd"
 github_owners = ["Relmaur", "EmeLambda"]
 
 [create]
@@ -158,6 +157,7 @@ github_account = "parallelstaff"
 | `editor` | The editor for `e`, `w` and `open --editor`. Empty: the first installed of Cursor, Visual Studio Code, PhpStorm, Zed, Sublime Text, Nova. Names are case-insensitive; `code`, `vscode` and `sublime` work too | No. An editor that isn't installed is an error when you open something |
 | `terminal` | The terminal for `t`, the dashboard's window, Claude Code and Vite windows. Empty: the first installed of Ghostty, iTerm2, Warp, kitty, Terminal. `iterm` works too. Warp can't run a script, so windows that run something open in Terminal instead | No, same as `editor` |
 | `window` | `false` keeps the dashboard in the current terminal. Default `true`. `--window` on the command line wins | Must be a boolean |
+| `icons` | `"symbols"` (the default): plain Unicode icons that work with any font. `"nerd"`: Nerd Font icons, for a terminal set to a Nerd Font. `taw-fleet config icons <set>` changes this line and keeps the rest of the file | No. Any other value shows the symbols; `config icons` only accepts `symbols` or `nerd` |
 | `github_owners` | Your GitHub accounts and organizations. A theme whose repository belongs to another owner is marked `@account` | Must be a list of strings |
 | `[create] kind` | `"classic"` or `"block"`: the default theme for new sites | Anything else is an error |
 | `[create] admin_user`, `admin_email` | The default WordPress admin for new sites | No; checked when you create a site |
@@ -170,6 +170,21 @@ github_account = "parallelstaff"
 | `umbrella` | Unused since v1.12.0. It's still accepted so older files load | No |
 
 `<folder>` is the site's folder name in `~/Local Sites`. Any other key is an error that names it (`unknown keys: …`). With a broken file, the dashboard still opens, but its shortcuts are off until you fix it.
+
+### Nerd Font icons
+
+The header, the detail pane's sections, the `:` palette's groups and the update screens carry icons. To use Nerd Font icons, install a Nerd Font and choose it in your terminal (Terminal: Settings → Profiles → Text), then switch:
+
+```bash
+brew install --cask font-jetbrains-mono-nerd-font
+taw-fleet config icons nerd
+```
+
+`taw-fleet config icons` with no value shows the set in effect. If icons show as empty boxes, the terminal isn't using a Nerd Font: run `taw-fleet config icons symbols`.
+
+### Where updates are delivered
+
+Updates push to the `origin` remote, or to the one the theme's `taw.json` names in `update.remote` (taw/core 1.92.0+). taw-fleet reads pull requests and deploys from that remote's repository, `M` pulls from it after a merge, and `doctor`'s git findings name it.
 
 ## Other GitHub accounts
 
@@ -210,6 +225,10 @@ An account listed in `github_owners` is never marked.
 
   <Expandable title="The dashboard says its shortcuts are unavailable" default-open="false">
     The settings file doesn't load. Run `taw-fleet config show` to see the error, which names the bad key or value.
+  </Expandable>
+
+  <Expandable title="u refuses to start an update" default-open="false">
+    The update works on its own branch, so it needs a git repository with a clean tree, on its default branch. Commit or stash your changes, or switch back to the default branch. If that branch is an earlier update still waiting, merge it first with `M`. The footer says which one applies.
   </Expandable>
 
   <Expandable title="A, X or a says Claude Code isn't installed" default-open="false">

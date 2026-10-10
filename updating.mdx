@@ -13,7 +13,7 @@ vendor/bin/taw update
 
 <Steps>
   <Step title="Checks it can start safely">
-    `taw.json` is valid, the theme is a git repository on a branch, git has no uncommitted changes, and no earlier update is still waiting to be merged. Otherwise nothing changes, and it says what to do first.
+    `taw.json` is valid, the theme is a git repository on a branch, the git remote it delivers to exists (unless it only makes a branch), git has no uncommitted changes, and no earlier update is still waiting to be merged. Otherwise nothing changes, and it says what to do first.
   </Step>
   <Step title="Opens a branch">
     All the work goes on `taw/update-<date>-<time>`. Your main branch is untouched until you merge.
@@ -28,9 +28,13 @@ vendor/bin/taw update
     Lint, PHPStan, tests and the front-end build, as the policy lists them. A check that can't run on this machine, such as the build without `node_modules`, is marked "not run here", never passed. The `smoke` check needs WordPress running, so the update leaves it to the pull request's CI.
   </Step>
   <Step title="Commits and delivers">
-    One commit, then a branch, a pull request, or a pull request that merges itself when CI passes. Merging deploys production, as it always does.
+    One commit, then, as the policy says: the branch only, a pull request, or a pull request that merges itself when CI passes. For a pull request, the branch is pushed to the policy's remote and the pull request opens there with `gh`; with `branch`, nothing is pushed. If the repository has a deploy workflow, merging deploys production, as any merge does.
   </Step>
 </Steps>
+
+<Callout kind="tip">
+  A site whose production deploys from another repository than `origin`, such as an agency's GitHub organization, names that remote: `"remote": "origin-agency"`. Otherwise the pull request opens on the copy, and merging it deploys nothing. `git remote -v` lists the names.
+</Callout>
 
 `--plan` says what it would do without changing anything. `--no-deliver` stops at the commit. Every option: [`update` in the command reference](/taw-command-reference#update).
 
@@ -47,7 +51,8 @@ The theme's `taw.json` belongs to the site, and updates never change it. Every s
     "manifests": "add+bump",
     "docs": "framework-sections",
     "checks": ["lint", "phpstan", "test", "build"],
-    "deliver": "pr"
+    "deliver": "pr",
+    "remote": "origin"
   }
 }
 ```
@@ -60,6 +65,7 @@ The theme's `taw.json` belongs to the site, and updates never change it. Every s
 | `docs` | `framework-sections` (the framework's part of the agent docs comes from taw/core: unedited copies become short files that import or point to it), `off` (updates leave the agent docs alone) |
 | `checks` | any of `lint`, `phpstan`, `test`, `build`, `smoke` (needs the site running) |
 | `deliver` | `pr`, `pr+merge` (merged when checks pass, which deploys), `branch` |
+| `remote` | The git remote the update branch is pushed to; the pull request opens on that remote's GitHub repository. Default `origin`. Since taw/core 1.92 |
 
 `vendor/bin/taw policy` explains the current settings in words, and `--init` writes a starter file. If the file is invalid, updates refuse to run until it's fixed, so nothing is ever half applied.
 
@@ -87,7 +93,7 @@ Nothing is pushed. The work stays on the update branch, and `.taw/update-report.
 - why that kind of failure usually happens, and the steps to fix it;
 - how to check the fix, how to finish the update, and how to undo it.
 
-It's written for whoever picks it up. The site owner reads the summary at the top; a developer follows the steps. It's also a complete prompt: to have Claude finish the update, give it this file. A person and an agent follow the same guide, so you can always finish an update by hand. When everything passes, the report is the pull request's description.
+It's written for whoever picks it up. The site owner reads the summary at the top; a developer follows the steps. It's also a complete prompt: to have Claude finish the update, give it this file, or press **Fix with Claude** in taw-fleet. A person and an agent follow the same guide, so you can always finish an update by hand. When everything passes, the report is the pull request's description.
 
 ## Plain `composer update` works too
 
@@ -123,7 +129,13 @@ A migration keeps no record of having run: it looks at the theme each time, so r
 
 ## From taw-fleet
 
-taw-fleet doesn't run `vendor/bin/taw update` yet. Its `u` key runs `composer update taw/core`, which runs the migrations through the hook above when the theme has it, and then lists the `UPGRADING.md` sections to check. Run `vendor/bin/taw update` in the theme folder for the one-step update. More: [Dashboard and keys](/taw-fleet-dashboard).
+In [taw-fleet](/taw-fleet), `u` on a site (or `taw-fleet update <site>`) is **Update this site**. It asks one question, worded from `taw.json`, such as "Update acme-shop? taw/core, framework files, migrations, checks, then a pull request to merge.", then runs the theme's `vendor/bin/taw update` with the site's PHP and Local's Composer. A screen shows each step as it runs, and at the end `o` opens the pull request and `r` the report.
+
+- **A theme on an older taw/core** gets one step too: taw-fleet first installs the newest taw/core in `vendor/`, puts `composer.lock` back, and lets the new `update` do the rest.
+- **When an update stops,** taw-fleet offers **Fix with Claude**, which starts Claude Code with the report as its prompt (it asks before pushing and never merges), or **Do it myself**, which opens the report in your editor.
+- **`U`** (or `taw-fleet update --all`) updates every client theme that needs it, one after another, each with its own pull request. A theme that stops doesn't stop the others.
+
+Details: [Dashboard and keys](/taw-fleet-dashboard#update-a-theme).
 
 ## What the framework keeps for you
 
