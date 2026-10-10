@@ -5,6 +5,17 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-10" description="taw/core v1.93.1: sync keeps a tests/TestCase.php with the site's own helpers; CI on Node 24. taw-theme v1.12.63 and taw-gutenberg v0.3.65 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026: updates keep your own test helpers
+
+- **taw/core v1.93.1:** updating a site used to overwrite `tests/TestCase.php`, so helpers you added there were lost. Now the update replaces it only when it is a copy TAW shipped. A copy with your own changes is kept and listed as "has this site's own changes, left as is", and the weekly framework-sync pull request lists it under "Kept". See [Updating a site](/updating).
+- **CI:** the shared theme workflows run their GitHub actions on Node 24 (GitHub is retiring Node 20). The smoke test runs on Ubuntu 24.04, whose image has the MySQL it uses (`ubuntu-latest` moves to Ubuntu 26 on October 19).
+- **Theme repositories:** a pull request can't be merged until the check for committed dumps and credentials passes.
+- **taw-theme v1.12.63** and **taw-gutenberg v0.3.65** lock taw/core 1.93.1.
+
+</Update>
+
 <Update label="2026-10-09" description="taw/core v1.93.0: theme CI refuses committed database dumps and credentials. taw-theme v1.12.62 and taw-gutenberg v0.3.64 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
 
 ## October 2026: no database dump reaches a theme repository
@@ -12,6 +23,18 @@ description: >-
 - **taw/core v1.93.0:** every theme's CI gets a new check. It fails when the repository holds a database dump (`*.sql`, a `*.wpress` backup, or a file that looks like one), anything under `.sync/` (content snapshots, `remote.env`), a `.env` or `wp-config.php` file, or a private key. On a pull request it checks every commit, so a dump added and then removed again still fails. It needs no Composer install, so it runs even when the rest of the build can't. See [Updating a site](/updating).
 - **Why:** a theme repository can be public, and a full database dump once reached one through a broken `.gitignore` line. Every TAW theme ignores `/.sync/` now (taw-theme v1.12.61, taw-gutenberg v0.3.63); this check catches what an ignore rule can't.
 - **taw-theme v1.12.62** and **taw-gutenberg v0.3.64** lock taw/core 1.93.0.
+
+</Update>
+
+<Update label="2026-10-09" description="taw-fleet v1.15.1: a warning when a theme is on another repository’s branch, D to switch back, and M keeps a copy in step." tags={["taw-fleet"]}>
+
+## October 2026: back on the right branch
+
+- **taw-fleet v1.15.1:** a theme whose checked-out branch tracks another repository gets a warning: `≠` after the branch on its card, “tracks owner/name” in the details, and `doctor` code `git.foreign-upstream`.
+- **`D`, Back to the site's branch:** switches the theme back to its default branch after asking. It refuses with uncommitted changes, and deletes the stray branch only when that branch tracks another repository and has nothing that repository lacks. See [Back to the site's branch](/taw-fleet-dashboard#back-to-the-sites-branch).
+- **`M` with a delivery remote:** when `taw.json`'s `update.remote` isn't `origin`, `M` also brings `origin`'s default branch up to date after the merge, fast-forward only. A copy that has diverged is left alone, with how to realign it once.
+- **The `:` menu** is grouped by meaning: Site · Local, Site · Production, Site · Feedback, Theme · Code, Theme · Update, Theme · Git & GitHub, App. The keys are the same.
+- **Fixes:** `u` is always available; block themes' update question no longer mentions framework files; `/block` finds block themes; an unknown `icons` value is an error; help texts point to the theme's `resolve-comments` skill.
 
 </Update>
 

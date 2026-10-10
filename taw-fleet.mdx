@@ -157,7 +157,7 @@ github_account = "parallelstaff"
 | `editor` | The editor for `e`, `w` and `open --editor`. Empty: the first installed of Cursor, Visual Studio Code, PhpStorm, Zed, Sublime Text, Nova. Names are case-insensitive; `code`, `vscode` and `sublime` work too | No. An editor that isn't installed is an error when you open something |
 | `terminal` | The terminal for `t`, the dashboard's window, Claude Code and Vite windows. Empty: the first installed of Ghostty, iTerm2, Warp, kitty, Terminal. `iterm` works too. Warp can't run a script, so windows that run something open in Terminal instead | No, same as `editor` |
 | `window` | `false` keeps the dashboard in the current terminal. Default `true`. `--window` on the command line wins | Must be a boolean |
-| `icons` | `"symbols"` (the default): plain Unicode icons that work with any font. `"nerd"`: Nerd Font icons, for a terminal set to a Nerd Font. `taw-fleet config icons <set>` changes this line and keeps the rest of the file | No. Any other value shows the symbols; `config icons` only accepts `symbols` or `nerd` |
+| `icons` | `"symbols"` (the default): plain Unicode icons that work with any font. `"nerd"`: Nerd Font icons, for a terminal set to a Nerd Font. `taw-fleet config icons <set>` changes this line and keeps the rest of the file | Must be `"symbols"` or `"nerd"` |
 | `github_owners` | Your GitHub accounts and organizations. A theme whose repository belongs to another owner is marked `@account` | Must be a list of strings |
 | `[create] kind` | `"classic"` or `"block"`: the default theme for new sites | Anything else is an error |
 | `[create] admin_user`, `admin_email` | The default WordPress admin for new sites | No; checked when you create a site |
@@ -184,7 +184,7 @@ taw-fleet config icons nerd
 
 ### Where updates are delivered
 
-Updates push to the `origin` remote, or to the one the theme's `taw.json` names in `update.remote` (taw/core 1.92.0+). taw-fleet reads pull requests and deploys from that remote's repository, `M` pulls from it after a merge, and `doctor`'s git findings name it.
+Updates push to the `origin` remote, or to the one the theme's `taw.json` names in `update.remote` (taw/core 1.92.0+). taw-fleet reads pull requests and deploys from that remote's repository, `M` pulls from it after a merge, and `doctor`'s git findings name it. When that remote isn't `origin`, `M` also fast-forwards `origin`'s default branch to the merge, so the copy stays in step (see [Merge a pull request](/taw-fleet-production#merge-a-pull-request)).
 
 ## Other GitHub accounts
 
@@ -229,6 +229,10 @@ An account listed in `github_owners` is never marked.
 
   <Expandable title="u refuses to start an update" default-open="false">
     The update works on its own branch, so it needs a git repository with a clean tree, on its default branch. Commit or stash your changes, or switch back to the default branch. If that branch is an earlier update still waiting, merge it first with `M`. The footer says which one applies.
+  </Expandable>
+
+  <Expandable title="The GIT column shows ≠ after the branch" default-open="false">
+    The theme sits on a branch that tracks another repository, often a local copy of the scaffold's branch. The taw/core version and files you see are that branch's, not the site's, and `doctor` reports `git.foreign-upstream`. Press `D` to switch back to the site's branch: see [Back to the site's branch](/taw-fleet-dashboard#back-to-the-sites-branch).
   </Expandable>
 
   <Expandable title="A, X or a says Claude Code isn't installed" default-open="false">

@@ -44,7 +44,7 @@ Only these commands take `--json`:
 | `inspect` | `bin/taw inspect`'s JSON, unchanged |
 | `create` | `{ "name", "slug", "site_id", "url", "admin_url", "admin_user", "admin_password", "kind", "theme_dir", "theme_path", "taw_core", "commit", "warnings" }`. It includes the password |
 
-A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "site", "theme", "message", "fix" }`. A **Site** carries its Local details, its `themes` (each with `core`, `git`, `drift`, `github`, `account`, `skills_missing`…; `git.remote` is `taw.json`'s delivery remote when it isn't `origin`), and `production` and `feedback` once they've been read. `taw-fleet show <site> --json` is the quickest way to see every field.
+A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "site", "theme", "message", "fix" }`. A **Site** carries its Local details, its `themes` (each with `core`, `git`, `drift`, `github`, `account`, `skills_missing`…; `git.remote` is `taw.json`'s delivery remote when it isn't `origin`, `git.foreign_upstream` the other repository a branch tracks), and `production` and `feedback` once they've been read. `taw-fleet show <site> --json` is the quickest way to see every field.
 
 ## Commands at a glance
 
@@ -463,7 +463,8 @@ Codes are stable and dot-namespaced, so scripts can filter `doctor --json` on th
 | `git.no-upstream` | warning | The branch isn't pushed (no upstream). The fix names the delivery remote: `taw.json`'s `update.remote`, else `origin` |
 | `git.behind` | warning | Commits to pull from the upstream |
 | `git.ahead` | note | Commits not pushed |
-| `git.off-default` | note | Not on the default branch |
+| `git.foreign-upstream` | warning | The checked-out branch tracks another repository (owner/name, or the remote's name), neither `origin` nor the delivery remote. The versions and files shown are that branch's, not the site's. Fix: `D` in the dashboard, or `git switch <default>` |
+| `git.off-default` | note | Not on the default branch. Fix: `D` in the dashboard, when that's what you want. Not reported when `git.foreign-upstream` is |
 | `git.no-remote` | warning | No delivery remote: `origin`, or the one `taw.json`'s `update.remote` names |
 | `pr.failing` | warning | A pull request's CI failed |
 | `pr.conflict` | warning | A pull request conflicts with the default branch |

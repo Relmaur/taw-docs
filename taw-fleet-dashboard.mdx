@@ -51,6 +51,7 @@ The header shows taw-fleet's version, `▲ <version>` when a newer release is ou
 | DEPLOY | `—` `?` | No deploy workflow, unknown |
 | GIT | `main ±3 ↑1 ↓2` | Branch, uncommitted files, commits to push, commits to pull |
 | GIT | `◇ unpushed` | The branch has no upstream |
+| GIT | `≠`, branch in the warning color | The branch tracks another repository (a local copy of the scaffold's branch, say), so the versions and files shown are that branch's, not the site's. `D` switches back |
 | GIT | branch in the accent color, `detached`, `no git` | Not the default branch, no branch, not a git repository |
 | GIT | `@parallelstaff` | A theme of [another GitHub account](/taw-fleet#other-github-accounts) |
 
@@ -67,7 +68,7 @@ At 120 columns or wider, the selected site's details sit beside the cards. The p
 | Section | Comes from | Shows |
 |---|---|---|
 | **UPDATE** | The update `u` or `U` runs | While the selected theme updates, and for 15 minutes after: its bar and current step, or how it ended, with the pull request and the “for you” count. `o` opens the update screen |
-| **LOCAL** | This Mac and Local | The site, then each theme: path, taw/core, git, account, repository, `bin/taw`, Vite, pull requests and deploy |
+| **LOCAL** | This Mac and Local | The site, then each theme: path, taw/core (with “from branch X” when the theme isn't on its default branch), git (“tracks owner/name” when the branch tracks another repository), account, repository, `bin/taw`, Vite, pull requests and deploy |
 | **LIVE** | The production site's companion | Versions, plugin updates, vulnerabilities, recent log lines |
 | **FEEDBACK** | BugSmash | Open comments, the oldest's age, and the three latest with their number, page, author and age |
 | **FINDINGS** | `doctor` | What needs attention, with the fix |
@@ -97,28 +98,29 @@ These are grouped as the `:` palette groups them.
 
 | Group | Key | Does |
 |---|---|---|
-| Site | `enter` | The site in full |
-| Site | `w` | Work on it: start the site, open the editor, run Vite, open the site. Again stops Vite and the site. See [Work on a site](#work-on-a-site) |
-| Site | `s` | Start or stop the site through the Local app (it must be open). Asks first |
-| Site | `R` | Restart the site. Asks first |
-| Site | `b`, `B` | Open the Local site, its wp-admin |
-| Site | `C` | Pull production content into the Local site. See [Pull production content](/taw-fleet-production#pull-production-content) |
-| Site | `n` | Create a site. See [Create a site](#create-a-site) |
-| Theme | `e`, `f`, `t` | Open the theme in your editor, in Finder, in a terminal |
-| Theme | `y` | Check the theme against the taw-theme scaffold. Read-only |
-| Theme | `Y` | Check every classic theme against the scaffold, three at a time |
-| Theme | `S` | Write the Tier 1 framework files. Asks first |
-| Theme | `u` | Update this site: the theme's own `vendor/bin/taw update`. One question first. See [Update a theme](#update-a-theme) |
-| Theme | `U` | Update every client theme that needs it, one after another. One question first |
-| Code & GitHub | `g`, `G` | Open the theme's GitHub repository, its pull requests |
-| Code & GitHub | `M` | Merge a pull request, then follow the deploy. See [Pull requests and deploys](/taw-fleet-production#pull-requests-and-deploys) |
-| Production | `P` | Open the production site |
-| Production | `L` | Check production now: the companions, BugSmash and GitHub |
-| Production | `F` | Open the site's BugSmash review page |
-| Production | `X` | Resolve the open BugSmash comments with Claude Code. See [BugSmash comments](/taw-fleet-production#bugsmash-comments) |
-| Claude | `a` | Ask Claude: pick one of the theme's skills. See [Skills](#skills) |
-| Claude | `A` | Hand this theme's update to Claude Code |
-| Claude | `h` | Show the update prompt. On that screen, `A` sends it to Claude Code, `c` copies it, `↑` `↓` scroll, `esc` goes back |
+| Site · Local | `enter` | The site in full |
+| Site · Local | `w` | Work on it: start the site, open the editor, run Vite, open the site. Again stops Vite and the site. See [Work on a site](#work-on-a-site) |
+| Site · Local | `s` | Start or stop the site through the Local app (it must be open). Asks first |
+| Site · Local | `R` | Restart the site. Asks first |
+| Site · Local | `b`, `B` | Open the Local site, its wp-admin |
+| Site · Local | `n` | Create a site. See [Create a site](#create-a-site) |
+| Site · Production | `P` | Open the production site |
+| Site · Production | `L` | Check production now: the companions, BugSmash and GitHub |
+| Site · Production | `C` | Pull production content into the Local site. See [Pull production content](/taw-fleet-production#pull-production-content) |
+| Site · Feedback | `F` | Open the site's BugSmash review page |
+| Site · Feedback | `X` | Resolve the open BugSmash comments with Claude Code. See [BugSmash comments](/taw-fleet-production#bugsmash-comments) |
+| Theme · Code | `e`, `f`, `t` | Open the theme in your editor, in Finder, in a terminal |
+| Theme · Code | `a` | Ask Claude: pick one of the theme's skills. See [Skills](#skills) |
+| Theme · Update | `u` | Update this site: the theme's own `vendor/bin/taw update`. One question first. See [Update a theme](#update-a-theme) |
+| Theme · Update | `U` | Update every client theme that needs it, one after another. One question first |
+| Theme · Update | `A` | Hand this theme's update to Claude Code |
+| Theme · Update | `h` | Show the update prompt. On that screen, `A` sends it to Claude Code, `c` copies it, `↑` `↓` scroll, `esc` goes back |
+| Theme · Update | `y` | Check the theme against the taw-theme scaffold. Read-only |
+| Theme · Update | `Y` | Check every classic theme against the scaffold, three at a time |
+| Theme · Update | `S` | Write the Tier 1 framework files. Asks first |
+| Theme · Git & GitHub | `g`, `G` | Open the theme's GitHub repository, its pull requests |
+| Theme · Git & GitHub | `M` | Merge a pull request, then follow the deploy. See [Pull requests and deploys](/taw-fleet-production#pull-requests-and-deploys) |
+| Theme · Git & GitHub | `D` | Back to the site's branch. See [Back to the site's branch](#back-to-the-sites-branch) |
 | App | `r` | Read Local again now |
 | App | `ctrl+r` | Refresh everything, past the caches |
 | App | `o` | The last task's screen again: an update, sync, work, pull, merge or create |
@@ -147,7 +149,7 @@ A question shows in the footer.
 
 Press `/` and type. The cards that match stay. `enter`, `↑` or `↓` keeps the filter and leaves the input; `esc` clears it.
 
-A term matches any part of the site's folder name, name or domain, the theme's folder, its kind (`classic` or `gutenberg`), the site's status (`running`, `halted`), the installed taw/core version and the branch. These words match more:
+A term matches any part of the site's folder name, name or domain, the theme's folder, its kind (`classic`, or `block` or `gutenberg` for a block theme), the site's status (`running`, `halted`), the installed taw/core version and the branch. These words match more:
 
 | Term | Matches |
 |---|---|
@@ -174,7 +176,7 @@ The newest versions of taw-core, taw-theme, taw-gutenberg and taw-fleet are cach
 `:` opens every action in one palette, and `a` opens the theme's skills in the same palette.
 
 - **Two panes.** The list is on the left. The highlighted entry's details are on the right: what it does, its key and its badge. In a narrow window, only the list shows.
-- **Groups.** Actions come under **Recent**, **Site**, **Theme**, **Code & GitHub**, **Production**, **Claude** and **App**, each heading with its icon. Recent holds the last three actions you ran from the palette. Both updates, `u` and `U`, are under Theme; Claude holds `a`, `A` and `h`.
+- **Groups.** Actions come under **Recent**, **Site · Local**, **Site · Production**, **Site · Feedback**, **Theme · Code**, **Theme · Update**, **Theme · Git & GitHub** and **App**, each heading with its icon. Recent holds the last three actions you ran from the palette. The [Actions](#actions) table above follows the same groups.
 - **Badges.** Each entry carries its key and a badge: `‹action›`, `‹skill›` or `‹site skill›`.
 - **Unavailable entries** stay in the list, dimmed. The details pane says why under **Not now:**, such as “no open pull request” or “no production URL: add production_url to [sites.ls-mxico]”. `enter` on one shows that reason instead of running it.
 - **Filter.** Type a word, a key, or letters in order. The key itself ranks first, then titles that start with or contain what you typed, then the key's short label, then letters in order, then the description. Matched letters are highlighted. With a filter, the groups disappear and the list is ranked.
@@ -210,7 +212,7 @@ When Claude Code exits, the dashboard rescans. After `resolve-comments`, it chec
 
 > Update ls-mexico? taw/core, framework files, migrations, checks, then a pull request to merge.
 
-The question changes with `taw.json`: “taw/core (bug fixes)” for `core = "patch"`, “taw/core (pinned 1.91.2)” for a pinned version, and “a pull request that merges itself (deploys)” or “a commit on a branch” for the other `deliver` values. After that, it asks nothing.
+The question changes with the theme and its `taw.json`. A block theme, or a classic theme with the scaffold turned off, gets no framework files, so the question leaves them out: “Update ls-blocks? taw/core, migrations, checks, then a pull request to merge.” `core = "patch"` reads “taw/core (bug fixes)”, a pinned version “taw/core (pinned 1.91.2)”, and the other `deliver` values end in “a pull request that merges itself (deploys)” or “a commit on a branch”. After that, it asks nothing.
 
 On a new `taw/update-<date>` branch, the update:
 
@@ -226,7 +228,7 @@ If the push fails, or the GitHub CLI (`gh`) is missing or not logged in, the upd
 
 A theme on taw/core older than 1.91.2 has no one-step update yet. taw-fleet first gets the newest taw/core into `vendor/` and puts `composer.lock` back, so the first update is one step too. That first step shows as **Get the one-step update**. It's refused when `taw.json` keeps taw/core on bug fixes or a pinned version: update such a theme by hand.
 
-In the `:` palette, `u` shows as unavailable when taw/core is already the newest. The key itself still runs the update, which can still bring framework files and migrations.
+`u` is always available: on a theme whose taw/core is already the newest, the update still checks the framework files and the migrations, and says “nothing to update” when nothing changed. `A` is dimmed in the palette only when taw/core is the newest and the scaffold matches.
 
 What the update does inside the theme, and `taw.json`'s settings, are on [Updating a site](/updating).
 
@@ -291,6 +293,16 @@ Sync is for classic themes with `bin/taw`. On a block theme, `y` and `S` refuse:
 <Callout kind="alert">
   `u`, `U`, `y`, `S`, `A`, `h` and `C` refuse the umbrella's own taw-theme and taw-gutenberg, or leave them out. They change through the taw-core release flow.
 </Callout>
+
+## Back to the site's branch
+
+`D` switches the theme back to its default branch. Use it when doctor reports `git.foreign-upstream` (the theme sits on a branch that tracks another repository, so the dashboard shows that branch's taw/core and files, not the site's) or `git.off-default`.
+
+1. It asks first, naming the branch it switches to.
+2. It runs `git switch <default>`. Uncommitted changes refuse it: commit or stash them first.
+3. When the branch you were on tracks another repository, it deletes it with `git branch -D`, but only if it has no commits of its own (`git rev-list --count <branch>@{upstream}..<branch>` is `0`). Otherwise it keeps it and says so. Any other branch is always kept.
+
+`D` is unavailable when the theme isn't a git repository, its default branch isn't known, or it's already on it.
 
 ## Work on a site
 

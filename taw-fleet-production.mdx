@@ -140,9 +140,11 @@ The columns refresh every 5 minutes, every 15 seconds while a deploy runs, and r
 
 1. **Pick.** With several open, the dashboard asks which, by number. On the command line, use `--pr <number>`.
 2. **Refusals.** A draft, a conflict, CI that failed, and CI that still runs are refused, each with the reason.
-3. **Ask.** The question names what the merge does: “Merge #12 “Hero copy” into main? CI passed. This deploys https://lsmexico.mx (production).”
+3. **Ask.** The question names what the merge does: “Merge #12 “Hero copy” into main? CI passed. This deploys https://lsmexico.mx (production).” When `taw.json` delivers to another remote, it adds: “Then origin (the copy) gets main too, when it can follow.”
 4. **Merge.** taw-fleet uses the repository's default merge method for you, and only if the branch is still at the commit taw-fleet read. If someone pushed since, it stops: refresh with `L` and look again.
 5. **Clean up.** It deletes the branch on GitHub, when the branch is in the same repository. If the local theme is clean and on that branch or the default one, it switches to the default branch, pulls it (from the delivery remote, when `taw.json` names one), and deletes the local branch. Otherwise it leaves the theme alone and says why.
+
+   After that pull, when the delivery remote isn't `origin`, it runs `git push origin <default>:<default>`, a fast-forward only, so `origin` stays a copy of the merge. If `origin`'s default branch has commits of its own, it's left alone, and the summary says to realign it once (`git push --force-with-lease origin <default>`, after checking it has nothing the other repository lacks).
 6. **Follow the deploy.** The dashboard checks GitHub every 15 seconds for up to 30 minutes. It says when production has the merge and how long it took, or that the deploy or CI failed, with the run's link. Then it checks the live site again.
 
 ## BugSmash comments
