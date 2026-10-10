@@ -1,0 +1,119 @@
+---
+title: "Updating a site"
+description: "Update a TAW theme in one step, the way npm or Composer update a package: a policy file in the theme decides what changes, and a written guide covers anything a person must finish."
+---
+
+A TAW theme updates like a package. `vendor/bin/taw update` updates taw/core, applies the framework's files, runs the migrations and the checks, commits on a new branch, and opens a pull request. It asks no questions: the theme's `taw.json` already answers them. Available from taw/core 1.91.
+
+```bash
+vendor/bin/taw update
+```
+
+## What one update does
+
+<Steps>
+  <Step title="Checks it can start safely">
+    `taw.json` is valid, git has no uncommitted changes, and no earlier update is still waiting to be merged. Otherwise nothing changes, and it says what to do first.
+  </Step>
+  <Step title="Opens a branch">
+    All the work goes on `taw/update-<date>`. Your main branch is untouched until you merge.
+  </Step>
+  <Step title="Updates taw/core">
+    Within the range the policy allows: any 1.x release, patch releases only, or a fixed version.
+  </Step>
+  <Step title="Applies the framework's files and the migrations">
+    Files the framework owns are replaced, and `composer.json` gets only what the new taw/core needs, never a removal. Each change a release makes to a theme runs as a migration. A migration that would overwrite your own edits stops and leaves you a "For you" step instead.
+  </Step>
+  <Step title="Runs the checks">
+    Lint, PHPStan, tests and the front-end build, as the policy lists them. A check that can't run on this machine, such as the build without `node_modules`, is marked "not run here", never passed.
+  </Step>
+  <Step title="Commits and delivers">
+    One commit, then a branch, a pull request, or a pull request that merges itself when CI passes. Merging deploys production, as it always does.
+  </Step>
+</Steps>
+
+`--plan` says what it would do without changing anything. `--no-deliver` stops at the commit.
+
+## The policy: `taw.json`
+
+The theme's `taw.json` belongs to the site, and updates never change it. Every setting is optional; these are the defaults:
+
+```json
+{
+  "$schema": "./vendor/taw/core/resources/schema/taw-json-1.0.json",
+  "update": {
+    "core": "minor",
+    "scaffold": "auto",
+    "manifests": "add+bump",
+    "docs": "framework-sections",
+    "checks": ["lint", "phpstan", "test", "build"],
+    "deliver": "pr"
+  }
+}
+```
+
+| Setting | Values |
+|---|---|
+| `core` | `minor` (every 1.x release), `patch` (bug fixes only), `pinned:<version>` |
+| `scaffold` | `auto` (replace framework-owned files), `off` |
+| `manifests` | `add+bump` (what a new taw/core needs; never removals), `off` |
+| `docs` | `framework-sections`, `off` |
+| `checks` | any of `lint`, `phpstan`, `test`, `build`, `smoke` (needs the site running) |
+| `deliver` | `pr`, `pr+merge` (merged when checks pass, which deploys), `branch` |
+
+`vendor/bin/taw policy` explains the current settings in words, and `--init` writes a starter file. If the file is invalid, updates refuse to run until it's fixed, so nothing is ever half applied.
+
+## When something fails
+
+Nothing is pushed. The work stays on the update branch, and `.taw/update-report.md` lists:
+
+- what failed, with the command and its output;
+- why that kind of failure usually happens, and the steps to fix it;
+- how to check the fix, how to finish the update, and how to undo it.
+
+It's written for whoever picks it up. The site owner reads the summary at the top; a developer follows the steps. With "Fix with Claude", Claude gets the same file, so you can always finish an update by hand. When everything passes, the report is the pull request's description.
+
+## Plain `composer update` works too
+
+Both scaffolds list taw/core's Composer hook, so `composer update` also runs any migrations the theme still needs, quietly when there are none. It never fails the update. `composer install` doesn't run them, because it must reproduce the lock file exactly.
+
+```json
+"scripts": {
+    "post-update-cmd": ["TAW\\CLI\\ComposerScripts::postUpdate"]
+}
+```
+
+Turn it off with `TAW_NO_UPGRADE=1`, or `"extra": {"taw": {"upgrade": false}}` in `composer.json`.
+
+| Command | What it does |
+|---|---|
+| `vendor/bin/taw upgrade` | Lists pending migrations |
+| `vendor/bin/taw upgrade --apply` | Runs them |
+| `vendor/bin/taw upgrade --explain <id>` | What one does, why, how to do it by hand, how to undo it |
+
+## What the framework keeps for you
+
+Since taw/core 1.91, the parts of a theme that only the framework changes ship with taw/core and update with it. The theme keeps short files of its own, so an update never has to merge your edits:
+
+| In the theme | Where the framework's part lives |
+|---|---|
+| `CLAUDE.md`, `AGENTS.md`, Copilot and Windsurf rules | `vendor/taw/core/resources/agents/`. `CLAUDE.md` imports it; the others point to it. Add your notes under "This site". |
+| `vite.config.js` | The `classicTheme()` preset in taw/core's Vite helper |
+| `phpstan.neon` | `vendor/taw/core/resources/phpstan/classic.neon` |
+| `.github/workflows/ci.yml`, `framework-sync.yml` | Shared workflows in taw/core, at `@v1` |
+| `.claude/skills/` | taw/core's [site skills](/site-skills); a skill marked `owner: site` is never replaced |
+
+The migrations convert older themes. A file you edited is left as it is, with a "For you" step that says how to move your changes.
+
+## Theme CI
+
+A theme's CI is a short stub that calls taw/core's shared workflow, so the checks update with taw/core:
+
+```yaml
+jobs:
+  ci:
+    uses: Relmaur/taw-core/.github/workflows/theme-ci.yml@v1
+    with: { smoke: true, build: false }
+```
+
+It runs only the checks the theme has: PHP lint, the block `getData()` check, PHPStan and tests, `schema:validate`, the front-end check or build, and an optional WordPress smoke test. The header of each workflow lists the same steps as commands, so you can run them by hand.

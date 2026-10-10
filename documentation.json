@@ -120,6 +120,11 @@
                 "icon": "sparkles"
               },
               {
+                "title": "Updating a site",
+                "path": "updating",
+                "icon": "refresh-cw"
+              },
+              {
                 "title": "Content Interchange",
                 "path": "content-interchange",
                 "icon": "arrow-left-right"
