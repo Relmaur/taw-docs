@@ -148,6 +148,7 @@ The columns refresh every 5 minutes, every 15 seconds while a deploy runs, and r
 
    After that pull, when the delivery remote isn't `origin`, it runs `git push origin <default>:<default>`, a fast-forward only, so `origin` stays a copy of the merge. If `origin`'s default branch has commits of its own, it's left alone, and the summary says to realign it once (`git push --force-with-lease origin <default>`, after checking it has nothing the other repository lacks).
 6. **Follow the deploy.** The dashboard checks GitHub every 15 seconds for up to 30 minutes. It says when production has the merge and how long it took, or that the deploy or CI failed, with the run's link. Then it checks the live site again.
+7. **Remind you about the page cache.** While the deploy runs, the MERGE section says to clear the page cache once production has the merge, not before. Once it does, it says to clear it now (Hummingbird, WP Rocket, the host's cache). A cache cleared during the deploy is rebuilt from the old code, and the site keeps the old pages until it's cleared again. taw-fleet doesn't clear it for you.
 
 While a site merges, its card says so on the theme line: a spinner with “merging #8…”, then “deploying…”. Afterwards the card keeps `✓` or `✗` for 15 minutes. The detail pane opens with a **MERGE** section that lists each step: merged (commit and time), this Mac back on the site's branch, deploying to the production host (elapsed time), then on production, with the time after the merge, or what failed. The bottom line lists every merge in progress.
 

@@ -5,6 +5,14 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw-fleet v1.22.2: after a merge, M reminds you to clear the page cache once the deploy has finished." tags={["taw-fleet"]}>
+
+## October 2026: M reminds you about the page cache
+
+- **taw-fleet v1.22.2:** while a merge deploys, its MERGE section says to clear the site's page cache once production has the change, not before. Once it does, it says to clear it now (Hummingbird, WP Rocket, the host's cache), and so does the message at the bottom. A cache cleared during the deploy is rebuilt from the old code. `taw-fleet merge` and the MCP merge tool, which don't wait for the deploy, end with the same sentence as taw/core's update report.
+
+</Update>
+
 <Update label="2026-10-12" description="taw/core v1.95.1: the update report says to clear page caches after the deploy. taw-theme v1.12.70 and taw-gutenberg v0.3.72 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
 
 ## October 2026: clear the cache after the deploy, not during it
