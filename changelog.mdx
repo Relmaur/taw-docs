@@ -5,6 +5,15 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw/core v1.95.0: link previews get a JPEG or PNG, not the AVIF. taw-theme v1.12.69 and taw-gutenberg v0.3.71 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026: shared links show their picture again
+
+- **taw/core v1.95.0:** TAW serves uploaded images as AVIF, which pages load faster, but Facebook, WhatsApp, LinkedIn and X can't read AVIF in a link preview, so shared pages showed no picture. The social image (`og:image`, `twitter:image`) now points at the original JPEG or PNG you uploaded, which WordPress keeps. It works in TAW's own SEO tags and in Yoast, Rank Math and SmartCrawl. To check, paste a page into a preview tool such as the Facebook Sharing Debugger.
+- **taw-theme v1.12.69** and **taw-gutenberg v0.3.71** lock taw/core 1.95.0.
+
+</Update>
+
 <Update label="2026-10-12" description="taw/core v1.94.1: taw sync survives a GitHub rate limit. taw-theme v1.12.68 and taw-gutenberg v0.3.70 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
 
 ## October 2026: updates don't stop at GitHub's rate limit
