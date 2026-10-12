@@ -5,6 +5,16 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw-fleet v1.18.0: taw-fleet mcp, an MCP server so AI apps can read the whole fleet with typed tools.">
+
+## October 2026: the fleet, for AI apps
+
+- **taw-fleet v1.18.0:** `taw-fleet mcp` serves the TAW sites on your Mac over the Model Context Protocol. Add it once with `claude mcp add taw-fleet -- taw-fleet mcp`, or in any app's MCP settings.
+- **Tools:** `list_sites`, `show_site`, `doctor`, `pull_requests`, `comments`, `production`, and `taw` for a theme's own read-only commands. Each one is a taw-fleet command you can run yourself, and answers with its `--json`. `taw-fleet mcp tools` lists them.
+- **Read-only for now.** Writes that ask first, as the dashboard does, come next. See [AI Integration](/ai-integration).
+
+</Update>
+
 <Update label="2026-10-12" description="taw/core v1.93.2: every instruction says taw, the command taw-fleet 1.17.0 installs. taw-theme v1.12.64 and taw-gutenberg v0.3.66 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
 
 ## October 2026: one command, `taw`

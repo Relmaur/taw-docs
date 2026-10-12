@@ -183,6 +183,43 @@ An agent doesn't have to trust its own read of a change — CI catches both stat
 
 ---
 
+## The whole fleet over MCP — `taw-fleet mcp`
+
+[taw-fleet](/taw-fleet) 1.18.0+ serves the TAW sites on your Mac over the [Model Context Protocol](https://modelcontextprotocol.io). Claude Code, Claude Desktop, Cursor and other AI apps can then read every site, its themes, GitHub, production and client comments with typed tools, without running commands.
+
+<Steps>
+  <Step title="Add the server once" icon="plug">
+    ```bash
+    claude mcp add taw-fleet -- taw-fleet mcp
+    ```
+
+    In another app's MCP settings, use `{"command": "taw-fleet", "args": ["mcp"]}`.
+  </Step>
+  <Step title="Check what it serves" icon="list">
+    ```bash
+    taw-fleet mcp tools
+    ```
+
+    Each tool is a command you can run yourself, and answers with that command's `--json`.
+  </Step>
+</Steps>
+
+| Tool | Same as | What it answers |
+|---|---|---|
+| `list_sites` | `taw-fleet list --json` | Every site and its TAW themes: status, taw/core, git, sync |
+| `show_site` | `taw-fleet show <site> --json` | One site in full, with doctor's findings |
+| `doctor` | `taw-fleet doctor [site] --json` | What needs attention, most serious first, each with its fix |
+| `pull_requests` | `taw-fleet prs --json` | Open pull requests with CI, and what production has deployed |
+| `comments` | `taw-fleet comments [site] --json` | Open client comments in BugSmash |
+| `production` | `taw-fleet live --json` | Each production site through its companion |
+| `taw` | `taw @<theme> <command…>` | A theme's own command, with its site's PHP: read-only commands only (`list`, `help`, `inspect`, `policy`, `sync` and `upgrade` without `--apply`, `content:diff`) |
+
+The prompt `update_theme` is the update prompt taw-fleet hands Claude Code (`taw-fleet handoff <site>`).
+
+<Callout kind="info">
+  Every tool only reads for now. Writes (update, merge, back to the site's branch, start and stop) come next, and they will ask first, the way the dashboard does.
+</Callout>
+
 ## Live documentation lookup
 
 The `mcp__taw-docs__search_documentation` MCP tool, when available, searches this documentation site's current indexed content directly — hybrid semantic + keyword search — rather than requiring a URL guess or a stale cached answer.
