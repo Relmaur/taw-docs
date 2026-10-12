@@ -5,6 +5,15 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw/core v1.94.1: taw sync survives a GitHub rate limit. taw-theme v1.12.68 and taw-gutenberg v0.3.70 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026: updates don't stop at GitHub's rate limit
+
+- **taw/core v1.94.1:** GitHub allows 60 API requests an hour without a token, and updating the whole fleet can use them up. `taw sync` then crashed, so the update stopped at its sync step and blamed the network. It now says what GitHub answered and goes on, and it signs in by itself when it can (`GITHUB_TOKEN`, `GH_TOKEN`, or your `gh` login), for 5,000 requests an hour. If you see the rate-limit message, run `gh auth login` once.
+- **taw-theme v1.12.68** and **taw-gutenberg v0.3.70** lock taw/core 1.94.1.
+
+</Update>
+
 <Update label="2026-10-12" description="taw-fleet v1.22.1: doctor checks that taw/core's pre-commit check is on.">
 
 ## October 2026: doctor watches the pre-commit check
