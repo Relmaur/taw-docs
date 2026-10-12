@@ -5,6 +5,15 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw/core v1.93.3: the form stylesheet no longer blocks rendering. taw-theme v1.12.65 and taw-gutenberg v0.3.67 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026: forms no longer slow down first paint
+
+- **taw/core v1.93.3:** the form stylesheet used to load as a plain `<link>` on every page, even pages without a form, and held up first paint (on one live site it was the only thing blocking it: 452 ms on mobile). It now loads in the background, in the same place in `<head>`, so your own form styles still win and forms look exactly as before. If your theme already made it async with a `style_loader_tag` filter, you can drop that line. To keep the old behaviour: `add_filter('taw_form_css_async', '__return_false');`.
+- **taw-theme v1.12.65** and **taw-gutenberg v0.3.67** lock taw/core 1.93.3.
+
+</Update>
+
 <Update label="2026-10-12" description="taw-fleet v1.19.0: AI apps can update, merge, start and stop sites over MCP, and every action asks first, like the dashboard.">
 
 ## October 2026: AI apps that ask before they act
