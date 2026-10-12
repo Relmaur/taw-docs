@@ -98,6 +98,25 @@ One two-line card per TAW theme, with columns for taw/core, the scaffold check, 
 
 All of it is on [Dashboard and keys](/taw-fleet-dashboard#update-a-theme), with `A` and `h` (hand the update to Claude Code) and `y` and `S` (check and apply the taw-theme scaffold). What the update does inside the theme is on [Updating a site](/updating).
 
+## Restore points
+
+Before an update (`u`, `U`), a merge (`M`) and a content import (`C`), taw-fleet saves a restore point: the Local site's database, when the site runs, and the theme's branch and commit. A merge keeps only the branch, because it changes production, never your Local database. If the point can't be saved, the step doesn't run.
+
+<Callout kind="alert">
+  A restore point holds a full copy of a site's database, so taw-fleet keeps it where git and syncs can't reach it: `~/Library/Application Support/taw-fleet/restore/<site>/`, readable only by you, compressed. Before saving, it checks that folder is outside the site, every theme and any git repository, and refuses otherwise. The copy goes straight from `wp db export` into that file: no `.sql` file is ever written in a site or a theme.
+</Callout>
+
+- **`z`** in the dashboard asks which point to put back, then asks again before it does: the theme goes back onto the point's branch (commits made since stay) and the database is replaced by its copy. The site's details list the newest points in a **RESTORE** section.
+- **After an update stops,** a third choice joins Fix with Claude and Do it myself: **3 Put it back**, the point from just before the update.
+- **A restore can be undone:** it saves how things are now as a new point first.
+- taw-fleet keeps the newest 5 per site. `restore_keep` in the settings changes that; `0` makes none.
+
+```bash
+taw-fleet restore ls-mxico          # the points, newest first
+taw-fleet restore ls-mxico latest   # put the newest back (asks first)
+taw-fleet restore ls-mxico --save   # one now
+```
+
 ## Create a site
 
 `n` in the dashboard, or `taw-fleet create`, makes a Local site with a fresh classic or block TAW theme, built, activated and committed. The admin password is shown once. See [Create a site](/taw-fleet-dashboard#create-a-site).
@@ -162,6 +181,7 @@ github_account = "parallelstaff"
 | `terminal` | The terminal for `t`, the dashboard's window, Claude Code and Vite windows. Empty: the first installed of Ghostty, iTerm2, Warp, kitty, Terminal. `iterm` works too. Warp can't run a script, so windows that run something open in Terminal instead | No, same as `editor` |
 | `window` | `false` keeps the dashboard in the current terminal. Default `true`. `--window` on the command line wins | Must be a boolean |
 | `icons` | `"symbols"` (the default): plain Unicode icons that work with any font. `"nerd"`: Nerd Font icons, for a terminal set to a Nerd Font. `taw-fleet config icons <set>` changes this line and keeps the rest of the file | Must be `"symbols"` or `"nerd"` |
+| `restore_keep` | How many [restore points](#restore-points) to keep per site. Default `5`; `0` makes none | Must be 0 to 50 |
 | `github_owners` | Your GitHub accounts and organizations. A theme whose repository belongs to another owner is marked `@account` | Must be a list of strings |
 | `[create] kind` | `"classic"` or `"block"`: the default theme for new sites | Anything else is an error |
 | `[create] admin_user`, `admin_email` | The default WordPress admin for new sites | No; checked when you create a site |

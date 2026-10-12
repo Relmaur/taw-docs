@@ -5,6 +5,16 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw-fleet v1.21.0: restore points. Before an update, a merge or a content import, taw-fleet saves the Local database and the theme's branch; z puts one back.">
+
+## October 2026: a way back from every risky step
+
+- **taw-fleet v1.21.0:** before an update (`u`, `U`), a merge (`M`) and a content import (`C`), taw-fleet saves a restore point: the Local site's database and the theme's branch and commit. It keeps the newest 5 per site (`restore_keep`).
+- **Kept where nothing can leak it:** the database copy goes straight from `wp db export` into a private, compressed file in `~/Library/Application Support/taw-fleet/restore/`. taw-fleet refuses to save one inside a site, a theme or any git repository, and then the step doesn't run.
+- **`z`** in the dashboard, or `taw-fleet restore <site>`, puts one back after asking. A stopped update offers **3 Put it back**. Every restore saves how things are first, so it can be undone. See [Restore points](/taw-fleet#restore-points).
+
+</Update>
+
 <Update label="2026-10-12" description="taw/core v1.93.4: the faster form stylesheet is opt-in, with what critical CSS needs first; queued critical blocks inline their CSS again." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
 
 ## October 2026: faster first paint, without the jump
