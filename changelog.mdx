@@ -5,6 +5,15 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw/core v1.94.0: a pre-commit hook refuses commits of database dumps and credentials. taw-theme v1.12.67 and taw-gutenberg v0.3.69 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026: a leak stops at the commit
+
+- **taw/core v1.94.0:** the check CI runs on every push (database dumps, `.sync/` snapshots, `remote.env`, `.env`, `wp-config.php`, private keys) now also runs before each commit. Updating a theme (`taw update`, taw-fleet's `u` or `U`, or `composer update taw/core`) installs a git pre-commit hook from taw/core, so such a file is refused before the commit exists and never leaves your Mac. A theme that already has its own git hooks is left alone, with the one line to add to them. CI keeps checking every push: `git commit --no-verify` skips a hook, nothing skips CI. See [Updating a site](/updating).
+- **taw-theme v1.12.67** and **taw-gutenberg v0.3.69** lock taw/core 1.94.0.
+
+</Update>
+
 <Update label="2026-10-12" description="taw-fleet v1.22.0: monthly client reports. Availability, updates and changes, review comments, speed and security, in English or Spanish, ready to send.">
 
 ## October 2026: a monthly report for each client
