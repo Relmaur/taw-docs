@@ -198,12 +198,12 @@ UI Blocks compose naturally inside MetaBlock templates:
 The fastest way to create a block is the `make:block` command:
 
 ```bash
-vendor/bin/taw make:block Hero --type=meta --with-style
-vendor/bin/taw make:block Button --type=ui --with-style --with-script
+taw make:block Hero --type=meta --with-style
+taw make:block Button --type=ui --with-style --with-script
 
 # Inside a subgroup (great for organisation)
-vendor/bin/taw make:block Hero --group=sections      # → Blocks/sections/Hero/
-vendor/bin/taw make:block Badge --group=ui/cards     # → Blocks/ui/cards/Badge/
+taw make:block Hero --group=sections      # → Blocks/sections/Hero/
+taw make:block Badge --group=ui/cards     # → Blocks/ui/cards/Badge/
 
 composer dump-autoload
 ```
@@ -223,12 +223,12 @@ Blocks can be exported as portable ZIPs and imported into any TAW Theme project.
 
 ```bash
 # Export
-vendor/bin/taw export:block Hero
-vendor/bin/taw export:block sections/Hero -o ./exports
+taw export:block Hero
+taw export:block sections/Hero -o ./exports
 
 # Import
-vendor/bin/taw import:block path/to/Hero.zip
-vendor/bin/taw import:block path/to/Hero.zip --group=sections --force
+taw import:block path/to/Hero.zip
+taw import:block path/to/Hero.zip --group=sections --force
 ```
 
 ## Block variations

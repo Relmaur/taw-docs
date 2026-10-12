@@ -57,7 +57,7 @@ Then push the theme to a new GitHub repository of its own, for example with `gh 
 Check that the `taw` command works:
 
 ```bash
-vendor/bin/taw list
+taw list
 ```
 
 <Callout kind="success" collapsed="false">
@@ -81,7 +81,7 @@ TAW has two block types. For this quickstart we'll build a **MetaBlock** — a p
     Run the block generator from your theme root:
 
     ```bash
-    vendor/bin/taw make:block Hero --type=meta --with-style
+    taw make:block Hero --type=meta --with-style
     composer dump-autoload
     ```
 
@@ -232,7 +232,7 @@ flowchart TD
 UI Blocks are stateless components that receive props at render time — no metaboxes, no post_meta.
 
 ```bash
-vendor/bin/taw make:block Button --type=ui --with-style
+taw make:block Button --type=ui --with-style
 composer dump-autoload
 ```
 
@@ -311,7 +311,7 @@ Vite outputs content-hashed CSS and JS to `public/build/`. WordPress loads these
 When taw/core releases a new version, update the theme in one step:
 
 ```bash
-vendor/bin/taw update
+taw update
 ```
 
 It works on a new branch, updates taw/core and the framework's files, runs the migrations and the checks, and opens a pull request. The theme's `taw.json` decides what it may change. See [Updating a site](/updating).

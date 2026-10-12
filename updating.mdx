@@ -3,10 +3,10 @@ title: "Updating a site"
 description: "Update a TAW theme in one step, the way npm or Composer update a package: a policy file in the theme decides what changes, and a written guide covers anything a person must finish."
 ---
 
-A TAW theme updates like a package. `vendor/bin/taw update` updates taw/core, applies the framework's files, runs the migrations and the checks, commits on a new branch, and opens a pull request. It asks no questions: the theme's `taw.json` already answers them. Available from taw/core 1.91.
+A TAW theme updates like a package. `taw update` updates taw/core, applies the framework's files, runs the migrations and the checks, commits on a new branch, and opens a pull request. It asks no questions: the theme's `taw.json` already answers them. Available from taw/core 1.91.
 
 ```bash
-vendor/bin/taw update
+taw update
 ```
 
 ## What one update does
@@ -67,11 +67,11 @@ The theme's `taw.json` belongs to the site, and updates never change it. Every s
 | `deliver` | `pr`, `pr+merge` (merged when checks pass, which deploys), `branch` |
 | `remote` | The git remote the update branch is pushed to; the pull request opens on that remote's GitHub repository. Default `origin`. Since taw/core 1.92 |
 
-`vendor/bin/taw policy` explains the current settings in words, and `--init` writes a starter file. If the file is invalid, updates refuse to run until it's fixed, so nothing is ever half applied.
+`taw policy` explains the current settings in words, and `--init` writes a starter file. If the file is invalid, updates refuse to run until it's fixed, so nothing is ever half applied.
 
 ### What the policy governs
 
-Migrations follow `taw.json` wherever they run: in `vendor/bin/taw update`, in the Composer hook below, and in `vendor/bin/taw upgrade --apply`. `scaffold: off` holds back the `site-skills` and `configs` migrations, and `docs: off` holds back `agent-docs`. A held-back migration doesn't run, and it says so:
+Migrations follow `taw.json` wherever they run: in `taw update`, in the Composer hook below, and in `taw upgrade --apply`. `scaffold: off` holds back the `site-skills` and `configs` migrations, and `docs: off` holds back `agent-docs`. A held-back migration doesn't run, and it says so:
 
 ```
 1.91.0/agent-docs is off in taw.json ("docs": "off"), so it didn't run. To do it anyway: vendor/bin/taw upgrade --explain 1.91.0/agent-docs (By hand).
@@ -109,9 +109,9 @@ Turn it off with `TAW_NO_UPGRADE=1`, or `"extra": {"taw": {"upgrade": false}}` i
 
 | Command | What it does |
 |---|---|
-| `vendor/bin/taw upgrade` | Lists pending migrations |
-| `vendor/bin/taw upgrade --apply` | Runs them |
-| `vendor/bin/taw upgrade --explain <id>` | What one does, why, how to do it by hand, how to undo it |
+| `taw upgrade` | Lists pending migrations |
+| `taw upgrade --apply` | Runs them |
+| `taw upgrade --explain <id>` | What one does, why, how to do it by hand, how to undo it |
 
 <Callout kind="alert">
   Add the hook only to a theme on taw/core 1.91 or later. On an older taw/core the class doesn't exist, and `composer update` fails.
@@ -149,7 +149,7 @@ Since taw/core 1.91, the parts of a theme that only the framework changes ship w
 | `.github/workflows/ci.yml`, `framework-sync.yml` | Shared workflows in taw/core, at `@v1` |
 | `.claude/skills/` | taw/core's [site skills](/site-skills); a skill marked `owner: site` is never replaced |
 
-The migrations convert older themes. A file you edited is left as it is, with a "For you" step that says how to move your changes. To replace an edited agent doc anyway, run `vendor/bin/taw docs:sync --apply --force`, then put your notes back under "This site".
+The migrations convert older themes. A file you edited is left as it is, with a "For you" step that says how to move your changes. To replace an edited agent doc anyway, run `taw docs:sync --apply --force`, then put your notes back under "This site".
 
 <Callout kind="alert">
   In taw/core 1.91.0 only, the agent-docs migration also replaced copies a site had edited. If a theme updated to 1.91.0 and its `AGENTS.md` or `CLAUDE.md` held your own notes, they're in git history: `git log -p -- AGENTS.md`. Move them under "This site". From 1.91.1 on, edited copies are kept.

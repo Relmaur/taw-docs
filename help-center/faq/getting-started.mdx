@@ -52,8 +52,8 @@ Two common causes:
 Yes. Use `--group=` when scaffolding:
 
 ```bash
-vendor/bin/taw make:block Hero --group=sections   # → Blocks/sections/Hero/
-vendor/bin/taw make:block Badge --group=ui/cards  # → Blocks/ui/cards/Badge/
+taw make:block Hero --group=sections   # → Blocks/sections/Hero/
+taw make:block Badge --group=ui/cards  # → Blocks/ui/cards/Badge/
 ```
 
 `BlockLoader::loadAll()` scans recursively to any depth.
@@ -100,11 +100,11 @@ This returns the correct URL whether the Vite dev server is running or not.
 On taw/core 1.91 or later:
 
 ```bash
-vendor/bin/taw update
+taw update
 ```
 
 It updates taw/core and the framework's files on a new branch, runs the checks, and opens a pull request, without touching your blocks or templates. On an older taw/core, run `composer update taw/core --with-dependencies`. See [Updating a site](/updating) and [Upgrading taw/core](/help-center/guides/upgrading-taw-core).
 
 **Does TAW have auto-updates in WordPress admin?**
 
-Not by default. taw/core has a `TAW\Core\Theme\ThemeUpdater` that shows WordPress's **Update Available** notice from a theme's GitHub Releases, but TAW Theme doesn't turn it on (see [Theme updates](/taw-theme#theme-updates-auto-updater)). Updates normally go through Composer and `vendor/bin/taw update`, so the theme's code changes in git, with a pull request.
+Not by default. taw/core has a `TAW\Core\Theme\ThemeUpdater` that shows WordPress's **Update Available** notice from a theme's GitHub Releases, but TAW Theme doesn't turn it on (see [Theme updates](/taw-theme#theme-updates-auto-updater)). Updates normally go through Composer and `taw update`, so the theme's code changes in git, with a pull request.

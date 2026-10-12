@@ -36,10 +36,10 @@ graph TD
 ## Where each tool fits in a day
 
 - **Starting a site:** `taw-fleet create` (or `n` in the dashboard) makes a Local site and installs a TAW theme with `taw/create`. Without taw-fleet, run `composer create-project taw/create` yourself. See the [Quickstart](/quickstart).
-- **Building it:** in the theme folder, `vendor/bin/taw make:block` scaffolds blocks, `fields:get` and `fields:set` read and write content, and `schema:validate` checks the data layer.
-- **Keeping it current:** `vendor/bin/taw update`, or `u` in taw-fleet, updates taw/core and the framework's files in one step and opens a pull request. See [Updating a site](/updating).
-- **Running many sites:** taw-fleet shows which sites are behind, dirty, failing CI or waiting on a deploy. It updates one site or all of them through `vendor/bin/taw update`, merges pull requests, pulls production content into Local, and starts Claude Code on a site's skills.
-- **Moving content:** `vendor/bin/taw content:export` and `content:import` move content as one JSON file. taw-fleet's `pull` brings a live site's published content to Local through the companion.
+- **Building it:** in the theme folder, `taw make:block` scaffolds blocks, `fields:get` and `fields:set` read and write content, and `schema:validate` checks the data layer.
+- **Keeping it current:** `taw update`, or `u` in taw-fleet, updates taw/core and the framework's files in one step and opens a pull request. See [Updating a site](/updating).
+- **Running many sites:** taw-fleet shows which sites are behind, dirty, failing CI or waiting on a deploy. It updates one site or all of them through `taw update`, merges pull requests, pulls production content into Local, and starts Claude Code on a site's skills.
+- **Moving content:** `taw content:export` and `content:import` move content as one JSON file. taw-fleet's `pull` brings a live site's published content to Local through the companion.
 
 ## How a release reaches a site
 
@@ -53,7 +53,7 @@ taw/core and both themes have their own version numbers. A change travels in thi
     TAW Theme and TAW Gutenberg update their `composer.lock` to the new taw/core, then get their own release. A brand-new site starts from that lock.
   </Step>
   <Step title="Each site updates" icon="refresh-cw">
-    A site's theme runs `vendor/bin/taw update`, or `composer update taw/core`, and merges the pull request. If the site's repository has a deploy workflow, merging deploys production. The scaffolds don't ship one: each site sets up its own.
+    A site's theme runs `taw update`, or `composer update taw/core`, and merges the pull request. If the site's repository has a deploy workflow, merging deploys production. The scaffolds don't ship one: each site sets up its own.
   </Step>
 </Steps>
 
@@ -63,9 +63,9 @@ As of October 12, 2026:
 
 | Piece | Version |
 |---|---|
-| taw/core | 1.93.1 |
-| TAW Theme | 1.12.63 |
-| TAW Gutenberg | 0.3.65 |
+| taw/core | 1.93.2 |
+| TAW Theme | 1.12.64 |
+| TAW Gutenberg | 0.3.66 |
 | taw-fleet | 1.17.0 |
 | TAW Companion | 0.4.0 |
 | taw/create | 0.1.0 |

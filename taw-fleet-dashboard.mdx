@@ -201,7 +201,7 @@ An action runs exactly as its key does. With no site selected, only the App acti
 - **Ask for it with.** The part of the description after “Triggers on:” shows as **Ask for it with:**.
 - **What Claude starts with.** “Use the `<skill>` skill on this site”, then what taw-fleet knows: the Local site, its URL and status; the theme, its kind and taw/core; the repository, deploy branch and current branch; the production URL; the BugSmash project and open comments; and up to six `doctor` findings.
 
-With no skills in `.claude/skills/`, `a` says so. A classic theme gets them with `S`; for a block theme, run `php bin/taw skills:sync --apply` in the theme folder. See [Site skills](/site-skills).
+With no skills in `.claude/skills/`, `a` says so. A classic theme gets them with `S`; for a block theme, run `taw skills:sync --apply` in the theme folder. See [Site skills](/site-skills).
 
 When Claude Code exits, the dashboard rescans. After `resolve-comments`, it checks BugSmash again.
 
@@ -289,7 +289,7 @@ To hand every theme to Claude Code in one session instead (a coordinator with a 
 
 `y` runs the theme's own `php bin/taw sync`. It compares the framework files (Tier 1) and the docs and config (Tier 2) with the newest taw-theme, and writes nothing. `S` runs it with `--apply` after asking: Tier 1 is written, Tier 2 never is. `Y` checks every classic theme at once. The SYNC column shows the last result.
 
-Sync is for classic themes with `bin/taw`. On a block theme, `y` and `S` refuse: block themes don't sync the classic scaffold. To install taw/core's skills in a block theme, run `php bin/taw skills:sync --apply` in its folder.
+Sync is for classic themes with `bin/taw`. On a block theme, `y` and `S` refuse: block themes don't sync the classic scaffold. To install taw/core's skills in a block theme, run `taw skills:sync --apply` in its folder.
 
 <Callout kind="alert">
   `u`, `U`, `y`, `S`, `A`, `h` and `C` refuse the umbrella's own taw-theme and taw-gutenberg, or leave them out. They change through the taw-core release flow.

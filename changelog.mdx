@@ -5,6 +5,16 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw/core v1.93.2: every instruction says taw, the command taw-fleet 1.17.0 installs. taw-theme v1.12.64 and taw-gutenberg v0.3.66 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026: one command, `taw`
+
+- **The docs, the themes' agent docs and skills, and taw/core's help** now write commands as `taw …`. `taw` comes with taw-fleet 1.17.0 and runs the theme's own `vendor/bin/taw` with the site's PHP, from the theme or from anywhere with `taw @<theme>`. See [The taw command](/taw-command), rewritten around it.
+- **Nothing changes in a theme:** `vendor/bin/taw` is the same command where `taw` isn't installed, like CI.
+- **taw/core v1.93.2**, **taw-theme v1.12.64** (skills and README) and **taw-gutenberg v0.3.66**.
+
+</Update>
+
 <Update label="2026-10-12" description="taw-fleet v1.17.0: the taw command. One command on the PATH runs any theme's own vendor/bin/taw, with its site's PHP and database socket.">
 
 ## October 2026: one `taw` command

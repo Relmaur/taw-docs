@@ -1,9 +1,9 @@
 ---
 title: "taw command reference"
-description: "Every vendor/bin/taw command in taw/core: arguments, options, defaults, and whether it needs WordPress."
+description: "Every taw command in taw/core: arguments, options, defaults, and whether it needs WordPress."
 ---
 
-This page lists every command of `vendor/bin/taw` as of taw/core 1.91, grouped by what it's for. For how the tool works and how to add your own commands, see [The taw command](/taw-command). `vendor/bin/taw help <command>` prints the same details on your machine.
+This page lists every `taw` command as of taw/core 1.91, grouped by what it's for. For how the tool works and how to add your own commands, see [The taw command](/taw-command). `taw help <command>` prints the same details on your machine.
 
 **Key:** <b>Block</b> means the command also exists in block themes; every command exists in classic themes. <b>WP</b> means it loads WordPress, so the site must be running.
 
@@ -14,7 +14,7 @@ This page lists every command of `vendor/bin/taw` as of taw/core 1.91, grouped b
 Updates the theme as its `taw.json` says: taw/core, the framework's files, migrations, checks, then a branch or a pull request on the remote `taw.json` names (`origin` by default). No questions. Block · git, Composer, and `gh` for pull requests. Full walkthrough: [Updating a site](/updating).
 
 ```bash
-vendor/bin/taw update [--plan] [--no-deliver] [--composer <cmd>] [--json]
+taw update [--plan] [--no-deliver] [--composer <cmd>] [--json]
 ```
 
 | Option | Does |
@@ -31,7 +31,7 @@ It exits with 0 when the theme was updated or was already up to date, and with 1
 Runs the migrations the theme still needs after a taw/core update. Without `--apply`, it only lists them. Block.
 
 ```bash
-vendor/bin/taw upgrade [--apply] [--explain <id>|all] [--json]
+taw upgrade [--apply] [--explain <id>|all] [--json]
 ```
 
 | Option | Does |
@@ -93,7 +93,7 @@ Points `vite.config.js` and `phpstan.neon` at taw/core's Vite and PHPStan base. 
 Validates `taw-schema/*.json` definition files without WordPress. See [Data layer](/data-layer). Block.
 
 ```bash
-vendor/bin/taw schema:validate [<paths>...] [--json]
+taw schema:validate [<paths>...] [--json]
 ```
 
 `paths` are files or folders; the default is the theme's `taw-schema/`.
@@ -105,7 +105,7 @@ vendor/bin/taw schema:validate [<paths>...] [--json]
 Scaffolds a block in `Blocks/<group>/<Name>/`: a class and an `index.php` template, plus a stylesheet or a script if you ask for them. See [Blocks and block registry](/taw-core-blocks).
 
 ```bash
-vendor/bin/taw make:block <Name> [-t meta|ui] [-g <group>] [-s] [-j] [-f]
+taw make:block <Name> [-t meta|ui] [-g <group>] [-s] [-j] [-f]
 ```
 
 | Argument / option | Does |
@@ -147,7 +147,7 @@ Reports the live state of the site: registered blocks, metabox fields, forms and
 Reads a field's current value, decoded by its type. WP.
 
 ```bash
-vendor/bin/taw fields:get <post_id|options> <field_id> [--json]
+taw fields:get <post_id|options> <field_id> [--json]
 ```
 
 `post_id` is the post the field belongs to, or `options` for an options-page field. `field_id` is the field's id without the meta prefix (`hero_heading`), a qualified id (`hero.hero_heading`), or the full meta key.
@@ -157,7 +157,7 @@ vendor/bin/taw fields:get <post_id|options> <field_id> [--json]
 Writes a field's value, sanitized exactly like the admin form's save. WP.
 
 ```bash
-vendor/bin/taw fields:set <post_id|options> <field_id> [<value>] [--file <path>] [--dry-run] [--json]
+taw fields:set <post_id|options> <field_id> [<value>] [--file <path>] [--dry-run] [--json]
 ```
 
 | Argument / option | Does |
@@ -200,8 +200,8 @@ Exports a portable JSON snapshot of the site's content, TAW fields, options, ter
 Imports a snapshot or a change-set. It only previews until you pass `--yes`, and it writes a rollback snapshot before it changes anything. WP.
 
 ```bash
-vendor/bin/taw content:import [<file>] [--yes] [--dry-run] [--policy update|create|skip] [--with-settings] [--user <who>] [--json]
-vendor/bin/taw content:import --undo[=<journal>] --yes
+taw content:import [<file>] [--yes] [--dry-run] [--policy update|create|skip] [--with-settings] [--user <who>] [--json]
+taw content:import --undo[=<journal>] --yes
 ```
 
 | Option | Does |
@@ -219,7 +219,7 @@ vendor/bin/taw content:import --undo[=<journal>] --yes
 Diffs two snapshots into a change-set that `content:import` can apply. It works on the files alone.
 
 ```bash
-vendor/bin/taw content:diff <from.json> <to.json> [--out <file>]
+taw content:diff <from.json> <to.json> [--out <file>]
 ```
 
 Without `--out`, the change-set goes to standard output.
@@ -242,8 +242,8 @@ Saves the fields' `defaults` into the database, for fields that are still empty.
 Runs WordPress's own WP-CLI with `--path` and Local's database socket filled in. Every argument goes to `wp` as is, and `wp` must be on your `PATH`.
 
 ```bash
-vendor/bin/taw wp post list --post_type=page
-vendor/bin/taw wp db query "SELECT COUNT(*) FROM wp_posts"
+taw wp post list --post_type=page
+taw wp db query "SELECT COUNT(*) FROM wp_posts"
 ```
 
 ### `log:tail`

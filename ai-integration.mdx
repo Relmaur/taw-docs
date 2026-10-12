@@ -12,8 +12,8 @@ TAW isn't just documented for AI coding assistants — it ships a working toolki
 
 Two separate, independently-versioned sources of truth back all of this — don't conflate them:
 
-- **[`taw-theme`](https://github.com/Relmaur/taw-theme)** — the canonical scaffold. Its framework-owned files reach a client site through `vendor/bin/taw update` (or `vendor/bin/taw sync --apply`, or the `update-theme` skill).
-- **[`taw/core`](https://github.com/Relmaur/taw-core)** — the framework package, with the [`taw` command](/taw-command), the agent docs and the site skills. Updated with `vendor/bin/taw update` or `composer update taw/core`.
+- **[`taw-theme`](https://github.com/Relmaur/taw-theme)** — the canonical scaffold. Its framework-owned files reach a client site through `taw update` (or `taw sync --apply`, or the `update-theme` skill).
+- **[`taw/core`](https://github.com/Relmaur/taw-core)** — the framework package, with the [`taw` command](/taw-command), the agent docs and the site skills. Updated with `taw update` or `composer update taw/core`.
 
 ---
 
@@ -84,11 +84,11 @@ Invoked by name (`/make-metablock`, etc.) or triggered automatically by a plain-
   </Card>
 
   <Card title="export-static" icon="globe" horizontal="false">
-    "export the site as static" → a self-contained HTML/CSS/JS bundle for edge hosting (Cloudflare Pages, Vercel), via `vendor/bin/taw export:static`. Forms and search deliberately stay live against WordPress rather than being frozen into the export.
+    "export the site as static" → a self-contained HTML/CSS/JS bundle for edge hosting (Cloudflare Pages, Vercel), via `taw export:static`. Forms and search deliberately stay live against WordPress rather than being frozen into the export.
   </Card>
 
   <Card title="audit-seo" icon="search" horizontal="false">
-    "audit SEO for page 42" (or the whole site) → extracts a post's text-bearing copy and SEO meta (title tag, meta description, social image — Yoast-aware) via `vendor/bin/taw seo:extract`, analyzes keyword presence, copywriting impact, and readability, then asks whether to apply directly or generate a shareable client-approval report before — only with explicit approval — writing rewrites back via `vendor/bin/taw seo:inject`.
+    "audit SEO for page 42" (or the whole site) → extracts a post's text-bearing copy and SEO meta (title tag, meta description, social image — Yoast-aware) via `taw seo:extract`, analyzes keyword presence, copywriting impact, and readability, then asks whether to apply directly or generate a shareable client-approval report before — only with explicit approval — writing rewrites back via `taw seo:inject`.
   </Card>
 </Columns>
 
@@ -104,24 +104,24 @@ For a Figma or screenshot brief, `build-page` asks **once**, for the whole page,
 
 ---
 
-## Live introspection — `vendor/bin/taw inspect`
+## Live introspection — `taw inspect`
 
 Reports the site's actual current state: registered blocks and their real metabox field schemas, registered forms, the installed `taw/core` version, whether `MetaboxOrder` is locked. An agent queries this instead of reconstructing it by grepping PHP source — which can drift from what's actually registered at runtime.
 
 ```bash
-vendor/bin/taw inspect          # human-readable summary
-vendor/bin/taw inspect --json   # machine-readable
+taw inspect          # human-readable summary
+taw inspect --json   # machine-readable
 ```
 
 ---
 
-## Direct field read/write — `vendor/bin/taw fields:get` / `fields:set`
+## Direct field read/write — `taw fields:get` / `fields:set`
 
 Read or write any Metabox/OptionsPage field's value directly, sanitized with the exact same rules a real admin form save uses — the same primitive `VisualEditorEndpoint` uses for its own REST-driven saves. No hand-encoding a repeater's JSON shape, no guessing which sanitizer applies to which field type.
 
 ```bash
-vendor/bin/taw fields:get 42 team_members --json                        # repeater comes back as a decoded array
-vendor/bin/taw fields:set 42 hero_heading "Welcome" --dry-run           # preview the sanitized result without writing
+taw fields:get 42 team_members --json                        # repeater comes back as a decoded array
+taw fields:set 42 hero_heading "Welcome" --dry-run           # preview the sanitized result without writing
 ```
 
 This is what turns "build this page from a Figma design" into something that can also populate the content, not just scaffold empty fields.

@@ -19,9 +19,9 @@ tables, serialized builder blobs, orphaned option rows — simply isn't there. S
 real state fits in a single JSON file that a person (or a code agent) can open and understand.
 
 ```bash
-vendor/bin/taw content:export --migrate --output=/tmp/site.json   # whole-site state
-vendor/bin/taw content:import /tmp/site.json                       # dry-run: what would change
-vendor/bin/taw content:import /tmp/site.json --yes                 # apply (rollback snapshot first)
+taw content:export --migrate --output=/tmp/site.json   # whole-site state
+taw content:import /tmp/site.json                       # dry-run: what would change
+taw content:import /tmp/site.json --yes                 # apply (rollback snapshot first)
 ```
 
 <Callout kind="tip">
@@ -260,23 +260,23 @@ Per-record `update` (overwrite) / `create` (only new) / `skip` — global defaul
     On production (or via the REST route from CI):
 
     ```bash
-    vendor/bin/taw content:export --migrate --output=prod.json
+    taw content:export --migrate --output=prod.json
     ```
 
     On the local site:
 
     ```bash
-    vendor/bin/taw content:import prod.json            # review the diff
-    vendor/bin/taw content:import prod.json --yes --with-settings
+    taw content:import prod.json            # review the diff
+    taw content:import prod.json --yes --with-settings
     ```
   </Step>
 
   <Step title="Promote specific pages from staging to production" titleType="h3">
     ```bash
     # on staging
-    vendor/bin/taw content:export --posts=pricing,features --output=promo.json
+    taw content:export --posts=pricing,features --output=promo.json
     # on production
-    vendor/bin/taw content:import promo.json --yes
+    taw content:import promo.json --yes
     ```
   </Step>
 
@@ -293,19 +293,19 @@ Per-record `update` (overwrite) / `create` (only new) / `skip` — global defaul
 
   <Step title="Agent-mediated bulk edit" titleType="h3">
     ```bash
-    vendor/bin/taw content:export --output=before.json
+    taw content:export --output=before.json
     cp before.json after.json          # agent rewrites fields in after.json
-    vendor/bin/taw content:diff before.json after.json --out=changes.json
-    vendor/bin/taw content:import changes.json           # review
-    vendor/bin/taw content:import changes.json --yes     # apply just the change-set
+    taw content:diff before.json after.json --out=changes.json
+    taw content:import changes.json           # review
+    taw content:import changes.json --yes     # apply just the change-set
     ```
   </Step>
 
   <Step title="Full TAW-site move" titleType="h3">
     ```bash
-    vendor/bin/taw content:export --migrate --with-comments --output=site.json
+    taw content:export --migrate --with-comments --output=site.json
     # stand up the new install with the theme deployed via git, then:
-    vendor/bin/taw content:import site.json --yes --with-settings
+    taw content:import site.json --yes --with-settings
     ```
 
     Deploy the theme and any plugins through your normal pipeline — this file carries state,
@@ -355,9 +355,9 @@ granted to anyone with `manage_options`).
 When a theme shows content from its fields' [`defaults`](/taw-core-metabox#defaults) (taw/core v1.80.0+), that content is in code, not in the database, so it can't be edited in wp-admin and isn't exported. Saving the defaults turns it into records:
 
 ```bash
-vendor/bin/taw content:defaults                 # preview: every empty field and what it would get
-vendor/bin/taw content:defaults --apply         # write them (a journal goes first)
-vendor/bin/taw content:defaults --undo=defaults-20261009-120000.json
+taw content:defaults                 # preview: every empty field and what it would get
+taw content:defaults --apply         # write them (a journal goes first)
+taw content:defaults --undo=defaults-20261009-120000.json
 ```
 
 Or **Tools → TAW Data → Defaults**: the count, a table of the fields, and a **Save N defaults to the database** button, then **Undo it** for the last save.

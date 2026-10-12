@@ -13,7 +13,7 @@ Two tools do the everyday work:
 
 <Columns cols="2">
   <Card title="The taw command" href="/taw-command" icon="terminal" horizontal="false">
-    `vendor/bin/taw`, inside every theme. It scaffolds blocks, reads and writes fields, moves content between sites, and updates the whole theme in one step with `vendor/bin/taw update`.
+    `taw`, in every theme. It scaffolds blocks, reads and writes fields, moves content between sites, and updates the whole theme in one step with `taw update`.
   </Card>
 
   <Card title="taw-fleet" href="/taw-fleet" icon="layout-dashboard" horizontal="false">
@@ -35,7 +35,7 @@ How the pieces relate, and how a release reaches a live site: [How TAW fits toge
 
 <Columns cols="2">
   <Card title="Updates like a package" href="/updating" icon="refresh-cw" horizontal="false">
-    `vendor/bin/taw update` updates taw/core and the framework's files, runs the migrations and the checks, and opens a pull request. The theme's `taw.json` decides what changes, so nothing asks you questions.
+    `taw update` updates taw/core and the framework's files, runs the migrations and the checks, and opens a pull request. The theme's `taw.json` decides what changes, so nothing asks you questions.
   </Card>
 
   <Card title="One data layer, two themes" href="/data-layer" icon="database" horizontal="false">
@@ -47,7 +47,7 @@ How the pieces relate, and how a release reaches a live site: [How TAW fits toge
   </Card>
 
   <Card title="Zero-config blocks" href="/taw-core-blocks" icon="layers" horizontal="false">
-    In TAW Theme, a block is a folder with a class and a template. `vendor/bin/taw make:block Hero --type=meta --with-style` creates it; each block loads its own CSS and JS only on pages that use it.
+    In TAW Theme, a block is a folder with a class and a template. `taw make:block Hero --type=meta --with-style` creates it; each block loads its own CSS and JS only on pages that use it.
   </Card>
 
   <Card title="Rich metabox engine" href="/taw-core-metabox" icon="list" horizontal="false">
@@ -59,7 +59,7 @@ How the pieces relate, and how a release reaches a live site: [How TAW fits toge
   </Card>
 
   <Card title="Content that moves" href="/content-interchange" icon="arrow-left-right" horizontal="false">
-    `vendor/bin/taw content:export` and `content:import` move a site's content, fields, media and settings as one reviewable JSON file, with a preview first and an undo after.
+    `taw content:export` and `content:import` move a site's content, fields, media and settings as one reviewable JSON file, with a preview first and an undo after.
   </Card>
 
   <Card title="Production at a glance" href="/taw-fleet-production" icon="satellite-dish" horizontal="false">
@@ -104,14 +104,14 @@ Read more: [TAW Theme](/taw-theme) · [TAW Gutenberg](/taw-gutenberg).
 
   <Step title="Scaffold a block" icon="terminal" title-type="p">
     ```bash
-    vendor/bin/taw make:block Hero --type=meta --with-style
+    taw make:block Hero --type=meta --with-style
     composer dump-autoload
     ```
   </Step>
 
   <Step title="Keep it current" icon="refresh-cw" title-type="p">
     ```bash
-    vendor/bin/taw update
+    taw update
     ```
   </Step>
 </Steps>

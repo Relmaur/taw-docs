@@ -1760,7 +1760,7 @@ Content-Type: application/json
 
 ### bible
 
-`TAW\Core\Rest\BibleEndpoint` — read-only routes over an installed reference corpus. See [Bible Reader Corpus](#bible-reader-corpus) for the full picture. Only registered when `BibleEndpoint::enable()` has been called; all three routes `404` with `{"error": "No Bible corpus is installed."}` until `vendor/bin/taw corpus:install` has been run.
+`TAW\Core\Rest\BibleEndpoint` — read-only routes over an installed reference corpus. See [Bible Reader Corpus](#bible-reader-corpus) for the full picture. Only registered when `BibleEndpoint::enable()` has been called; all three routes `404` with `{"error": "No Bible corpus is installed."}` until `taw corpus:install` has been run.
 
 ```bash
 GET /wp-json/taw/v1/bible/books
@@ -1984,7 +1984,7 @@ Use these screens to confirm templates render as expected and form submissions r
 
 ## Icon System
 
-TAW Core vendors the full [Lucide](https://lucide.dev) icon set (~1,750 icons) directly inside the package — `resources/icons/lucide/` (SVGs) plus `resources/icons/lucide-index.json` (a searchable name/keyword index). The wp-admin icon picker reads only these local files, so it never makes a network call. Re-vendor the set with `vendor/bin/taw icons:sync` whenever Lucide ships new icons.
+TAW Core vendors the full [Lucide](https://lucide.dev) icon set (~1,750 icons) directly inside the package — `resources/icons/lucide/` (SVGs) plus `resources/icons/lucide-index.json` (a searchable name/keyword index). The wp-admin icon picker reads only these local files, so it never makes a network call. Re-vendor the set with `taw icons:sync` whenever Lucide ships new icons.
 
 <Callout kind="tip">
   The icon picker is opt-in. Call this once, in `inc/customizations.php`, before `Theme::boot()`:
@@ -2095,8 +2095,8 @@ The classic `?author=N` → `/author/{slug}/` redirect probe is **not** handled 
 Moving a TAW site's **state** — posts / CPT entries, `_taw_*` fields and options, terms, media, and optionally authorship, users, comments and environment settings — between environments as one reviewable, diffable, rollback-able JSON file. `content:export` / `content:import` / `content:diff`, a **Tools → TAW Data** admin screen, and `GET /wp-json/taw/v1/content/export`.
 
 ```bash
-vendor/bin/taw content:export --migrate --output=/tmp/site.json
-vendor/bin/taw content:import /tmp/site.json --yes
+taw content:export --migrate --output=/tmp/site.json
+taw content:import /tmp/site.json --yes
 ```
 
 <Card title="Content Interchange" href="/content-interchange" icon="arrow-left-right" horizontal="false">
@@ -2150,8 +2150,8 @@ A visitor-facing chat widget that answers from any number of named **knowledge b
 </Callout>
 
 ```bash
-vendor/bin/taw content:reindex --post-type=post,page --batch=20   # backfill/refresh the wp-content knowledge base
-vendor/bin/taw content:reindex-kb kb-a1b2c3d4                     # re-run ingestion for one uploaded knowledge base
+taw content:reindex --post-type=post,page --batch=20   # backfill/refresh the wp-content knowledge base
+taw content:reindex-kb kb-a1b2c3d4                     # re-run ingestion for one uploaded knowledge base
 ```
 
 <Callout kind="alert">
@@ -2206,10 +2206,10 @@ A reference corpus is a curated, developer-placed dataset, not end-user content 
 
 ```bash
 # Raw .sqlite file — needs pdo_sqlite on THIS host:
-vendor/bin/taw corpus:install /path/to/bible_straubinger.sqlite bible-straubinger.sqlite
+taw corpus:install /path/to/bible_straubinger.sqlite bible-straubinger.sqlite
 
 # Portable JSON export — works on any host, no pdo_sqlite required here:
-vendor/bin/taw corpus:install /path/to/bible-export.json bible-straubinger.sqlite
+taw corpus:install /path/to/bible-export.json bible-straubinger.sqlite
 ```
 
 **`.sqlite` path** — `TAW\CLI\CorpusInstallCommand` validates the SQLite magic-byte header (the same check the RAG chatbot's knowledge-base upload handler uses), confirms `pdo_sqlite` is available on this host, then copies the file into a protected uploads subdirectory: `TAW\Core\Corpus\Storage`, `wp-content/uploads/taw-private/corpus/`.
@@ -2221,7 +2221,7 @@ vendor/bin/taw corpus:install /path/to/bible-export.json bible-straubinger.sqlit
 **Portable JSON path** — for a target host with no `pdo_sqlite` at all. First, on a machine that does have it:
 
 ```bash
-vendor/bin/taw corpus:export /path/to/bible_straubinger.sqlite /path/to/bible-export.json
+taw corpus:export /path/to/bible_straubinger.sqlite /path/to/bible-export.json
 ```
 
 `TAW\CLI\CorpusExportCommand` reads the source via plain PDO (no WordPress dependency — both paths are plain CLI arguments) and writes a JSON export carrying only the columns `BibleReader` actually reads. Transfer that file to the target server and run `corpus:install` against it there — `TAW\Core\Corpus\Bible\MysqlBibleInstaller` creates `{$wpdb->prefix}taw_corpus_bible_{books,chapters,verses,sections,notes}` (`FULLTEXT` indexes on `verses.text`/`notes.body`) and bulk-loads the export via `$wpdb`.
@@ -2281,11 +2281,11 @@ Adding a second edition is one new array entry plus installing its own `.sqlite`
 
 ```bash
 # Raw .sqlite — needs pdo_sqlite on THIS host:
-vendor/bin/taw catechism:install pius-x /path/to/catechism-pius-x.sqlite
+taw catechism:install pius-x /path/to/catechism-pius-x.sqlite
 
 # Portable JSON export — any host, no pdo_sqlite required here at all:
-vendor/bin/taw catechism:export /path/to/catechism-pius-x.sqlite /path/to/export.json
-vendor/bin/taw catechism:install pius-x /path/to/export.json
+taw catechism:export /path/to/catechism-pius-x.sqlite /path/to/export.json
+taw catechism:install pius-x /path/to/export.json
 ```
 
 <Callout kind="tip">
@@ -2423,8 +2423,8 @@ Two sinks are active by default:
 ### Reading it back
 
 ```bash
-vendor/bin/taw log:tail --level=error --code=form --since=2026-09-01T00:00:00+00:00 --limit=100
-vendor/bin/taw log:tail --json | jq   # raw entries, for piping
+taw log:tail --level=error --code=form --since=2026-09-01T00:00:00+00:00 --limit=100
+taw log:tail --json | jq   # raw entries, for piping
 ```
 
 `TAW\Core\Log\LogReader` is the underlying reader (same `level` / `code`-prefix / `since` filters). On a site running the [companion](/taw-hub-companion), the same data is available over a signed `GET /wp-json/taw-hub/v1/logs` route, and `taw-fleet live <site> --logs 20` shows it without shell access.
@@ -2450,7 +2450,7 @@ Use these pages as the canonical reference for each TAW Core tool. Each one expl
   </Card>
 
   <Card title="TAW CLI" href="/taw-core-cli" icon="terminal" horizontal="false">
-    Work with Symfony Console commands via `bin/taw`, including `make:block`, `export:block`, `import:block`, `inspect`, `fields:get`/`fields:set` for direct field read/write, and `sync` for automated framework-drift detection.
+    Work with Symfony Console commands via `taw`, including `make:block`, `export:block`, `import:block`, `inspect`, `fields:get`/`fields:set` for direct field read/write, and `sync` for automated framework-drift detection.
   </Card>
 
   <Card title="Blocks API" href="/taw-core-blocks" icon="code" horizontal="false">
@@ -2492,7 +2492,7 @@ Move from this overview into hands-on usage:
 
 <Columns cols="2">
   <Card title="Get started quickly" href="/quickstart" icon="zap" horizontal="false">
-    Spin up TAW Theme with TAW Core, run `bin/taw`, and wire your first blocks using the CLI and runtime helpers.
+    Spin up TAW Theme with TAW Core, run `taw`, and wire your first blocks using the CLI and runtime helpers.
   </Card>
 
   <Card title="Learn the core concepts" href="/concepts" icon="book-open" horizontal="false">

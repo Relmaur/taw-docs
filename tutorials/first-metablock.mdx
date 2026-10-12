@@ -31,10 +31,10 @@ flowchart LR
 
 <Steps>
   <Step title="Scaffold the block" icon="terminal" title-type="p">
-    Run the `make:block` CLI command from your theme root. The `--type=meta` flag generates a MetaBlock skeleton; `--with-style` adds a `style.scss` wired into the Vite pipeline.
+    Run `taw make:block` ([the `taw` command](/taw-command)) from your theme folder. The `--type=meta` flag generates a MetaBlock skeleton; `--with-style` adds a `style.scss` wired into the Vite pipeline.
 
     ```bash
-    vendor/bin/taw make:block Hero --type=meta --with-style
+    taw make:block Hero --type=meta --with-style
     composer dump-autoload
     ```
 

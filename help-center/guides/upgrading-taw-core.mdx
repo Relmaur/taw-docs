@@ -9,7 +9,7 @@ description: >-
 
 Every 1.x release of `taw/core` keeps existing theme code working and never changes stored data.
 
-- **On taw/core 1.91 or later**, one command does the whole update and opens a pull request: `vendor/bin/taw update`. See [Updating a site](/updating).
+- **On taw/core 1.91 or later**, one command does the whole update and opens a pull request: `taw update` ([the `taw` command](/taw-command)). See [Updating a site](/updating).
 - **On an older taw/core**, follow the steps below once. After that, the site has the command too.
 
 Releases that change a default come with a checklist, organized by the version the site is coming from. It's in `vendor/taw/core/UPGRADING.md` (the copy that came with the new version) and [on GitHub](https://github.com/Relmaur/taw-core/blob/main/UPGRADING.md). It's written so a person or an AI agent can follow it step by step.
@@ -17,8 +17,8 @@ Releases that change a default come with a checklist, organized by the version t
 ## On taw/core 1.91 or later
 
 ```bash
-vendor/bin/taw update --plan   # what it would do
-vendor/bin/taw update          # do it: a branch, the checks, a pull request
+taw update --plan   # what it would do
+taw update          # do it: a branch, the checks, a pull request
 ```
 
 If a check fails, nothing is pushed, and `.taw/update-report.md` says how to fix, finish or undo the update.
@@ -42,7 +42,7 @@ If a check fails, nothing is pushed, and `.taw/update-report.md` says how to fix
 
   <Step title="Sync the theme scaffold (classic themes)" icon="refresh-cw" title-type="p">
     ```bash
-    php bin/taw sync --apply --apply-manifests
+    taw sync --apply --apply-manifests
     ```
 
     This updates `functions.php`, `bin/`, CI and the framework skills, and never touches `Blocks/`, `inc/` or templates. `--apply-manifests` adds what the scaffold's `composer.json` and `package.json` have and the site lacks, such as the Composer hook that runs migrations. It never removes your own packages. The `update-theme` skill does the same with an agent. A block theme skips this step.
@@ -50,10 +50,10 @@ If a check fails, nothing is pushed, and `.taw/update-report.md` says how to fix
 
   <Step title="Run the migrations (taw/core 1.91+)" icon="wand" title-type="p">
     ```bash
-    vendor/bin/taw upgrade --apply
+    taw upgrade --apply
     ```
 
-    Each change a release makes to a theme ships as a migration. Anything it shouldn't decide, like a file the site edited, is listed with steps marked "For you". `vendor/bin/taw upgrade --explain <id>` says what a migration does and how to undo it.
+    Each change a release makes to a theme ships as a migration. Anything it shouldn't decide, like a file the site edited, is listed with steps marked "For you". `taw upgrade --explain <id>` says what a migration does and how to undo it.
   </Step>
 
   <Step title="Work through UPGRADING.md" icon="list-checks" title-type="p">

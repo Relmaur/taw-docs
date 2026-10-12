@@ -1,31 +1,76 @@
 ---
 title: "The taw command"
-description: "vendor/bin/taw: the command-line tool every TAW theme gets from taw/core. Scaffold blocks, read and write fields, move content, sync the framework and update the site."
+description: "taw: the command-line tool every TAW theme gets from taw/core. Scaffold blocks, read and write fields, move content, sync the framework and update the site."
 ---
 
-`taw` is TAW's command-line tool. It ships inside taw/core as `vendor/bin/taw`, so every theme that installs taw/core has it, and new commands arrive with `composer update taw/core`. You use it to scaffold blocks, read and write fields, move content between sites, keep the theme in step with the framework, and update the whole site in one step.
+`taw` is TAW's command line. You use it to scaffold blocks, read and write fields, move content between sites, keep the theme in step with the framework, and update the whole site in one step. The commands live in each theme's taw/core, as `vendor/bin/taw`. The `taw` command finds the theme you're in and runs that theme's own copy with the right PHP. It never carries the commands itself, so every site keeps its own taw/core version, and new commands arrive with `composer update taw/core`.
 
 ```bash
-vendor/bin/taw list              # every command this theme has
-vendor/bin/taw help content:import
+taw list              # every command this theme has
+taw help content:import
 ```
 
 <Callout kind="info">
-  The tool ships with taw/core 1.90 and later. Before that, each theme carried its own `bin/taw` with a fixed list of commands.
+  The commands ship with taw/core 1.90 and later. Before that, each theme carried its own `bin/taw` with a fixed list of commands.
 </Callout>
 
-## `vendor/bin/taw` and `bin/taw`
+## Install
 
-Both TAW themes still have a `bin/taw` file. It hands over to taw/core's tool, so these two lines do the same thing:
+`taw` comes with [taw-fleet](/taw-fleet) 1.17.0 and later. `brew install Relmaur/tap/taw-fleet` installs two commands, `taw-fleet` and `taw`. Update both with `brew upgrade taw-fleet`.
+
+## In a theme, or from anywhere
+
+In a theme folder, or any folder under it, type the command. `taw` keeps your current folder, so relative paths in the arguments work:
 
 ```bash
-vendor/bin/taw make:block Hero --type=meta
-php bin/taw make:block Hero --type=meta
+cd wp-content/themes/ls-mexico/Blocks
+taw list
+taw make:block Hero --type=meta
 ```
 
-These docs write `vendor/bin/taw`. Use `php bin/taw` in a theme whose taw/core is older than 1.90: there, `bin/taw` builds the old command list from whatever taw/core has.
+From anywhere else, name the theme with `@`. The short form is the theme folder name, like `@chcapital`, `@ls-mexico` or `@taw-theme`; a site name works too. A site with two TAW themes needs both: `@<site>/<theme>`.
 
-The tool works on one theme: the folder that holds `vendor/`. To point it somewhere else, set `TAW_THEME_DIR`.
+```bash
+taw @ls-mexico list
+taw @chcapital sync
+taw @taw/taw-gutenberg list
+```
+
+`taw @…` runs in the theme folder.
+
+## Which PHP it uses
+
+On a Local site, `taw` uses the site's own PHP and its MySQL socket, so commands that load WordPress reach that site's database. A theme symlinked into a site counts as that site's. Anywhere else, it uses the `php` on your PATH.
+
+If the site is halted, one line says so and gives the fix, then the command runs anyway. Most commands don't need the database.
+
+```text
+… is halted, so commands that need its database will fail: taw-fleet start <slug>
+```
+
+## Outside a theme
+
+Outside a theme and without `@`, `taw` says `taw: not in a TAW theme`, lists every theme as `taw @<name>` next to its site, and exits with 1.
+
+A theme without a `vendor/` folder gets the same exit code and a message to run `composer install` there.
+
+## See what it runs
+
+`taw` has no options of its own. Everything after the theme goes to the theme's command, and you get that command's output, questions and exit code. `TAW_DEBUG=1 taw …` prints the folder and the shell line it runs, ready to paste.
+
+## In CI or without taw-fleet
+
+Where `taw` isn't installed, like CI or another machine, run `vendor/bin/taw` from the theme folder. It's the same command, without the PHP and site lookup:
+
+```bash
+vendor/bin/taw list
+```
+
+`vendor/bin/taw` works on one theme: the folder that holds `vendor/`. To point it somewhere else, set `TAW_THEME_DIR`.
+
+## `bin/taw` in older themes
+
+Both TAW themes still have a `bin/taw` file. It hands over to taw/core's tool, so `php bin/taw make:block Hero` does the same as `vendor/bin/taw make:block Hero`. In a theme whose taw/core is older than 1.90, `taw` runs `php bin/taw` for you: there, `bin/taw` builds the old command list from whatever taw/core has.
 
 ## What a theme gets
 
@@ -57,7 +102,7 @@ Some commands read or write the site's database, so they load WordPress first:
 - `seo:*`, `export:static`, `rag:usage`;
 - the `*:install` corpus commands.
 
-They find `wp-load.php` by walking up from the theme folder, up to six levels. On a Local site, the site must be running. `taw` finds Local's database socket for you, and `vendor/bin/taw wp` does the same for WordPress's own WP-CLI.
+They find `wp-load.php` by walking up from the theme folder, up to six levels. On a Local site, the site must be running. `taw` finds Local's database socket for you, and `taw wp` does the same for WordPress's own WP-CLI.
 
 Everything else works on files alone: scaffolding, schema checks, `content:diff`, syncs, migrations and updates. You can run those in CI or with the site stopped.
 
@@ -71,7 +116,7 @@ Everything else works on files alone: scaffolding, schema checks, `content:diff`
 
 - **`composer update`** runs the theme's pending migrations through taw/core's Composer hook. See [Updating a site](/updating).
 - **Theme CI** runs `vendor/bin/taw schema:validate` in taw/core's shared workflow, and the weekly framework-sync workflow runs `vendor/bin/taw sync --apply`, then `vendor/bin/taw upgrade --apply`.
-- **[taw-fleet](/taw-fleet)** runs `vendor/bin/taw update` for **Update this site** (`u`) and **Update all** (`U`), and `php bin/taw sync`, `inspect` and `content:import` for its scaffold check, site view and content pull.
+- **[taw-fleet](/taw-fleet)** runs the theme's `taw update` for **Update this site** (`u`) and **Update all** (`U`), and its `sync`, `inspect` and `content:import` for its scaffold check, site view and content pull.
 
 ## Add your own commands
 
@@ -86,7 +131,7 @@ TAW\CLI\CommandRegistry::add(fn (string $themeDir) => new App\Cli\ReportCommand(
 "autoload": { "files": ["inc/cli.php"] }
 ```
 
-Run `composer dump-autoload`, then `vendor/bin/taw list` to see it. The factory gets the theme folder, so the command can work on the right theme.
+Run `composer dump-autoload`, then `taw list` to see it. The factory gets the theme folder, so the command can work on the right theme.
 
 <Callout kind="info">
   A registered command can't take a built-in command's name: if two names clash, `taw` keeps the built-in one. Pick a prefix of your own, like `site:report`.
