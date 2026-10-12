@@ -5,6 +5,16 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw-fleet v1.20.0: taw-fleet watch sends a Mac notification when a deploy fails, production goes down, a client comments or an update is ready to merge.">
+
+## October 2026: the fleet tells you, even with the dashboard closed
+
+- **taw-fleet v1.20.0:** `taw-fleet watch install` checks the fleet every 5 minutes in the background and sends a macOS notification for each change, once: a failed deploy, CI failing on the default branch, a production site down or back, a site not verified, new client comments, an update ready to merge.
+- **Clicking a notification** opens the dashboard on that site, its details showing. The Homebrew cask now installs `terminal-notifier` for that. `taw-fleet --site <site>` does the same from a terminal.
+- **`watch status`** shows whether it's on, the last check and what it told lately. `watch test` sends a notification so you can see it arrive. See [Notifications](/taw-fleet-production#notifications).
+
+</Update>
+
 <Update label="2026-10-12" description="taw/core v1.93.3: the form stylesheet no longer blocks rendering. taw-theme v1.12.65 and taw-gutenberg v0.3.67 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
 
 ## October 2026: forms no longer slow down first paint

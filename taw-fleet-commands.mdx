@@ -11,6 +11,7 @@ description: "Every taw-fleet command and flag, the JSON output, the doctor find
 |---|---|---|
 | `--offline` | off | Don't ask GitHub for the newest versions; use the cache. Works on every command. `doctor` and `show` also skip production, BugSmash and pull requests, `comments` uses BugSmash's 5-minute cache, and the dashboard has no PR or DEPLOY columns |
 | `--window` | `true` | `taw-fleet` alone only. Opens the dashboard in a new terminal window. `--window=false` keeps it in the current terminal. Wins over the `window` setting |
+| `--site <site>` | | `taw-fleet` alone only. Opens the dashboard on that site, its details showing. What a [notification](#watch)'s click runs |
 
 There is no `--version` flag: use `taw-fleet version`.
 
@@ -70,6 +71,7 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 | [`prs`](#prs) | Open pull requests, CI and deploys |
 | [`merge`](#merge) | Merge a pull request (deploys production) |
 | [`comments`](#comments) | Open BugSmash comments |
+| [`watch`](#watch) | A macOS notification when something needs you |
 | [`config`](#config) | The settings file |
 | [`self-update`](#self-update) | Replace taw-fleet with the newest release |
 | [`version`](#version) | The version |
@@ -396,6 +398,30 @@ The open comments in each site's BugSmash project, newest first: the count and t
 | `comments key import` | | Store the BugSmash API key from stdin in the Keychain. In a terminal, it asks without echo |
 | `comments key show` | | Say where the key comes from and whether BugSmash accepts it, never the key |
 
+### watch
+
+```bash
+taw-fleet watch [--once] [--json] [--no-notify] [--every 5m]
+```
+
+Checks the fleet and tells you, once, with a macOS notification, what changed since the last check: a failed deploy, CI failing on the default branch, a production site down (two checks in a row) or back, a site that answered without its pinned key's signature, new BugSmash comments, an update's pull request ready to merge. Clicking a notification opens the dashboard on its site. The first check only notes what it sees. Alone, it checks every 5 minutes in this terminal. See [Notifications](/taw-fleet-production#notifications).
+
+| Flag | Does |
+|---|---|
+| `--once` | Check once and stop (what the background agent runs) |
+| `--json` | Print `{first, events, problems}` (with `--once`) |
+| `--no-notify` | Print what changed, without notifications |
+| `--every` | How often to check (at least `1m`) |
+
+| Subcommand | Flags | Does |
+|---|---|---|
+| `watch install` | `--every` | Check in the background (a launchd agent, `com.relmaur.taw-fleet.watch`), also after a restart |
+| `watch uninstall` | | Stop checking in the background |
+| `watch status` | `--json` | On or off, the last check, what it can't check, what it told lately |
+| `watch test [site]` | | Send a notification now, to see it arrive and where a click goes |
+
+Event kinds in `--json` and `watch status --json`: `deploy.failed`, `ci.failed`, `production.down`, `production.up`, `production.unverified`, `comments.new`, `pr.ready`.
+
 ## Settings and taw-fleet
 
 ### config
@@ -520,5 +546,7 @@ Each Mac needs its own copy.
 | `~/Library/Caches/taw-fleet/content/` | Content snapshots fetched by `pull` |
 | `~/Library/Caches/taw-fleet/handoff/` | Prompts and launchers for Claude Code windows; `fleet-<time>/` for an update of every theme |
 | `~/Library/Caches/taw-fleet/window/`, `work/` | Launchers for the dashboard's own window and for Vite windows |
+| `~/Library/Application Support/taw-fleet/watch/` | `watch`'s state (what it told, each production site's uptime per day) and the background agent's log |
+| `~/Library/LaunchAgents/com.relmaur.taw-fleet.watch.plist` | The background agent, while `watch install` is on |
 
 With `XDG_CONFIG_HOME` set, the two config files live in `$XDG_CONFIG_HOME/taw-fleet/`. With `TAW_FLEET_HOME`, every path is under that folder instead of your home.
