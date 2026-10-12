@@ -90,6 +90,10 @@ A theme named `taw/gutenberg`, or a `wordpress-theme` with `theme.json` and `tem
 
 One two-line card per TAW theme, with columns for taw/core, the scaffold check, production, BugSmash, pull requests, deploys and git. See [Dashboard and keys](/taw-fleet-dashboard).
 
+## Chat with Claude
+
+`>` opens a chat with your own Claude Code, with taw-fleet's tools: about the whole fleet from the list, or one site from its details. Ask for anything TAW, from “what needs attention?” to “merge the update and deploy it”. It asks before it changes anything, with the dashboard's own question for an update or a merge. See [Chat with Claude](/taw-fleet-dashboard#chat-with-claude).
+
 ## Update a theme
 
 `u` in the dashboard, or `taw-fleet update <site>`, updates a site in one step. It runs the theme's own `vendor/bin/taw update` with the site's PHP and Local's Composer, after one question in the words of the theme's `taw.json`. On a new branch it updates taw/core, applies the framework files, runs the migrations and the checks, commits, and opens a pull request for you to merge. If a step fails, nothing is pushed, and you choose: Fix with Claude, or Do it myself from the same report.

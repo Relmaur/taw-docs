@@ -74,6 +74,7 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 | [`watch`](#watch) | A macOS notification when something needs you |
 | [`restore`](#restore) | A site's restore points, and putting one back |
 | [`report`](#report) | A site's monthly report for its client |
+| [`chat`](#chat) | What the dashboard's chat (`>`) tells Claude |
 | [`config`](#config) | The settings file |
 | [`self-update`](#self-update) | Replace taw-fleet with the newest release |
 | [`version`](#version) | The version |
@@ -463,6 +464,14 @@ Makes a site's monthly report: availability (from `watch`), updates and changes,
 | `report list [site]` | The saved reports |
 | `report key import` | Store a PageSpeed Insights API key from stdin in the Keychain |
 | `report key show` | Say where the key comes from, never the key |
+
+### chat
+
+```bash
+taw-fleet chat [site] --prompt [--theme <dir>]
+```
+
+The chat itself is in the dashboard: `>` from the list for the whole fleet, `>` on a site's details for that site. See [Chat with Claude](/taw-fleet-dashboard#chat-with-claude). `--prompt` prints what taw-fleet adds to Claude's instructions, for the fleet or a site, so you can read it or give it to another agent.
 
 ## Settings and taw-fleet
 
