@@ -5,6 +5,19 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw-fleet v1.17.0: the taw command. One command on the PATH runs any theme's own vendor/bin/taw, with its site's PHP and database socket.">
+
+## October 2026: one `taw` command
+
+- **taw-fleet v1.17.0** installs a second command, `taw`. It runs the theme's own `vendor/bin/taw`, so every site keeps its own taw/core version.
+- **Where:** in a theme folder, or any folder under it: `taw list`, `taw make:block Hero`. From anywhere: `taw @chcapital list`. For a site with two themes, `taw @taw/taw-theme list`. Outside a theme, `taw` lists every theme by its short name.
+- **The right PHP:** on a Local site, `taw` uses the site's own PHP and MySQL socket, so commands that start WordPress reach that site's database. A halted site gets one line saying so, then the command runs anyway.
+- **Older themes** (taw/core before 1.90) run their `bin/taw`. A theme without `vendor/` is told to run `composer install`.
+- `TAW_DEBUG=1 taw …` prints the exact command it runs. CI keeps calling `vendor/bin/taw`, which is the same command.
+- **Install:** `brew upgrade taw-fleet` installs `taw` too. `taw-fleet self-update` puts it next to `taw-fleet`.
+
+</Update>
+
 <Update label="2026-10-12" description="taw-fleet v1.16.0: merge several sites at once, each followed on its card and in a MERGE section, from GitHub to production.">
 
 ## October 2026: merges you can follow

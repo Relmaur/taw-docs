@@ -29,10 +29,10 @@ taw-fleet runs on macOS, Apple silicon or Intel.
     brew install Relmaur/tap/taw-fleet
     ```
 
-    Update with `brew upgrade taw-fleet`.
+    Update with `brew upgrade taw-fleet`. It installs two commands: `taw-fleet`, and `taw`, which runs a theme's own `vendor/bin/taw` with its site's PHP (taw-fleet 1.17.0+).
   </Tab>
   <Tab title="Download" icon="download">
-    Download `taw-fleet_<version>_darwin_<arm64|amd64>.tar.gz` from the [releases](https://github.com/Relmaur/taw-fleet/releases) and put `taw-fleet` on your `PATH`, for example in `~/.local/bin`.
+    Download `taw-fleet_<version>_darwin_<arm64|amd64>.tar.gz` from the [releases](https://github.com/Relmaur/taw-fleet/releases) and put `taw-fleet` and `taw` on your `PATH`, for example in `~/.local/bin`. `self-update` keeps both current.
 
     Update with `taw-fleet self-update`. It downloads the newest release for this Mac, checks it against the release's `checksums.txt` and replaces the binary. `--check` only says whether a newer one exists.
   </Tab>
