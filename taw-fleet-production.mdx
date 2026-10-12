@@ -12,6 +12,7 @@ taw-fleet reads each production site through the [TAW companion](/taw-hub-compan
 | [REST writes](#write-to-production) | `production_url`, a bot user | `wp-remote` |
 | [Pull requests and deploys](#pull-requests-and-deploys) | A GitHub token | PR and DEPLOY columns, `prs`, `M`, `merge` |
 | [BugSmash comments](#bugsmash-comments) | `bugsmash_project`, the BugSmash API key | FB column, `F`, `X`, `comments` |
+| [Monthly reports](#monthly-reports) | Any of the above; best with `taw-fleet watch` running | `m`, `report`, REPORTS section |
 | [Notifications](#notifications) | Any of the above; `taw-fleet watch install` | A macOS notification, `watch status` |
 
 ## Check production
@@ -188,6 +189,52 @@ Clients review their live site in [BugSmash](https://bugsmash.io) and pin commen
 
 taw-fleet only reads BugSmash, and caches each answer for 5 minutes (`L` asks again). Replying and resolving happen in the skill: see [Site skills](/site-skills).
 
+## Monthly reports
+
+`m` in the dashboard, or `taw-fleet report <site>`, makes a site's monthly report for its client. It's for you to read and send: taw-fleet never sends it.
+
+| Section | Where it comes from |
+|---|---|
+| **Availability** | [Notifications](#notifications)' checks every 5 minutes: the share that found the site answering |
+| **Updates and changes** | The theme's pull requests merged that month. Framework and maintenance work is counted in one line, such as “12 updates; the site now runs TAW core 1.93.1”. The site's own changes are listed, with how often the live site was published |
+| **Review comments** | BugSmash: comments received that month, how many are resolved, how many are still open |
+| **Speed** | Google PageSpeed Insights, mobile and desktop, measured when the report is made, plus real visitors' Core Web Vitals when Google has enough traffic |
+| **Security and maintenance** | The live site through its companion: WordPress, PHP and taw/core versions, plugin updates waiting, known vulnerabilities |
+
+A section taw-fleet couldn't measure says “Not available for this month” in the report. The terminal and `--json` say why.
+
+<Steps>
+  <Step title="Set the name and the language" icon="languages">
+    ```toml title="config.toml"
+    report_from = "Marco Lizardo"   # "Prepared by …"; leave it out for no name
+    report_language = "en"          # or "es"
+
+    [sites.ls-mxico]
+    report_language = "es"          # this client's reports in Spanish
+    ```
+  </Step>
+  <Step title="Store a PageSpeed key" icon="key-round">
+    Without a key, PageSpeed Insights shares a small quota with everyone and often refuses. Create a free one in the Google Cloud console: enable the PageSpeed Insights API, then Credentials → Create credentials → API key. Then:
+
+    ```bash
+    pbpaste | taw-fleet report key import
+    ```
+
+    It's kept in the Keychain. `$PAGESPEED_API_KEY` works too.
+  </Step>
+  <Step title="Make one" icon="file-text">
+    Press `m` on a site and pick this month so far or last month. The report opens in your browser and is saved as Markdown (to paste into an email) and HTML (one page to attach or print) in `~/TAW Fleet/reports/<site>/<month>`. The site's details list them in a **REPORTS** section.
+  </Step>
+</Steps>
+
+On the 1st of each month (up to the 3rd, in case your Mac was asleep), `taw-fleet watch` makes last month's report for every production site it was watching, and a notification tells you it's ready.
+
+```bash
+taw-fleet report ls-mxico --month 2026-09 --open
+taw-fleet report --all --month 2026-09   # every production site
+taw-fleet report ls-mxico --print        # the Markdown only, nothing saved
+```
+
 ## Notifications
 
 `taw-fleet watch` tells you when something needs you, even with the dashboard closed. It checks the fleet every 5 minutes and sends a macOS notification for each change, once.
@@ -218,6 +265,7 @@ taw-fleet only reads BugSmash, and caches each answer for 5 minutes (`L` asks ag
 | **Production not verified** | It answered without its pinned key's signature |
 | **New comments** | New client comments in the site's BugSmash project, quoting the newest |
 | **Update ready to merge** | An update's pull request passed its checks: `M` merges it |
+| **Report ready** | On the 1st, last month's [report](#monthly-reports) for a production site was made |
 
 - **Told once:** each failed run, failing commit, new comment or ready pull request is told the first time it's seen. A check that can't reach GitHub, a site or BugSmash keeps what the last one saw, so old news doesn't come back after an outage.
 - **Clicking:** opens the dashboard on the site through `terminal-notifier`, which the Homebrew cask installs. Without it, or with its notifications turned off, the notification still comes, through Script Editor, and clicking it doesn't open the dashboard.

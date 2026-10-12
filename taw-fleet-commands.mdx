@@ -73,6 +73,7 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 | [`comments`](#comments) | Open BugSmash comments |
 | [`watch`](#watch) | A macOS notification when something needs you |
 | [`restore`](#restore) | A site's restore points, and putting one back |
+| [`report`](#report) | A site's monthly report for its client |
 | [`config`](#config) | The settings file |
 | [`self-update`](#self-update) | Replace taw-fleet with the newest release |
 | [`version`](#version) | The version |
@@ -421,7 +422,7 @@ Checks the fleet and tells you, once, with a macOS notification, what changed si
 | `watch status` | `--json` | On or off, the last check, what it can't check, what it told lately |
 | `watch test [site]` | | Send a notification now, to see it arrive and where a click goes |
 
-Event kinds in `--json` and `watch status --json`: `deploy.failed`, `ci.failed`, `production.down`, `production.up`, `production.unverified`, `comments.new`, `pr.ready`.
+Event kinds in `--json` and `watch status --json`: `deploy.failed`, `ci.failed`, `production.down`, `production.up`, `production.unverified`, `comments.new`, `pr.ready`, `report.ready`.
 
 ### restore
 
@@ -438,6 +439,30 @@ A site's restore points, newest first. Each holds the Local database (when the s
 | `--yes`, `-y` | Don't ask |
 
 Points live in `~/Library/Application Support/taw-fleet/restore/<site>/`. taw-fleet refuses to save one when that folder is inside the site, a theme or any git repository, and the step that wanted it doesn't run.
+
+### report
+
+```bash
+taw-fleet report <site> | --all [--month 2026-09] [--language en|es] [--print] [--json] [--open] [--no-speed]
+```
+
+Makes a site's monthly report: availability (from `watch`), updates and changes, BugSmash comments, PageSpeed, and the live site's security and maintenance. It saves Markdown and HTML in `~/TAW Fleet/reports/<site>/<month>.{md,html}` and prints a summary, including why a section couldn't be measured. Without `--month`, it's this month so far. See [Monthly reports](/taw-fleet-production#monthly-reports).
+
+| Flag | Does |
+|---|---|
+| `--month` | The month, such as `2026-09` |
+| `--all` | Every site with a `production_url` |
+| `--language` | `en` or `es` for this report (default: `report_language`) |
+| `--print` | Print the Markdown; save nothing |
+| `--json` | Print the report's data |
+| `--open` | Open the HTML in the browser |
+| `--no-speed` | Skip PageSpeed (it takes up to a minute) |
+
+| Subcommand | Does |
+|---|---|
+| `report list [site]` | The saved reports |
+| `report key import` | Store a PageSpeed Insights API key from stdin in the Keychain |
+| `report key show` | Say where the key comes from, never the key |
 
 ## Settings and taw-fleet
 
@@ -563,6 +588,7 @@ Each Mac needs its own copy.
 | `~/Library/Caches/taw-fleet/content/` | Content snapshots fetched by `pull` |
 | `~/Library/Caches/taw-fleet/handoff/` | Prompts and launchers for Claude Code windows; `fleet-<time>/` for an update of every theme |
 | `~/Library/Caches/taw-fleet/window/`, `work/` | Launchers for the dashboard's own window and for Vite windows |
+| `~/TAW Fleet/reports/<site>/` | Monthly reports, `<month>.md` and `<month>.html` |
 | `~/Library/Application Support/taw-fleet/restore/` | Restore points: per site, the database copy (`database.sql.gz`, 0600) and `point.json`. Never inside a site or a repository |
 | `~/Library/Application Support/taw-fleet/watch/` | `watch`'s state (what it told, each production site's uptime per day) and the background agent's log |
 | `~/Library/LaunchAgents/com.relmaur.taw-fleet.watch.plist` | The background agent, while `watch install` is on |

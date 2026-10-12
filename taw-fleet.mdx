@@ -181,6 +181,8 @@ github_account = "parallelstaff"
 | `terminal` | The terminal for `t`, the dashboard's window, Claude Code and Vite windows. Empty: the first installed of Ghostty, iTerm2, Warp, kitty, Terminal. `iterm` works too. Warp can't run a script, so windows that run something open in Terminal instead | No, same as `editor` |
 | `window` | `false` keeps the dashboard in the current terminal. Default `true`. `--window` on the command line wins | Must be a boolean |
 | `icons` | `"symbols"` (the default): plain Unicode icons that work with any font. `"nerd"`: Nerd Font icons, for a terminal set to a Nerd Font. `taw-fleet config icons <set>` changes this line and keeps the rest of the file | Must be `"symbols"` or `"nerd"` |
+| `report_from` | Who the [monthly reports](/taw-fleet-production#monthly-reports) say prepared them. Empty: no name | No |
+| `report_language` | The reports' language, `"en"` (default) or `"es"`. Also per site, under `[sites.<folder>]` | Must be `"en"` or `"es"` |
 | `restore_keep` | How many [restore points](#restore-points) to keep per site. Default `5`; `0` makes none | Must be 0 to 50 |
 | `github_owners` | Your GitHub accounts and organizations. A theme whose repository belongs to another owner is marked `@account` | Must be a list of strings |
 | `[create] kind` | `"classic"` or `"block"`: the default theme for new sites | Anything else is an error |
