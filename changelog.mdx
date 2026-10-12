@@ -5,6 +5,16 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw/core v1.93.4: the faster form stylesheet is opt-in, with what critical CSS needs first; queued critical blocks inline their CSS again." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026: faster first paint, without the jump
+
+- **taw/core v1.93.4:** 1.93.3 loaded the form stylesheet in the background on every site. That sped up first paint, but on most sites the desktop layout then jumped when the full stylesheet arrived (layout shift around 1.0), because the theme's critical CSS had gaps the blocking stylesheet used to hide. The plain stylesheet is the default again. Once a theme's critical CSS covers the top of every page, `add_filter('taw_form_css_async', '__return_true');` turns the faster loading on. The theme docs, the perf-audit skill and `taw make:block --help` say what the critical CSS needs: the header positioned exactly like the full stylesheet, each template's top section, and `protected bool $critical = true;` on blocks right under the banner.
+- **Fixed:** a `$critical` block queued with `BlockRegistry::queue()` now inlines its CSS in `<head>` as documented, instead of adding a render-blocking stylesheet.
+- **taw-theme v1.12.66** and **taw-gutenberg v0.3.68** lock taw/core 1.93.4.
+
+</Update>
+
 <Update label="2026-10-12" description="taw-fleet v1.20.0: taw-fleet watch sends a Mac notification when a deploy fails, production goes down, a client comments or an update is ready to merge.">
 
 ## October 2026: the fleet tells you, even with the dashboard closed
