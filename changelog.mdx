@@ -29,6 +29,15 @@ description: >-
 
 </Update>
 
+<Update label="2026-10-12" description="taw/core v1.95.2: a metabox's defaults stay on the pages it applies to. taw-theme v1.12.71 and taw-gutenberg v0.3.73 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026: defaults stay on their own pages
+
+- **taw/core v1.95.2:** a field's default text now shows only on the pages its metabox covers. Sites that give each page its own version of a block, with the same field names, could show one page's fallback text on another page; Parallel Staff saw it on three blocks. If a page relied on text from another page's default, add that page to the metabox's `screens`. On chcapital, the other site using defaults, nothing changes.
+- **taw-theme v1.12.71** and **taw-gutenberg v0.3.73** lock taw/core 1.95.2.
+
+</Update>
+
 <Update label="2026-10-12" description="taw/core v1.95.1: the update report says to clear page caches after the deploy. taw-theme v1.12.70 and taw-gutenberg v0.3.72 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
 
 ## October 2026: clear the cache after the deploy, not during it
