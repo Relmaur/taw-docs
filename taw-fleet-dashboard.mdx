@@ -228,6 +228,16 @@ With no skills in `.claude/skills/`, `a` says so. A classic theme gets them with
 
 When Claude Code exits, the dashboard rescans. After `resolve-comments`, it checks BugSmash again.
 
+### Fleet skills
+
+Under the site's skills, `a` lists the **fleet skills**: work on the whole fleet, not one theme. Picking one opens the fleet's [chat](#chat-with-claude) and asks Claude to use it there, in the [fleet folder](/taw-fleet#the-fleet-folder).
+
+| Skill | Does |
+|---|---|
+| `fleet-check` | The morning check. Reads doctor, production, client comments, pull requests and `watch`, then writes one summary, most urgent first, with the next action for each item. Changes nothing |
+| `update-fleet` | What `U` does, then the rest: the themes that stopped, and each update's merge and deploy, one site at a time, asking before each merge |
+| `onboard-mac` | A Mac ready for the fleet: the tools, the sites, the keys taw-fleet keeps in the Keychain, and `watch`. Asks before installing or storing anything |
+
 ## Update a theme
 
 ### Update this site

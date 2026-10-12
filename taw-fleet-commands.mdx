@@ -75,6 +75,7 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 | [`restore`](#restore) | A site's restore points, and putting one back |
 | [`report`](#report) | A site's monthly report for its client |
 | [`chat`](#chat) | What the dashboard's chat (`>`) tells Claude |
+| [`init`](#init) | Set up the fleet folder (`~/TAW Fleet`) |
 | [`config`](#config) | The settings file |
 | [`self-update`](#self-update) | Replace taw-fleet with the newest release |
 | [`version`](#version) | The version |
@@ -472,6 +473,14 @@ taw-fleet chat [site] --prompt [--theme <dir>]
 ```
 
 The chat itself is in the dashboard: `>` from the list for the whole fleet, `>` on a site's details for that site. See [Chat with Claude](/taw-fleet-dashboard#chat-with-claude). `--prompt` prints what taw-fleet adds to Claude's instructions, for the fleet or a site, so you can read it or give it to another agent.
+
+### init
+
+```bash
+taw-fleet init
+```
+
+Writes the [fleet folder](/taw-fleet#the-fleet-folder), `~/TAW Fleet/`: a `CLAUDE.md` made from the settings, taw-fleet's MCP server in `.mcp.json`, and the fleet skills. It lists what it wrote, or says it's already up to date. The dashboard does the same when it opens. Your `CLAUDE.local.md`, your own skills and the reports are left alone.
 
 ## Settings and taw-fleet
 

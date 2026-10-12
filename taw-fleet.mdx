@@ -94,6 +94,16 @@ One two-line card per TAW theme, with columns for taw/core, the scaffold check, 
 
 `>` opens a chat with your own Claude Code, with taw-fleet's tools: about the whole fleet from the list, or one site from its details. Ask for anything TAW, from “what needs attention?” to “merge the update and deploy it”. It asks before it changes anything, with the dashboard's own question for an update or a merge. See [Chat with Claude](/taw-fleet-dashboard#chat-with-claude).
 
+## The fleet folder
+
+`~/TAW Fleet/` is where Claude works on the whole fleet. The chat's `>` from the list starts there, and so can `claude` in a terminal. `taw-fleet init` writes it, and the dashboard keeps it current every time it opens:
+
+- **`CLAUDE.md`**, made from your settings: how to work, the sites with a production copy, the fleet skills, and where things are. Your own notes go in `CLAUDE.local.md`, which taw-fleet never touches.
+- **`.mcp.json`**, so Claude has taw-fleet's tools there.
+- **The fleet skills** (`fleet-check`, `update-fleet`, `onboard-mac`), which ship with taw-fleet. See [Fleet skills](/taw-fleet-dashboard#fleet-skills).
+
+Your monthly reports are there too, in `reports/`.
+
 ## Update a theme
 
 `u` in the dashboard, or `taw-fleet update <site>`, updates a site in one step. It runs the theme's own `vendor/bin/taw update` with the site's PHP and Local's Composer, after one question in the words of the theme's `taw.json`. On a new branch it updates taw/core, applies the framework files, runs the migrations and the checks, commits, and opens a pull request for you to merge. If a step fails, nothing is pushed, and you choose: Fix with Claude, or Do it myself from the same report.
