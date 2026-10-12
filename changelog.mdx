@@ -5,6 +5,15 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw-fleet v1.22.1: doctor checks that taw/core's pre-commit check is on.">
+
+## October 2026: doctor watches the pre-commit check
+
+- **taw-fleet v1.22.1:** on themes with taw/core 1.94 or newer, `doctor` reports `git.no-hook` when the pre-commit check that refuses dumps, `.env` files and keys isn't on, and `git.hook-own` when the clone has git hooks of its own, so the check needs adding by hand. `list --json` shows each theme's `pre_commit_hook`.
+- The report's terminal summary now counts framework updates, maintenance and the site's own changes separately.
+
+</Update>
+
 <Update label="2026-10-12" description="taw/core v1.94.0: a pre-commit hook refuses commits of database dumps and credentials. taw-theme v1.12.67 and taw-gutenberg v0.3.69 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
 
 ## October 2026: a leak stops at the commit

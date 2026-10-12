@@ -533,6 +533,8 @@ Codes are stable and dot-namespaced, so scripts can filter `doctor --json` on th
 | `git.ahead` | note | Commits not pushed |
 | `git.foreign-upstream` | warning | The checked-out branch tracks another repository (owner/name, or the remote's name), neither `origin` nor the delivery remote. The versions and files shown are that branch's, not the site's. Fix: `D` in the dashboard, or `git switch <default>` |
 | `git.off-default` | note | Not on the default branch. Fix: `D` in the dashboard, when that's what you want. Not reported when `git.foreign-upstream` is |
+| `git.no-hook` | warning | taw/core's pre-commit check (no dumps, `.env` or keys committed) isn't on, on a theme with taw/core 1.94 or newer. Fix: `u` (the update turns it on), or `git config core.hooksPath vendor/taw/core/resources/git-hooks` |
+| `git.hook-own` | note | The clone has its own git hooks (its own `core.hooksPath`, or hooks in `.git/hooks`), so the update left them alone. Fix: add the TAW check to its pre-commit (`taw upgrade --explain 1.94.0/pre-commit-hook`) |
 | `git.no-remote` | warning | No delivery remote: `origin`, or the one `taw.json`'s `update.remote` names |
 | `pr.failing` | warning | A pull request's CI failed |
 | `pr.conflict` | warning | A pull request conflicts with the default branch |
