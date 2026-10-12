@@ -5,6 +5,17 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw-fleet v1.16.0: merge several sites at once, each followed on its card and in a MERGE section, from GitHub to production.">
+
+## October 2026: merges you can follow
+
+- **taw-fleet v1.16.0:** `M` no longer waits for another merge, or for an update, to finish. Merge site after site: each merge runs on its own.
+- **On the card:** a spinner with “merging #8…”, then “deploying…”, then `✓` or `✗` for 15 minutes.
+- **In the detail pane:** a MERGE section lists each step, from the merge on GitHub to production, with the time each one took. The bottom line lists every merge in progress.
+- **Back on the site's branch:** after a merge, untracked files (the update's `.taw/` report) no longer keep the theme on its update branch. Only changes to tracked files do.
+
+</Update>
+
 <Update label="2026-10-10" description="taw/core v1.93.1: sync keeps a tests/TestCase.php with the site's own helpers; CI on Node 24. taw-theme v1.12.63 and taw-gutenberg v0.3.65 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
 
 ## October 2026: updates keep your own test helpers

@@ -22,7 +22,7 @@ The dashboard shows one two-line card per TAW theme. The top line is the site an
 
 The theme line has the theme's folder, its kind (`classic` or `block`), and the production host when there's room. After the folder, `↗` means a symlink, `✓` marks the theme WordPress uses when a site has several TAW themes, and `vite` means its Vite dev server runs.
 
-While a theme updates, and for 15 minutes after, its theme line carries one icon in the left margin, under the status dot: `◷` waiting its turn in an update of every theme, a spinner while it runs, `✓` updated (dimmed when there was nothing to update), `✗` stopped or didn't start. The detail pane's UPDATE section has the rest.
+While a theme updates, and for 15 minutes after, its theme line carries one icon in the left margin, under the status dot: `◷` waiting its turn in an update of every theme, a spinner while it runs, `✓` updated (dimmed when there was nothing to update), `✗` stopped or didn't start. The detail pane's UPDATE section has the rest. A merge (`M`) marks its card the same way, and while it runs the theme line also says “merging #8…” or “deploying…”; the MERGE section has the steps.
 
 Sites with a `production_url` come first, then the others by name. The selected card is tinted. While every card fits, a blank line separates them. With more cards than fit, they sit tight and the rule under the column names shows where you are (`1–19 of 24`).
 
@@ -67,13 +67,14 @@ At 120 columns or wider, the selected site's details sit beside the cards. The p
 
 | Section | Comes from | Shows |
 |---|---|---|
+| **MERGE** | The merge `M` runs | While the selected theme's pull request merges and deploys, and for 15 minutes after: merged, this Mac back on the site's branch, deploying, on production, or what failed |
 | **UPDATE** | The update `u` or `U` runs | While the selected theme updates, and for 15 minutes after: its bar and current step, or how it ended, with the pull request and the “for you” count. `o` opens the update screen |
 | **LOCAL** | This Mac and Local | The site, then each theme: path, taw/core (with “from branch X” when the theme isn't on its default branch), git (“tracks owner/name” when the branch tracks another repository), account, repository, `bin/taw`, Vite, pull requests and deploy |
 | **LIVE** | The production site's companion | Versions, plugin updates, vulnerabilities, recent log lines |
 | **FEEDBACK** | BugSmash | Open comments, the oldest's age, and the three latest with their number, page, author and age |
 | **FINDINGS** | `doctor` | What needs attention, with the fix |
 
-UPDATE appears only around an update. LIVE and FEEDBACK appear once the site has been checked.
+MERGE and UPDATE appear only around a merge or an update. LIVE and FEEDBACK appear once the site has been checked.
 
 ## Keys
 
