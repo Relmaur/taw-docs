@@ -28,7 +28,7 @@ taw update
     Lint, PHPStan, tests and the front-end build, as the policy lists them. A check that can't run on this machine, such as the build without `node_modules`, is marked "not run here", never passed. The `smoke` check needs WordPress running, so the update leaves it to the pull request's CI.
   </Step>
   <Step title="Commits and delivers">
-    One commit, then, as the policy says: the branch only, a pull request, or a pull request that merges itself when CI passes. For a pull request, the branch is pushed to the policy's remote and the pull request opens there with `gh`; with `branch`, nothing is pushed. If the repository has a deploy workflow, merging deploys production, as any merge does.
+    One commit, then, as the policy says: the branch only, a pull request, or a pull request that merges itself when CI passes. For a pull request, the branch is pushed to the policy's remote and the pull request opens there with `gh`; with `branch`, nothing is pushed. If the repository has a deploy workflow, merging deploys production, as any merge does. Clear the site's page cache (Hummingbird, WP Rocket, the host's cache) once that deploy has finished, not while it runs: a cache cleared during the deploy is rebuilt from the old code.
   </Step>
 </Steps>
 
