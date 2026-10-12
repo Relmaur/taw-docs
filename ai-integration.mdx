@@ -212,13 +212,29 @@ An agent doesn't have to trust its own read of a change — CI catches both stat
 | `pull_requests` | `taw-fleet prs --json` | Open pull requests with CI, and what production has deployed |
 | `comments` | `taw-fleet comments [site] --json` | Open client comments in BugSmash |
 | `production` | `taw-fleet live --json` | Each production site through its companion |
-| `taw` | `taw @<theme> <command…>` | A theme's own command, with its site's PHP: read-only commands only (`list`, `help`, `inspect`, `policy`, `sync` and `upgrade` without `--apply`, `content:diff`) |
+| `taw` | `taw @<theme> <command…>` | A theme's own command, with its site's PHP. Read-only commands (`list`, `help`, `inspect`, `policy`, `sync` and `upgrade` without `--apply`, `content:diff`) run at once; any other asks first |
 
-The prompt `update_theme` is the update prompt taw-fleet hands Claude Code (`taw-fleet handoff <site>`).
+### Tools that change something ask first
 
-<Callout kind="info">
-  Every tool only reads for now. Writes (update, merge, back to the site's branch, start and stop) come next, and they will ask first, the way the dashboard does.
-</Callout>
+taw-fleet 1.19.0+ also serves the dashboard's actions. Each one asks first, the way the dashboard does:
+
+1. The first call runs the command up to its question, answers no, and returns the question with a one-time token. Nothing changes.
+2. The AI app asks you the question.
+3. Only a second call, with the same arguments and that token, runs it. A token is good for 10 minutes, once, and only for those arguments.
+
+| Tool | Same as | Dashboard |
+|---|---|---|
+| `update_site` | `taw-fleet update <site>` | `u` |
+| `update_all` | `taw-fleet update --all` | `U` |
+| `merge_pr` | `taw-fleet merge <site> [--pr N]` | `M` (deploys production) |
+| `site_branch` | `taw-fleet branch <site>` | `D` |
+| `start_site`, `stop_site` | `taw-fleet start` or `stop <site>` | `s` |
+| `sync_apply` | `taw-fleet sync <site> --apply` | `S` |
+| `pull_content` | `taw-fleet pull <site>` (the first call shows the preview) | `C` |
+
+A long action, such as an update, sends its progress lines while it runs.
+
+**Prompts:** `update_theme` is the update prompt taw-fleet hands Claude Code (`taw-fleet handoff <site>`). `resolve_comments` is the one `X` hands it for a site's open client comments (`taw-fleet comments <site> --prompt`).
 
 ## Live documentation lookup
 

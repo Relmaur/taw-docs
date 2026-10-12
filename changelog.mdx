@@ -5,6 +5,17 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw-fleet v1.19.0: AI apps can update, merge, start and stop sites over MCP, and every action asks first, like the dashboard.">
+
+## October 2026: AI apps that ask before they act
+
+- **taw-fleet v1.19.0:** `taw-fleet mcp` now serves the dashboard's actions too: `update_site`, `update_all`, `merge_pr`, `site_branch`, `start_site`, `stop_site`, `sync_apply` and `pull_content`.
+- **Every action asks first.** The first call returns the dashboard's own question and a one-time token, and nothing changes. Only a second call with that token runs it, after the AI app has asked you.
+- **The `taw` tool** runs a theme's read-only commands at once, and asks before any other.
+- **New commands:** `taw-fleet branch <site>` (back to the site's branch, `D` in the dashboard) and `taw-fleet comments <site> --prompt` (the prompt `X` hands Claude). Both are also MCP pieces: the `site_branch` tool and the `resolve_comments` prompt.
+
+</Update>
+
 <Update label="2026-10-12" description="taw-fleet v1.18.0: taw-fleet mcp, an MCP server so AI apps can read the whole fleet with typed tools.">
 
 ## October 2026: the fleet, for AI apps
