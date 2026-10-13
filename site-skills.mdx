@@ -11,6 +11,7 @@ Every TAW theme carries Claude Code skills in its `.claude/skills/` folder. When
 |---|---|---|
 | `resolve-comments` | Works through the client's BugSmash comments: sorts them, edits TAW fields on production, opens a PR for theme changes, drafts blog posts, then replies and resolves | taw/core 1.89+ |
 | `perf-audit` | Runs GTMetrix and PageSpeed, ties each finding to a fix in the theme, and checks again after the fix | taw/core 1.89+ |
+| `build-site` | Builds a whole site from a brief, on a branch: the design system, site options, header, footer and menus, then each page with its content and images, ending with the theme's checks. taw-fleet's `new-site` skill writes the brief from a link and hands over to it | taw/core 1.96+ |
 | `update-theme`, `audit-seo`, `visual-check`, `populate-content`, `build-page`… | The scaffold's own skills | taw-theme |
 | Any skill marked `owner: site` | A skill written for this one site, such as how its client writes posts | The site itself |
 
