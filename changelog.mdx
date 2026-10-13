@@ -5,6 +5,17 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-13" description="Publish Local content to production, after a field-by-field review: taw/core v1.98.0, TAW Companion v0.5.0, taw-fleet v1.29.0. taw-theme v1.12.74 and taw-gutenberg v0.3.76 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg", "taw-fleet", "taw-hub-companion", "security"]}>
+
+## October 2026: publish content to production
+
+- **taw-fleet v1.29.0:** `p` publishes what changed in a site's Local content to production. A review opens in your browser: every record by its title, every change by its field (*Fieldset › Label*) with production's value beside Local's and the changed words marked, images side by side, and the files to upload. A value production changed too since your last pull shows both sides, and you pick one. Nothing is written until you press **Publish**. The review is kept in `~/TAW Fleet/sites/<site>/publish/` as the record of what went out, and `x` undoes the last publish, keeping anything edited since. In a terminal, `taw-fleet publish <site>` (`--no-review` prints the review); in the chat, `publish_content`. See [Publish content to production](/taw-fleet-production#publish-content-to-production).
+- **TAW Companion v0.5.0:** signed publish routes (plan, files, apply with a one-time token, undo), off until a theme's `composer.json` says `"publish": true` under `extra.taw-companion`. Files are matched by their sha256, and production plans the approved records again before writing: if one changed since the review, nothing is written. See [Publishing content](/taw-hub-companion#publishing-content).
+- **taw/core v1.98.0:** Content Interchange 1.8. A dry run names every change by its field, says which values the target changed too since a base (`--base`, `content:diff --with-base`), can keep the target's value (`--keep`), takes files from disk (`--staged`), and previews an undo. Tools → TAW Data gets a checkbox per record and *Keep this site's* / *Use the file's* for values changed on both sides. Block themes get the `content:*` commands too. See [Review details, conflicts and publishing](/content-interchange#review-details-conflicts-and-publishing).
+- **taw-theme v1.12.74** and **taw-gutenberg v0.3.76** lock taw/core 1.98.0 (which also carries 1.97.1).
+
+</Update>
+
 <Update label="2026-10-13" description="taw/core v1.97.1: a custom post type's edit screen can follow its template's block order." tags={["taw/core"]}>
 
 ## October 2026: box order for custom post types

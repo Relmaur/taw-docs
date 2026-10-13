@@ -31,7 +31,7 @@ graph TD
 | **[TAW Gutenberg](/taw-gutenberg)** | The block theme (full site editing). Its data comes from taw/core | WordPress, one copy per site | `taw/create` |
 | **taw/create** | The installer: asks which theme to start from and installs it | Once, when a site starts | `composer create-project taw/create` |
 | **[taw-fleet](/taw-fleet)** | A terminal app that finds every TAW site on your Mac and shows its status, versions, git, pull requests, deploys, production and client feedback | Your Mac (macOS, with Local) | `brew install Relmaur/tap/taw-fleet` |
-| **[TAW Companion](/taw-hub-companion)** | A small plugin that answers taw-fleet's signed requests on a live site: health, plugins, vulnerabilities, logs, published content | Each production site, as an mu-plugin | A theme's `composer.json` |
+| **[TAW Companion](/taw-hub-companion)** | A small plugin that answers taw-fleet's signed requests on a live site: health, plugins, vulnerabilities, logs, published content, and publishing from Local when the site turns it on | Each production site, as an mu-plugin | A theme's `composer.json` |
 
 ## Where each tool fits in a day
 
@@ -39,7 +39,7 @@ graph TD
 - **Building it:** in the theme folder, `taw make:block` scaffolds blocks, `fields:get` and `fields:set` read and write content, and `schema:validate` checks the data layer.
 - **Keeping it current:** `taw update`, or `u` in taw-fleet, updates taw/core and the framework's files in one step and opens a pull request. See [Updating a site](/updating).
 - **Running many sites:** taw-fleet shows which sites are behind, dirty, failing CI or waiting on a deploy. It updates one site or all of them through `taw update`, merges pull requests, pulls production content into Local, and starts Claude Code on a site's skills.
-- **Moving content:** `taw content:export` and `content:import` move content as one JSON file. taw-fleet's `pull` brings a live site's published content to Local through the companion.
+- **Moving content:** `taw content:export` and `content:import` move content as one JSON file. taw-fleet's `pull` brings a live site's published content to Local through the companion, and `publish` sends Local's changes back after you review them field by field.
 
 ## How a release reaches a site
 
@@ -63,11 +63,11 @@ As of October 13, 2026:
 
 | Piece | Version |
 |---|---|
-| taw/core | 1.97.1 |
-| TAW Theme | 1.12.73 |
-| TAW Gutenberg | 0.3.75 |
-| taw-fleet | 1.28.0 |
-| TAW Companion | 0.4.0 |
+| taw/core | 1.98.0 |
+| TAW Theme | 1.12.74 |
+| TAW Gutenberg | 0.3.76 |
+| taw-fleet | 1.29.0 |
+| TAW Companion | 0.5.0 |
 | taw/create | 0.1.0 |
 
 The [Changelog](/changelog) has every release.

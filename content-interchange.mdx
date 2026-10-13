@@ -50,9 +50,14 @@ exist and already run the TAW stack.
 ## What's in a snapshot
 
 `TAW\Core\Content\Exporter::snapshot($scope)` produces a plain array, `json_encode`-ready.
-`schema` is `"1.7"` (`taw/core` v1.87.0+); the importer also accepts `"1.0"`–`"1.6"`, and warns
+`schema` is `"1.8"` (`taw/core` v1.98.0+); the importer also accepts `"1.0"`–`"1.7"`, and warns
 when a file's minor version is newer than its own. Full JSON Schema:
-`resources/schema/content-interchange-1.7.json` in the `taw/core` package.
+`resources/schema/content-interchange-1.8.json` in the `taw/core` package.
+
+- **1.8** is for publishing: with `--media-hashes`, each media entry says what its file holds
+  (`file`, `sha256`, `bytes`), and a change-set made with `--with-base` carries each changed record
+  as the target last had it (`base`), so an import can tell what the target changed since. See
+  [Review details, conflicts and publishing](#review-details-conflicts-and-publishing).
 
 - **1.7** carries the site icon and logo, the classic menus built in wp-admin and which location
   each sits in (`menus`, `theme_mods`), reusable blocks and block navigation menus, and footnotes.
@@ -253,6 +258,45 @@ dry-run shows unchanged, so re-running an import never churns `post_modified` da
 Per-record `update` (overwrite) / `create` (only new) / `skip` — global default via
 `--policy=` or the admin selector.
 
+## Review details, conflicts and publishing
+
+`taw/core` v1.98.0+ makes the dry run say exactly what would change, and adds what publishing from
+one site to another needs.
+
+**Each change names its field.** A plan record has a `record_key` (`post:page:about`,
+`term:category:news`, `option:_taw_phone`), a `title`, a `hash` of its changes and, for a post
+already on the site, its `edit_url`. Each change has a `label`; a TAW field's change also has its
+type, its fieldset's title and its block, so `content:import`'s table and Tools → TAW Data show it
+as *Fieldset › Label*. An image or files change lists the old and new files.
+
+**Values changed on both sides.** Make the change-set against the target's own content with
+`content:diff target.json source.json --with-base`, and the import compares each value three ways:
+the base (the target as the source last had it), the target now, and the incoming value. A change
+then says whether the target moved away from the base since (`conflict`) and whether the incoming
+value did (`local_changed`), with the `base` value. Or import a full snapshot with
+`content:import file.json --base=target-before.json`: only what changed since the base is imported.
+
+**Keep the target's value.** `--keep=<record key>:<change key>` (repeatable) leaves that value as
+the target has it: not listed, not written. Tools → TAW Data offers *Keep this site's* or *Use the
+file's* on each value changed on both sides, and a checkbox per record.
+
+**Files from disk.** `--staged=<folder>` takes media files from a folder (by their path under
+uploads, `yyyy/mm/name`) instead of downloading them. With `--media-hashes` on the export, a file
+only matches one on the target holding the same bytes; a different file at the same path comes in
+as a new file.
+
+**Undo preview.** `content:import --undo` without `--yes` says what undoing would put back, delete
+and recreate, and which values it would keep because they were edited since. `content:journals`
+lists every import, undone ones too.
+
+**Publishing.** `TAW\Core\Content\Publish` runs a reviewed publish in steps: plan (writes nothing
+but a pending folder, and answers a one-time token), upload the files the plan asks for (matched by
+sha256), apply the approved records (planned again first: if one changed since the review, nothing
+is written), and undo. The [TAW Companion](/taw-hub-companion#publishing-content) 0.5 exposes it
+over signed routes, and taw-fleet drives it with a review page in your browser: see
+[Publish content to production](/taw-fleet-production#publish-content-to-production). Users,
+comments and site settings are never published.
+
 ## Workflow recipes
 
 <Steps>
@@ -327,6 +371,10 @@ there, older. After A is imported into B, the suite checks that:
 3. B's export, imported back into A, changes nothing;
 4. undo returns B to exactly where it was.
 
+Since v1.98.0 it also publishes A's edits to B the way taw-fleet does: a value edited on both
+sides is flagged, a kept value stays B's, files come from staged bytes with no download, and undo
+puts B back.
+
 Run it yourself from a `taw-core` checkout with `composer run fidelity` (WP-CLI and a MySQL server; see
 the README's *Fidelity suite*).
 
@@ -340,9 +388,11 @@ granted to anyone with `manage_options`).
   behind an **Advanced** disclosure with a warning. Streams
   `taw-content-<host>-<timestamp>.json`.
 - **Import** — upload a snapshot or change-set → a **mandatory** review table
-  (per record, per field: unchanged / changed / new / would-delete) with a conflict-policy
-  selector and an "also apply environment settings" checkbox → an explicit **"Apply N
-  changes"** button. There is no one-click apply.
+  (per record, per field by its *Fieldset › Label*: unchanged / changed / new / would-delete)
+  with a conflict-policy selector and an "also apply environment settings" checkbox → an explicit
+  **"Apply N changes"** button. There is no one-click apply. Since v1.98.0, each record has a
+  checkbox (untick it to leave it out), and a value changed on both sides shows the base value
+  with *Keep this site's* / *Use the file's*.
 - Every apply writes the rollback snapshot to `uploads/taw-private/` first and links it in
   the result notice.
 

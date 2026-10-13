@@ -41,7 +41,7 @@ The companion ships with the theme, per client project, and runs as an **mu-plug
 
     Then run `composer update taw/hub-companion`. The key is public, so committing it is fine. It's per fleet owner, which is why the public taw-theme scaffold doesn't include it.
 
-    `taw-fleet live` works with 0.3, the first version that runs as an mu-plugin. The `/content` route, and so `taw-fleet pull`, needs 0.4 or later.
+    `taw-fleet live` works with 0.3, the first version that runs as an mu-plugin. The `/content` route, and so `taw-fleet pull`, needs 0.4 or later. [Publishing](#publishing-content) needs 0.5 and `"publish": true`.
   </Step>
   <Step title="Load it as an mu-plugin" icon="plug">
     Copy `vendor/taw/hub-companion/mu-loader/taw-companion.php` to `wp-content/mu-plugins/`. On TAW client sites, the theme's deploy workflow does this after the rsync. The loader finds the companion in the active theme's `vendor/` and never needs updating.
@@ -65,16 +65,21 @@ As an mu-plugin, the companion updates with the theme: `composer update taw/hub-
 
 ## Routes
 
-All routes are under the `taw-hub/v1` namespace and require a valid signature from a trusted key. taw-fleet uses the `GET` routes only.
+All routes are under the `taw-hub/v1` namespace and require a valid signature from a trusted key. taw-fleet uses the `GET` routes, and the publish routes once a site turns publishing on.
 
 | Method | Route | Body / query | Returns |
 |---|---|---|---|
-| `GET` | `/health` | — | `ok`, PHP / WP / `taw/core` / companion versions, `site_public_key`, `site_key_id`, `exec_available` |
+| `GET` | `/health` | — | `ok`, PHP / WP / `taw/core` / companion versions, `site_public_key`, `site_key_id`, `exec_available`, `publish_enabled`, `publish_available` (0.5.0+) |
 | `GET` | `/inventory` | — | a security-focused SBOM — every plugin, must-use plugin, drop-in and theme (see below) |
 | `GET` | `/inventory/checksums` | `?slug&type` | per-component SHA-256 file manifest — integrity + version-diff (see below) |
 | `GET` | `/vulnerabilities` | — | the site scanner's findings (Defender Pro / Wordfence), normalized (see below) |
 | `GET` | `/logs` | `?limit&level&code&since` | `{ count, entries: [...] }` — the structured log `taw/core` writes (see below) |
 | `GET` | `/content` | `?types` | the published content as a taw/core Content Interchange snapshot (no drafts, users, comments or settings), for `taw-fleet pull` (0.4.0+) |
+| `POST` | `/content/publish/plan` | a change-set made against production's own content, with its base (taw/core 1.98+) | `{ publish_id, token, expires_at, plan, media: { needed }, limits }`: what publishing would change, field by field, the files this site lacks, and a one-time token. Writes nothing to the site (0.5.0+) |
+| `PUT` | `/content/publish/{id}/media` | one file's raw bytes | `{ staged, remaining }`: accepted only when its sha256 is one the plan asked for |
+| `POST` | `/content/publish/{id}/apply` | `{ token, approved: [{key, hash}], keep, take }` | `{ report, applied }`: taw/core's import report, with its journal and rollback copy |
+| `GET` | `/content/publish/journals` | — | every import and publish on the site, newest first |
+| `POST` | `/content/publish/undo` | `{ journal, dry_run }` | what undo would do (`dry_run`, the default), or what it did |
 | `POST` | `/framework/sync` | `{ "dry_run": bool }` | the `php bin/taw sync --json` report verbatim |
 | `POST` | `/taw` | `{ "command": string, "args": string[] }` | `{ exit_code, stdout, stderr }` |
 | `POST` | `/keys/rotate` | — | `{ "public_key": "<base64>" }` — new keypair, same key id |
@@ -103,6 +108,35 @@ All routes are under the `taw-hub/v1` namespace and require a valid signature fr
   **On `proc_open`-disabled hosts** — most managed WordPress hosting (WPMU DEV, WP Engine, Kinsta, …) — `/framework/sync` and `/taw` return `503 {"error":"exec_unavailable"}`; they shell out to `bin/taw` and cannot run. `/health` reports `"exec_available": false` up front, and `/logs` keeps working — neither spawns a subprocess. Run framework sync via the theme's own `framework-sync.yml` GitHub Action on those hosts.
 </Callout>
 
+## Publishing content
+
+The `/content/publish/*` routes let taw-fleet publish a site's Local content to production, after you review it field by field. See [Publish content to production](/taw-fleet-production#publish-content-to-production) for how it looks from your side.
+
+**Off by default.** Every publish route answers `403 publish_disabled` until the theme's `composer.json` turns it on, by a reviewed commit and a deploy:
+
+```json
+"extra": { "taw-companion": { "keys": { "taw-fleet": "…" }, "publish": true } }
+```
+
+A child theme's setting wins over its parent's, and the `taw_hub_companion_publish_enabled` filter has the last word. The work itself is taw/core's (`TAW\Core\Content\Publish`, 1.98+); without it the routes answer `501 publish_unavailable`.
+
+<Steps>
+  <Step title="Plan" icon="list-checks">
+    Production compares the change-set with its own content and answers the plan: each change with its field's label, whether production changed it too since the base, the files it lacks, and a one-time token good for an hour. Only a pending folder in `uploads/taw-private/` is written.
+  </Step>
+  <Step title="Files" icon="file-up">
+    Files go up one per request, as signed raw bodies, and are kept only when their sha256 is one the plan named. Their path and name come from the plan, never from the request. Production never downloads from the client.
+  </Step>
+  <Step title="Apply" icon="check">
+    The request names each approved record with the hash it had in the plan. Production plans those records again and refuses the whole apply if one changed since (`409 publish_moved`), if a value changed on both sides has no side (`409 publish_conflicts_unresolved`), or if a file is missing (`409 publish_media_missing`). Then the token is spent, and the records are imported after a rollback copy and a journal are saved.
+  </Step>
+  <Step title="Undo" icon="undo-2">
+    The journal reverses a publish value by value, keeping anything edited since. A dry run comes first.
+  </Step>
+</Steps>
+
+Users, comments and site settings are never published, and no database file travels. **Limits:** 32 MB per file, 512 MB and 500 files per publish, an hour to apply, one apply at a time (`423 publish_busy`). `TAW_HUB_PUBLISH_MAX_FILE_MB`, `TAW_HUB_PUBLISH_MAX_TOTAL_MB`, `TAW_HUB_PUBLISH_MAX_FILES` and `TAW_HUB_PUBLISH_TTL_MIN` in `wp-config.php` change them. Every step is logged (`content.publish.*`, read through `/logs`). The decision is recorded in the companion's [ADR-0006](https://github.com/Relmaur/taw-hub-companion/blob/main/docs/adr/0006-content-publish-route.md).
+
 ## The wire protocol
 
 Every request and response is signed. The spec is **frozen** and lives in the companion repo: [the wire protocol](https://github.com/Relmaur/taw-hub-companion/blob/main/docs/reference/wire-protocol.md), [ADR-0003](https://github.com/Relmaur/taw-hub-companion/blob/main/docs/adr/0003-wire-protocol-and-signatures.md) and [ADR-0005](https://github.com/Relmaur/taw-hub-companion/blob/main/docs/adr/0005-companion-plugin-architecture.md).
@@ -129,5 +163,5 @@ TAW-HUB-v1
 ## Known limits
 
 - The signed `{PATH}` is rebuilt from the matched REST route, so subdirectory WordPress installs work — but a **filtered `rest_get_url_prefix()`** (≠ `wp-json`) is unsupported and raises an admin notice.
-- taw-fleet doesn't use the write routes (`/framework/sync`, `/taw`, `/keys/rotate`). Run framework sync through the theme's `framework-sync.yml` workflow.
+- taw-fleet doesn't use the other write routes (`/framework/sync`, `/taw`, `/keys/rotate`). Run framework sync through the theme's `framework-sync.yml` workflow.
 - `php bin/taw hub:install` and `hub:enroll` are retired (taw/core v1.77.0).

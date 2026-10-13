@@ -1,6 +1,6 @@
 ---
 title: "Production, pull requests and deploys"
-description: "How taw-fleet reads your production sites through the TAW companion, pulls their content into Local, writes through the REST API, merges pull requests and follows deploys, reads BugSmash comments, and sends a notification when something needs you."
+description: "How taw-fleet reads your production sites through the TAW companion, pulls their content into Local, publishes Local content after a field-by-field review, writes through the REST API, merges pull requests and follows deploys, reads BugSmash comments, and sends a notification when something needs you."
 ---
 
 taw-fleet reads each production site through the [TAW companion](/taw-hub-companion), a small plugin that ships with every TAW theme. It also reads GitHub for pull requests and deploys, and BugSmash for the client's comments. Each part turns on with a setting for the site, in `[sites.<folder>]` of the [settings file](/taw-fleet#settings).
@@ -9,6 +9,7 @@ taw-fleet reads each production site through the [TAW companion](/taw-hub-compan
 |---|---|---|
 | [Production checks](#check-production) | `production_url`, taw-fleet's signing key, a pinned site key | LIVE column, `live`, `live.*` findings |
 | [Content pull](#pull-production-content) | The same, and companion 0.4+ | `C`, `pull` |
+| [Content publish](#publish-content-to-production) | The same, companion 0.5+, taw/core 1.98+, `"publish": true` in the theme | `p`, `x`, `publish`, PUBLISHED section |
 | [REST writes](#write-to-production) | `production_url`, a bot user | `wp-remote` |
 | [Pull requests and deploys](#pull-requests-and-deploys) | A GitHub token | PR and DEPLOY columns, `prs`, `M`, `merge` |
 | [BugSmash comments](#bugsmash-comments) | `bugsmash_project`, the BugSmash API key | FB column, `F`, `X`, `comments` |
@@ -103,6 +104,91 @@ It needs companion 0.4+ on production with taw/core's [Content Interchange](/con
 To undo the last import, run `taw content:import --undo` in the theme folder to preview it, then again with `--yes`.
 
 `pull --yes` skips both questions. Pull refuses the umbrella's own taw-theme and taw-gutenberg. A site with no pinned key is refused: run `taw-fleet live trust <site>` first.
+
+After a successful import, taw-fleet keeps the snapshot as the site's **base**: production's content as Local last had it. [Publishing](#publish-content-to-production) compares with it to know what changed on each side.
+
+## Publish content to production
+
+`p` in the dashboard, or `taw-fleet publish <site>`, sends what changed in the Local site's content to production: pages, posts and custom post type entries, TAW fields and options, terms, menus, and the media they use. Users, comments and site settings never go. You see every value that would change, field by field, and nothing is written until you press **Publish**.
+
+### Turn it on for a site
+
+Publishing is off until the site's theme asks for it, through a reviewed commit and a deploy.
+
+<Steps>
+  <Step title="Update the theme" icon="refresh-cw">
+    Production needs taw/core 1.98 or newer (`u`, then deploy) and the TAW Companion 0.5 or newer: `"taw/hub-companion": "^0.5"` in the theme's `composer.json`.
+  </Step>
+  <Step title="Switch publishing on" icon="toggle-right">
+    Add `publish` next to the fleet key in the theme's `composer.json`, commit, and deploy:
+
+    ```json
+    "extra": { "taw-companion": { "keys": { "taw-fleet": "…" }, "publish": true } }
+    ```
+  </Step>
+  <Step title="Pin the key and pull once" icon="key-round">
+    Pin the site's key (`taw-fleet live trust <site>`), then pull (`C`) so taw-fleet has a base to compare with.
+  </Step>
+</Steps>
+
+The details' **PUBLISHED** section says what's still missing. Once publishing is ready, it lists the last publishes, the newest with the path of its review.
+
+### How a publish goes
+
+<Steps>
+  <Step title="Compare" icon="git-compare">
+    taw-fleet exports the Local site's content and compares it with the base. Only what changed in Local goes. With no base (no pull yet), every value production already has is marked for you to decide.
+  </Step>
+  <Step title="Ask production" icon="send">
+    Production answers what publishing would change, field by field, and which files it lacks. It writes nothing yet. The answer comes with a one-time token, good for an hour.
+  </Step>
+  <Step title="Review in your browser" icon="eye">
+    A page opens, served by taw-fleet on your Mac only (`127.0.0.1`, behind a random address). It shows:
+
+    - every record by its title, with a tick to publish it or leave it out;
+    - every change by its field (*Fieldset › Label*), production's value beside Local's, with the words that changed marked; long content such as block markup, line by line;
+    - images side by side, and the files that will be uploaded;
+    - **values changed on both sides** first. Production changed them too since the base, so you pick a side for each: keep production's, or use Local's. A value only production changed keeps production's for you.
+
+    **To decide** shows only the values waiting for you. **Publish** stays off until each has a side. **Cancel**, or `x` in the dashboard (“stop waiting”), closes the review with nothing published.
+  </Step>
+  <Step title="Publish" icon="upload">
+    The files go up one by one, each checked against the plan. Production plans the approved records again and refuses the whole publish if any changed there since your review: review again. Before writing, it saves a rollback copy and a journal. The page shows the progress, then the result with how to undo it.
+  </Step>
+  <Step title="After" icon="archive">
+    taw-fleet refreshes the base from production and keeps the review as the record of what went out, in `~/TAW Fleet/sites/<site>/publish/<time>/`: `review.html` (open it any time; it shows the sides you picked), `plan.json`, `decisions.json` and `report.json`.
+  </Step>
+</Steps>
+
+### Undo a publish
+
+`x` in the site's details, or `taw-fleet publish undo <site>`, first says what undoing the last publish would do (“put back 4 values and delete 1 record it created”), then asks. A value goes back only where it's still what the publish wrote: an edit made on production since is kept and listed. A record the publish created is deleted unless it was edited since. `--journal` undoes an older publish; `taw-fleet publish history <site>` lists them.
+
+### Without a browser
+
+```bash
+taw-fleet publish acme --no-review                 # print the review
+taw-fleet publish acme --no-review --json          # the review as JSON, with the record and change keys
+taw-fleet publish acme --no-review --yes           # publish as reviewed; refuses while a value changed on both sides is undecided
+taw-fleet publish acme --decisions choices.json --yes
+```
+
+`choices.json` names the records to publish and the side that wins each value changed on both sides (`keep` = production's, `take` = Local's):
+
+```json
+{"include": ["post:page:about"], "sides": {"post:page:about": {"fields.hero_heading": "take"}}}
+```
+
+In the chat, Claude publishes through the `publish_content` tool: it describes the changes, asks you about each value changed on both sides, then asks before publishing.
+
+### How publishing is secured
+
+- Every request is signed with the fleet key, and every answer is checked against the site's pinned key.
+- The one-time token works once, for one plan. Production writes only the records you approved, as you reviewed them.
+- Production accepts only the files the plan named, matched by their sha256. It never downloads anything from your Mac.
+- Limits: 32 MB per file, 512 MB and 500 files per publish, one publish at a time.
+- Every step is logged on production (`content.publish.*`; `taw-fleet live <site> --logs 20` reads them).
+- No database copy is made or sent. The base is a content snapshot, kept in `~/Library/Application Support/taw-fleet/content/`, outside every site, theme and git repository.
 
 ## Write to production
 

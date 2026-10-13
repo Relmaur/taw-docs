@@ -73,6 +73,7 @@ At 120 columns or wider, the selected site's details sit beside the cards. The p
 | **LIVE** | The production site's companion | Versions, plugin updates, vulnerabilities, recent log lines |
 | **FEEDBACK** | BugSmash | Open comments, the oldest's age, and the three latest with their number, page, author and age |
 | **FINDINGS** | `doctor` | What needs attention, with the fix |
+| **PUBLISHED** | The publishes taw-fleet made | On a site with production: the last three publishes (published, cancelled in the review, stopped), the newest with the path of its review, or what production still needs before it can take one. `p` publishes, `x` undoes the last. See [Publish content to production](/taw-fleet-production#publish-content-to-production) |
 | **SETUP** | All of the above, the settings and the Keychain | What the site has and still needs: repository, secrets check, deploy, production, companion, bot, BugSmash, skills, each with how to do it. `I` does the next step. See [Set up a site](#set-up-a-site) |
 
 MERGE and UPDATE appear only around a merge or an update. LIVE and FEEDBACK appear once the site has been checked.
@@ -111,6 +112,8 @@ These are grouped as the `:` palette groups them.
 | Site · Local | `z` | Put back a restore point (asks which, then asks again). See [Restore points](/taw-fleet#restore-points) |
 | Site · Production | `m` | The site's monthly report: this month so far or last month, opened in the browser. See [Monthly reports](/taw-fleet-production#monthly-reports) |
 | Site · Production | `C` | Pull production content into the Local site. See [Pull production content](/taw-fleet-production#pull-production-content) |
+| Site · Production | `p` | Publish the Local site's content to production: the review opens in your browser, and nothing is written until you press Publish there. See [Publish content to production](/taw-fleet-production#publish-content-to-production) |
+| Site · Production | `x` | Undo the last publish: says what would go back, then asks |
 | Site · Feedback | `F` | Open the site's BugSmash review page |
 | Site · Feedback | `X` | Resolve the open BugSmash comments with Claude Code. See [BugSmash comments](/taw-fleet-production#bugsmash-comments) |
 | Theme · Code | `e`, `f`, `t` | Open the theme in your editor, in Finder, in a terminal |
@@ -139,7 +142,7 @@ Anything that changes a site or a theme asks first.
 
 ### Output view
 
-`o` shows the last task's output. Updates, sync, pull and create open it while they run; an update has its own screen (see [The update screen](#the-update-screen)). `↑` `↓` (or `k` `j`) and `pgup` `pgdown` scroll, `home` goes to the top, `end` follows new output, and `esc` or `q` goes back while the task keeps running. After `n` creates a site, `c` copies the admin password.
+`o` shows the last task's output. Updates, sync, pull and create open it while they run; an update has its own screen (see [The update screen](#the-update-screen)). `↑` `↓` (or `k` `j`) and `pgup` `pgdown` scroll, `home` goes to the top, `end` follows new output, and `esc` or `q` goes back while the task keeps running. After `n` creates a site, `c` copies the admin password. While a publish waits on its review in the browser, `x` stops waiting: the review closes and nothing is published.
 
 ### Confirm dialog
 

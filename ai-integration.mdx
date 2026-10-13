@@ -215,6 +215,7 @@ An agent doesn't have to trust its own read of a change — CI catches both stat
 | `site_setup` | `taw-fleet ready [site] --json` | What a site has and still needs: the SETUP checklist |
 | `deploy_profiles` | `taw-fleet deploy profiles --json` | The hosts taw-fleet knows, and where each value is |
 | `launch_report` | `taw-fleet launch-report <site> --json` | A live site checked, and its launch report saved |
+| `publish_history` | `taw-fleet publish history <site> --json` | A site's publishes, newest first, each with its kept review |
 | `bugsmash_projects` | `taw-fleet comments projects --json` | Your BugSmash projects and their ids |
 | `deploy_test` | `taw-fleet deploy test <site> …` | Connects as the deploy will; nothing changes |
 | `taw` | `taw @<theme> <command…>` | A theme's own command, with its site's PHP. Read-only commands (`list`, `help`, `inspect`, `policy`, `sync` and `upgrade` without `--apply`, `content:diff`) run at once; any other asks first |
@@ -236,6 +237,8 @@ taw-fleet 1.19.0+ also serves the dashboard's actions. Each one asks first, the 
 | `start_site`, `stop_site` | `taw-fleet start` or `stop <site>` | `s` |
 | `sync_apply` | `taw-fleet sync <site> --apply` | `S` |
 | `pull_content` | `taw-fleet pull <site>` (the first call shows the preview) | `C` |
+| `publish_content` | `taw-fleet publish <site> --no-review [--decisions <file>]` (the first call shows every change and each value changed on both sides; you pick the sides, then it asks) | `p` |
+| `publish_undo` | `taw-fleet publish undo <site>` (the question says what would go back) | `x` |
 | `create_repo` | `taw-fleet repo <site>` | `I` (a new site's theme on GitHub) |
 | `deploy_key`, `deploy_apply` | `taw-fleet deploy key`, `deploy apply <site> …` | `I` on Deploy (the deploy to any host) |
 | `trust_production` | `taw-fleet live trust <site>` (the question shows the key) | the Companion step |

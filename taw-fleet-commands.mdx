@@ -67,6 +67,7 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 | [`create`](#create) | A new Local site with a TAW theme |
 | [`live`](#live) | The production sites through their companion |
 | [`pull`](#pull) | Production content into the Local site |
+| [`publish`](#publish) | The Local site's content to production, after a field-by-field review; `undo`, `history` |
 | [`wp-remote`](#wp-remote) | The production site's REST API, as its bot user |
 | [`prs`](#prs) | Open pull requests, CI and deploys |
 | [`merge`](#merge) | Merge a pull request (deploys production) |
@@ -342,6 +343,26 @@ Fetches the production site's published content through its companion (0.4+), pr
 |---|---|
 | `--theme <folder>` | Which TAW theme, when the site has several |
 | `-y`, `--yes` | Don't ask, at either step |
+
+### publish
+
+```bash
+taw-fleet publish <site> [--theme <folder>] [--no-review] [--json] [--decisions <file>] [--yes]
+taw-fleet publish undo <site> [--journal <file>] [--yes]
+taw-fleet publish history <site> [--json]
+```
+
+Compares the Local site's content with production's (the base a pull or the last publish saved), asks production what publishing would change, and opens the review in your browser. Nothing is written until you press Publish there. Needs taw/core 1.98+ and companion 0.5+ on production, with `"publish": true` in the theme's `composer.json`. The dashboard's `p`. See [Publish content to production](/taw-fleet-production#publish-content-to-production).
+
+| Flag | Does |
+|---|---|
+| `--theme <folder>` | Which TAW theme, when the site has several |
+| `--no-review` | Print the review instead of opening it in the browser |
+| `--json` | Print the review, or the result, as JSON (with the record and change keys) |
+| `--decisions <file>` | A JSON file: the records to publish (`include`) and which side wins each value changed on both sides (`sides`: `keep` or `take`) |
+| `-y`, `--yes` | Publish without asking: as reviewed, or as `--decisions` says. Refuses while a value changed on both sides has no side |
+
+`publish undo` says what undoing the last publish would do, then asks (the dashboard's `x`). `--journal` picks an older one. `publish history` lists the site's publishes, newest first, each with its kept review.
 
 ### wp-remote
 
@@ -661,6 +682,8 @@ Each Mac needs its own copy.
 | `~/Library/Caches/taw-fleet/bugsmash/` | BugSmash comments, cached for 5 minutes |
 | `~/Library/Caches/taw-fleet/sync/` | Each theme's last scaffold check (the SYNC column) |
 | `~/Library/Caches/taw-fleet/content/` | Content snapshots fetched by `pull` |
+| `~/Library/Application Support/taw-fleet/content/<site>/` | The site's base for publishing: `base.json`, production's content as Local last had it, and `base.meta.json` |
+| `~/TAW Fleet/sites/<site>/publish/<time>/` | Each publish's review: `review.html`, `plan.json` (without the token), `decisions.json`, `report.json` |
 | `~/Library/Caches/taw-fleet/handoff/` | Prompts and launchers for Claude Code windows; `fleet-<time>/` for an update of every theme |
 | `~/Library/Caches/taw-fleet/window/`, `work/` | Launchers for the dashboard's own window and for Vite windows |
 | `~/TAW Fleet/reports/<site>/` | Monthly reports, `<month>.md` and `<month>.html` |
