@@ -53,7 +53,7 @@ The header shows taw-fleet's version, `▲ <version>` when a newer release is ou
 | GIT | `◇ unpushed` | The branch has no upstream |
 | GIT | `≠`, branch in the warning color | The branch tracks another repository (a local copy of the scaffold's branch, say), so the versions and files shown are that branch's, not the site's. `D` switches back |
 | GIT | branch in the accent color, `detached`, `no git` | Not the default branch, no branch, not a git repository |
-| GIT | `@parallelstaff` | A theme of [another GitHub account](/taw-fleet#other-github-accounts) |
+| GIT | `@acme-studio` | A theme of [another GitHub account](/taw-fleet#other-github-accounts) |
 
 Press `?` for the keys and this legend in the dashboard.
 
@@ -177,7 +177,7 @@ Press `/` and type. The cards that match stay, and the footer counts them (“3 
 | `is:deploying` | A deploy is running |
 | `is:undeployed` | The default branch has commits production doesn't have yet |
 | `is:vite` | The theme's Vite dev server runs |
-| `is:other` | A theme of another GitHub account (`@parallelstaff` matches the account) |
+| `is:other` | A theme of another GitHub account (`@acme-studio` matches the account) |
 | `has:comments` | Open BugSmash comments |
 | `has:prs` | Open pull requests |
 | `has:findings`, `has:errors` | `doctor` findings, or only its errors |
@@ -190,7 +190,7 @@ Press `/` and type. The cards that match stay, and the footer counts them (“3 
 
 ## Tags and groups
 
-Tags organise a bigger fleet. A site can have up to 12: lower case letters, digits, `:`, `_` and `-`, such as `retainer`, `es` or `client:parallel`.
+Tags organise a bigger fleet. A site can have up to 12: lower case letters, digits, `:`, `_` and `-`, such as `retainer`, `es` or `client:acme`.
 
 - **`#`** edits the selected site's tags in a line at the bottom, filled with the current ones. Type them with spaces between, `enter` saves, `esc` cancels. Saved in the settings, under the site.
 - **On the cards**, a site's tags follow its theme line as `#tag`.
@@ -222,7 +222,7 @@ The newest versions of taw-core, taw-theme, taw-gutenberg and taw-fleet are cach
 - **Two panes.** The list is on the left. The highlighted entry's details are on the right: what it does, its key and its badge. In a narrow window, only the list shows.
 - **Groups.** Actions come under **Recent**, **Site · Local**, **Site · Production**, **Site · Feedback**, **Theme · Code**, **Theme · Update**, **Theme · Git & GitHub** and **App**, each heading with its icon. Recent holds the last three actions you ran from the palette. The [Actions](#actions) table above follows the same groups.
 - **Badges.** Each entry carries its key and a badge: `‹action›`, `‹skill›` or `‹site skill›`.
-- **Unavailable entries** stay in the list, dimmed. The details pane says why under **Not now:**, such as “no open pull request” or “no production URL: add production_url to [sites.ls-mxico]”. `enter` on one shows that reason instead of running it.
+- **Unavailable entries** stay in the list, dimmed. The details pane says why under **Not now:**, such as “no open pull request” or “no production URL: add production_url to [sites.awesome-company]”. `enter` on one shows that reason instead of running it.
 - **Filter.** Type a word, a key, or letters in order. The key itself ranks first, then titles that start with or contain what you typed, then the key's short label, then letters in order, then the description. Matched letters are highlighted. With a filter, the groups disappear and the list is ranked.
 
 | Key | Does |
@@ -313,9 +313,9 @@ Under the site's skills, `a` lists the **fleet skills**: work on the whole fleet
 
 `u` updates the selected site in one step. It runs the theme's own `vendor/bin/taw update` with the site's PHP and Local's Composer, and asks one question first, in the words of the theme's `taw.json`:
 
-> Update ls-mexico? taw/core, framework files, migrations, checks, then a pull request to merge.
+> Update awesome-company? taw/core, framework files, migrations, checks, then a pull request to merge.
 
-The question changes with the theme and its `taw.json`. A block theme, or a classic theme with the scaffold turned off, gets no framework files, so the question leaves them out: “Update ls-blocks? taw/core, migrations, checks, then a pull request to merge.” `core = "patch"` reads “taw/core (bug fixes)”, a pinned version “taw/core (pinned 1.91.2)”, and the other `deliver` values end in “a pull request that merges itself (deploys)” or “a commit on a branch”. After that, it asks nothing.
+The question changes with the theme and its `taw.json`. A block theme, or a classic theme with the scaffold turned off, gets no framework files, so the question leaves them out: “Update awesome-blocks? taw/core, migrations, checks, then a pull request to merge.” `core = "patch"` reads “taw/core (bug fixes)”, a pinned version “taw/core (pinned 1.91.2)”, and the other `deliver` values end in “a pull request that merges itself (deploys)” or “a commit on a branch”. After that, it asks nothing.
 
 On a new `taw/update-<date>` branch, the update:
 

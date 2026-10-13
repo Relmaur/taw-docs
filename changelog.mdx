@@ -9,7 +9,7 @@ description: >-
 
 ## October 2026: tags and groups
 
-- **taw-fleet v1.31.0:** give each site tags (`retainer`, `es`, `client:parallel`) with `#` in the dashboard or `taw-fleet tag`. They show on the site's card, the filter finds them (`#retainer`, `tag:client:`), and `taw-fleet list --tag` lists those sites. `=` groups the list by tag (a site with several shows under each), kind, production or client, with a header per group that `←` folds and `→` opens; the dashboard remembers the grouping. Claude reads the tags and sets them with `set_tags`. See [Tags and groups](/taw-fleet-dashboard#tags-and-groups).
+- **taw-fleet v1.31.0:** give each site tags (`retainer`, `es`, `client:acme`) with `#` in the dashboard or `taw-fleet tag`. They show on the site's card, the filter finds them (`#retainer`, `tag:client:`), and `taw-fleet list --tag` lists those sites. `=` groups the list by tag (a site with several shows under each), kind, production or client, with a header per group that `←` folds and `→` opens; the dashboard remembers the grouping. Claude reads the tags and sets them with `set_tags`. See [Tags and groups](/taw-fleet-dashboard#tags-and-groups).
 
 </Update>
 
@@ -17,7 +17,7 @@ description: >-
 
 ## October 2026: a JSON field that can't break the page
 
-- **taw/core v1.99.0:** a new `json` field type. You edit JSON in a code box with a **Format** button, and a mistake shows its line and column as you type. Invalid JSON is never saved: the page keeps using the last good value, and the field shows what you typed with “Not saved: …” under it, so nothing is lost. Sites can add their own check (`validate`), such as a JSON Schema. Any field can work this way with `'on_invalid' => 'keep'`. EmeLambda's practice previews asked for it.
+- **taw/core v1.99.0:** a new `json` field type. You edit JSON in a code box with a **Format** button, and a mistake shows its line and column as you type. Invalid JSON is never saved: the page keeps using the last good value, and the field shows what you typed with “Not saved: …” under it, so nothing is lost. Sites can add their own check (`validate`), such as a JSON Schema. Any field can work this way with `'on_invalid' => 'keep'`. A site's practice previews asked for it.
 - **Also fixed:** in the block editor, a field's validation error now shows when you reload the page. Before, the editor's save swallowed it.
 - **taw-theme v1.12.77** and **taw-gutenberg v0.3.78** lock taw/core 1.99.0.
 
@@ -27,7 +27,7 @@ description: >-
 
 ## October 2026: nested repeaters on options pages
 
-- **taw/core v1.98.1:** an options page whose repeater has a repeater inside each row (a list of widgets, each with its own links) showed “critical error”. It now shows and saves the nested rows. What's stored doesn't change. `taw update` also brings taw-theme 1.12.75's `tests/TestCase.php` to sites with the scaffold's earlier copy. Parallel Staff reported it.
+- **taw/core v1.98.1:** an options page whose repeater has a repeater inside each row (a list of widgets, each with its own links) showed “critical error”. It now shows and saves the nested rows. What's stored doesn't change. `taw update` also brings taw-theme 1.12.75's `tests/TestCase.php` to sites with the scaffold's earlier copy. A client site reported it.
 - **taw-theme v1.12.76** and **taw-gutenberg v0.3.77** lock taw/core 1.98.1.
 
 </Update>
@@ -71,7 +71,7 @@ description: >-
 
 ## October 2026: box order for custom post types
 
-- **taw/core v1.97.1:** `MetaboxOrder::lockFromTemplate()` keeps a page's edit-screen boxes in the order its blocks render. It now also works for a custom post type rendered by `single-{type}.php`: add `MetaboxOrder::lockFromTemplate('<post type>');` to `inc/customizations.php`. Parallel Staff's role pages asked for it. The themes pick it up with their next taw/core lock.
+- **taw/core v1.97.1:** `MetaboxOrder::lockFromTemplate()` keeps a page's edit-screen boxes in the order its blocks render. It now also works for a custom post type rendered by `single-{type}.php`: add `MetaboxOrder::lockFromTemplate('<post type>');` to `inc/customizations.php`. A client site's role pages asked for it. The themes pick it up with their next taw/core lock.
 
 </Update>
 
@@ -146,7 +146,7 @@ description: >-
 
 ## October 2026: defaults stay on their own pages
 
-- **taw/core v1.95.2:** a field's default text now shows only on the pages its metabox covers. Sites that give each page its own version of a block, with the same field names, could show one page's fallback text on another page; Parallel Staff saw it on three blocks. If a page relied on text from another page's default, add that page to the metabox's `screens`. On chcapital, the other site using defaults, nothing changes.
+- **taw/core v1.95.2:** a field's default text now shows only on the pages its metabox covers. Sites that give each page its own version of a block, with the same field names, could show one page's fallback text on another page; a client site saw it on three blocks. If a page relied on text from another page's default, add that page to the metabox's `screens`. On the other site using defaults, nothing changes.
 - **taw-theme v1.12.71** and **taw-gutenberg v0.3.73** lock taw/core 1.95.2.
 
 </Update>
@@ -281,7 +281,7 @@ description: >-
 ## October 2026: one `taw` command
 
 - **taw-fleet v1.17.0** installs a second command, `taw`. It runs the theme's own `vendor/bin/taw`, so every site keeps its own taw/core version.
-- **Where:** in a theme folder, or any folder under it: `taw list`, `taw make:block Hero`. From anywhere: `taw @chcapital list`. For a site with two themes, `taw @taw/taw-theme list`. Outside a theme, `taw` lists every theme by its short name.
+- **Where:** in a theme folder, or any folder under it: `taw list`, `taw make:block Hero`. From anywhere: `taw @john-seed list`. For a site with two themes, `taw @taw/taw-theme list`. Outside a theme, `taw` lists every theme by its short name.
 - **The right PHP:** on a Local site, `taw` uses the site's own PHP and MySQL socket, so commands that start WordPress reach that site's database. A halted site gets one line saying so, then the command runs anyway.
 - **Older themes** (taw/core before 1.90) run their `bin/taw`. A theme without `vendor/` is told to run `composer install`.
 - `TAW_DEBUG=1 taw …` prints the exact command it runs. CI keeps calling `vendor/bin/taw`, which is the same command.
@@ -490,13 +490,13 @@ description: >-
 
 </Update>
 
-<Update label="2026-10-09" description="taw/core v1.87.2: pulls settle when a host drops large files. taw-theme v1.12.53 (chat guardrails); fsspx live on taw/core 1.87.1." tags={["taw/core", "taw-theme"]}>
+<Update label="2026-10-09" description="taw/core v1.87.2: pulls settle when a host drops large files. taw-theme v1.12.53 (chat guardrails); a client site live on taw/core 1.87.1." tags={["taw/core", "taw-theme"]}>
 
 ## October 2026 — pulls settle on slow hosts
 
 - **taw/core v1.87.2:** a content import tries a media download three times before giving up, because some hosts cut large files off mid-transfer, and its warning now says why a download failed. A post whose comment or ping status is stored empty at the source no longer shows as changed on every pull.
 - **taw-theme v1.12.53:** taw/core 1.87.1 and the chat guardrails (`rag:usage`, the chatbot session flow).
-- **fsspx** runs taw/core 1.87.1. With 1.87.2 on the receiving site, a second pull from it reports no changes.
+- **A client site** runs taw/core 1.87.1. With 1.87.2 on the receiving site, a second pull from it reports no changes.
 
 </Update>
 
@@ -505,7 +505,7 @@ description: >-
 ## October 2026 — repeater rows keep their selected posts
 
 - **taw/core v1.87.1:** a post selector inside a repeater row could lose the editor's pick, because the row only saved it if something else changed afterwards. The picker now signals the change, as the image and file pickers do.
-- **Live sites:** chcapital.mx, lsmexico.mx, mlizardo.com and emelambda.com run taw/core 1.87.0, so `taw-fleet pull` gets everything from Phases 5–8 (page trees, the site icon, logo and menus). Their pages were compared before and after each deploy, and were unchanged.
+- **Live sites:** four production sites run taw/core 1.87.0, so `taw-fleet pull` gets everything from Phases 5–8 (page trees, the site icon, logo and menus). Their pages were compared before and after each deploy, and were unchanged.
 
 </Update>
 
@@ -575,7 +575,7 @@ description: >-
 - Snapshot schema 1.4. Older snapshots still import; production sites need this release for their snapshots to carry the new references.
 - **taw-theme v1.12.50, taw-gutenberg v0.3.48:** taw/core 1.82.0.
 - **taw/core v1.82.1:** a pull settles in one import: files arriving in the import are downloaded before it decides what already matches. **taw-gutenberg v0.3.49:** taw/core 1.82.1.
-- Live: chcapital.mx on 1.82.0, lsmexico.mx and mlizardo.com on 1.82.1 — their snapshots carry the new references; pages unchanged.
+- Live: one production site on 1.82.0, two on 1.82.1 — their snapshots carry the new references; pages unchanged.
 
 </Update>
 
@@ -1420,7 +1420,7 @@ Every query in `MysqlBibleInstaller` now throws (with `$wpdb->last_error`) on a 
 
 ## September 2026 — MySQL FULLTEXT search ignored short/unindexed words
 
-Verified against a real MySQL server (fsspx-taw theme session): `books()`/`chapter()`/full corpus import all confirmed byte-for-byte correct, but `+amor +de +Dios` returned zero results even though three verses genuinely contain all three words — `+amor +Dios` (dropping "de") returned the correct three. Landed via [`Relmaur/taw-core#25`](https://github.com/Relmaur/taw-core/pull/25) (closes `#24`), tagged **v1.31.1**, with a paired `taw-theme` release tagged **v1.11.5**.
+Verified against a real MySQL server (a client theme's session): `books()`/`chapter()`/full corpus import all confirmed byte-for-byte correct, but `+amor +de +Dios` returned zero results even though three verses genuinely contain all three words — `+amor +Dios` (dropping "de") returned the correct three. Landed via [`Relmaur/taw-core#25`](https://github.com/Relmaur/taw-core/pull/25) (closes `#24`), tagged **v1.31.1**, with a paired `taw-theme` release tagged **v1.11.5**.
 
 InnoDB's FULLTEXT indexer never indexes a word shorter than `innodb_ft_min_token_size` (default 3) at all — a required `+word` term for a word that was never indexed can never match, so any AND query containing a short word (Spanish is full of them: `de`/`la`/`el`/`en`/`un`/...) returned nothing regardless of whether the rest of the query genuinely matched. Not fixable via server config on managed hosting (a global `my.cnf` setting requiring a restart and full index rebuild). `MysqlBibleReader::significantWords()` now reads the actual configured `innodb_ft_min_token_size` at query time and drops any word shorter than it from the required set before searching — the same "silently ignore, don't exclude everything" handling a real search engine applies to short/stop words.
 
@@ -1459,7 +1459,7 @@ See [Bible Reader Corpus](/taw-core#bible-reader-corpus) for the full reference,
 
 ## September 2026 — corpus:install pre-boot fix, bin/taw registration, and Bible search matching
 
-Two bugs found running `bin/taw corpus:install` against the real ~18MB Straubinger corpus file on a live client site (fsspx-taw), plus one more found while fixing them. Landed via [`Relmaur/taw-core#18`](https://github.com/Relmaur/taw-core/pull/18) (closes `#17`), tagged **v1.29.3**; `bin/taw` registration landed directly on `taw-theme` main, tagged **v1.11.2**.
+Two bugs found running `bin/taw corpus:install` against the real ~18MB Straubinger corpus file on a live client site, plus one more found while fixing them. Landed via [`Relmaur/taw-core#18`](https://github.com/Relmaur/taw-core/pull/18) (closes `#17`), tagged **v1.29.3**; `bin/taw` registration landed directly on `taw-theme` main, tagged **v1.11.2**.
 
 - **`ProtectedSqlite`/`Corpus\Storage` silently killed pre-boot CLI usage.** Both carried `if (!defined('ABSPATH')) exit;`, but `CorpusInstallCommand::execute()` calls `ProtectedSqlite::looksLikeSqliteFile()` before `require $wpLoad` — so the guard fired and exited the whole process with zero output. The exact pitfall this repo's own `CLAUDE.md` already documents for `Content\*` (v1.25.1). Fixed by dropping the guard from both, matching `Content\*`'s precedent — neither class has a WordPress dependency of its own. A subprocess regression test (`Storage\PreBootAutoloadTest`, mirroring `Content\PreBootAutoloadTest`) now runs with no `ABSPATH` defined at all, the one test shape that can actually catch this.
 - **`corpus:install` was never wired into `bin/taw`.** The command class shipped in `taw-core` v1.29.0's `src/CLI/`, but canonical `taw-theme`'s `bin/taw` never got the matching registration (compare `content:reindex-kb`, which got both a class and a registration when it shipped) — the command was unreachable from any fresh checkout.
@@ -1467,11 +1467,11 @@ Two bugs found running `bin/taw corpus:install` against the real ~18MB Straubing
 
 </Update>
 
-<Update label="2026-09-11" description="taw/core v1.29.0: Bible Reader Corpus — a framework-level, developer-installed reference-corpus subsystem (storage, CLI install, a Straubinger-schema Bible reader, and a rate-limited REST surface), built for the fsspx-taw client site's Bible reader." tags={["taw/core", "feature"]}>
+<Update label="2026-09-11" description="taw/core v1.29.0: Bible Reader Corpus — a framework-level, developer-installed reference-corpus subsystem (storage, CLI install, a Straubinger-schema Bible reader, and a rate-limited REST surface), built for a client site's Bible reader." tags={["taw/core", "feature"]}>
 
 ## September 2026 — Bible Reader Corpus
 
-A read-only REST surface over a developer-installed reference corpus — currently a Straubinger-translation Spanish Catholic Bible, built for the fsspx-taw client site's Bible reader (theme-side page/Block shipping separately) but framework-level and reusable at the storage layer. Landed via [`Relmaur/taw-core#16`](https://github.com/Relmaur/taw-core/pull/16) (closes `#15`), tagged **v1.29.0**.
+A read-only REST surface over a developer-installed reference corpus — currently a Straubinger-translation Spanish Catholic Bible, built for a client site's Bible reader (theme-side page/Block shipping separately) but framework-level and reusable at the storage layer. Landed via [`Relmaur/taw-core#16`](https://github.com/Relmaur/taw-core/pull/16) (closes `#15`), tagged **v1.29.0**.
 
 - **`TAW\Core\Storage\ProtectedSqlite`** — the RAG chatbot's "protected uploads directory + exception-mode PDO open + magic-byte SQLite validation" plumbing, extracted and shared rather than duplicated for this new subsystem.
 - **`TAW\Core\Corpus\Storage`** — `wp-content/uploads/taw-private/corpus/`, deliberately separate from the RAG chatbot's `taw-private/rag/`: a reference corpus meant for direct reading and a RAG knowledge base meant for chatbot embedding are different concerns that happen to share storage mechanics.
@@ -1530,7 +1530,7 @@ A visitor-facing chat widget that answers from any number of named **knowledge b
 - **`--with-settings`** exports a *second*, opt-in option allowlist for environment settings — `permalink_structure`, `timezone_string`, `sticky_posts` (as slugs), `date_format`, and more — plus a `taw_content_export_settings_options` filter. These are **import-gated too**: `content:import` skips them unless you also pass `--with-settings`.
 - **`content:export --migrate`** = `--with-users --with-settings --all-media --include-drafts` (not passwords or comments — those stay explicit). The automatic rollback snapshot is now maximal-scope, so undoing a `--migrate` import is complete.
 - **Slug-less drafts no longer duplicate on re-import.** `draft` / `pending` / `auto-draft` posts are excluded by default; `--include-drafts` re-adds them and matches slug-less posts on a composite `(type, sha1(title|date_gmt))` key.
-- **Metabox-backed CPTs auto-export.** Any post type with a `TAW\Core\Metabox\Metabox` attached is now included even when `public => false`. Sites that added a manual `taw_content_export_post_types` filter just for a content CPT (for example FSSPX's `activity` Mass schedule) can drop it.
+- **Metabox-backed CPTs auto-export.** Any post type with a `TAW\Core\Metabox\Metabox` attached is now included even when `public => false`. Sites that added a manual `taw_content_export_post_types` filter just for a content CPT (for example an `event` schedule) can drop it.
 - **`--all-media`** also exports attachments not referenced by any post/field; media records now carry `title` / `description`, set on the sideloaded attachment.
 - **Import ordering** is deterministic and dependency-first: users → terms → media → posts → comments → settings.
 - **`content:diff`** diffs the new `users` and `comments` sections.
@@ -1695,7 +1695,7 @@ Backward-compatible — pages that already ordered correctly are unaffected. See
 
 ## September 2026 — First sites on the TAW Hub fleet
 
-Two sites enrolled end to end — a local dev site and the production `mlizardo.com` (WPMU DEV managed hosting). Signed `/health`, `/logs`, and `/framework/sync` all verified over the wire, including over the public internet through a managed host's edge layer.
+Two sites enrolled end to end — a local dev site and a production site (WPMU DEV managed hosting). Signed `/health`, `/logs`, and `/framework/sync` all verified over the wire, including over the public internet through a managed host's edge layer.
 
 The rollout hardened `TawRunner` (which backs `/framework/sync` and `/taw`):
 
@@ -1826,7 +1826,7 @@ Any Metabox (and Options Page) field now accepts `'readonly' => true`, rendering
 
 Vite's compiled output is already minified, hashed, and (for JS) split into ES modules that require exact, un-mangled execution order — a generic optimization plugin re-processing it can only make things worse. `ViteLoader`'s module scripts, their `modulepreload`/`preload` `<link>` tags, and every Vite-extracted stylesheet now carry `data-no-optimize="1" data-cfasync="false" data-no-defer="1" data-no-minify="1"` — standard exclusion signals WP Rocket, Autoptimize, Perfmatters, and LiteSpeed Cache all document and honor.
 
-This is defensive hardening, not a fix for the specific incident that motivated it: a client site (mlizardo.com) hit a hard, silent failure when the host's JS optimization plugin (WPMUdev Hummingbird) CDN-rehosted the entry bundle onto a CDN with no CORS support — module scripts always require CORS, so the browser hard-blocked the fetch and the entire bundle (Alpine.js, all core init) never ran, with zero visible page errors. Hummingbird's CDN-rehosting feature rewrites the raw HTML buffer directly, bypassing WordPress's tag filters entirely, so these new markers don't help against it specifically — that class of tool still needs manual exclusion-list configuration in its own admin UI. See [Assets and Vite integration](/taw-core-assets-vite#optimizer-exclusion-hardening) for the full incident and a fast diagnostic.
+This is defensive hardening, not a fix for the specific incident that motivated it: a production site hit a hard, silent failure when the host's JS optimization plugin (WPMUdev Hummingbird) CDN-rehosted the entry bundle onto a CDN with no CORS support — module scripts always require CORS, so the browser hard-blocked the fetch and the entire bundle (Alpine.js, all core init) never ran, with zero visible page errors. Hummingbird's CDN-rehosting feature rewrites the raw HTML buffer directly, bypassing WordPress's tag filters entirely, so these new markers don't help against it specifically — that class of tool still needs manual exclusion-list configuration in its own admin UI. See [Assets and Vite integration](/taw-core-assets-vite#optimizer-exclusion-hardening) for the full incident and a fast diagnostic.
 
 </Update>
 

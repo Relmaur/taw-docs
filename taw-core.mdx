@@ -2187,7 +2187,7 @@ See [`POST /taw/v1/chat`](#chat) under REST API for the request/response shape.
 
 ## Bible Reader Corpus
 
-A read-only REST surface over a developer-installed reference corpus — currently a Straubinger-translation Spanish Catholic Bible (`books`/`chapters`/`verses`/`sections`/`notes`, plus full-text search), built for the fsspx-taw client site's Bible reader but framework-level and reusable: the schema itself is fixed (this isn't a generic query layer — see [Sovereign Hybrid-RAG Chatbot](#sovereign-hybrid-rag-chatbot)'s knowledge bases for that), but the storage/install/REST plumbing generalizes to any future reference corpus the same shape describes.
+A read-only REST surface over a developer-installed reference corpus — currently a Straubinger-translation Spanish Catholic Bible (`books`/`chapters`/`verses`/`sections`/`notes`, plus full-text search), built for a client site's Bible reader but framework-level and reusable: the schema itself is fixed (this isn't a generic query layer — see [Sovereign Hybrid-RAG Chatbot](#sovereign-hybrid-rag-chatbot)'s knowledge bases for that), but the storage/install/REST plumbing generalizes to any future reference corpus the same shape describes.
 
 <Callout kind="tip">
   Opt-in — call `TAW\Core\Rest\BibleEndpoint::enable()` in the theme's `customizations.php` before `Theme::boot()`, same posture as `Lucide::enable()`/`RagSettings::enable()`. Nothing here registers on a site that doesn't call it.

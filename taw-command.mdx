@@ -23,16 +23,16 @@ taw help content:import
 In a theme folder, or any folder under it, type the command. `taw` keeps your current folder, so relative paths in the arguments work:
 
 ```bash
-cd wp-content/themes/ls-mexico/Blocks
+cd wp-content/themes/awesome-company/Blocks
 taw list
 taw make:block Hero --type=meta
 ```
 
-From anywhere else, name the theme with `@`. The short form is the theme folder name, like `@chcapital`, `@ls-mexico` or `@taw-theme`; a site name works too. A site with two TAW themes needs both: `@<site>/<theme>`.
+From anywhere else, name the theme with `@`. The short form is the theme folder name, like `@john-seed`, `@awesome-company` or `@taw-theme`; a site name works too. A site with two TAW themes needs both: `@<site>/<theme>`.
 
 ```bash
-taw @ls-mexico list
-taw @chcapital sync
+taw @awesome-company list
+taw @john-seed sync
 taw @taw/taw-gutenberg list
 ```
 

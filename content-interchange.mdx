@@ -144,7 +144,7 @@ add_filter('taw_content_export_settings_options', fn (array $keys) => [...$keys,
 
 <Callout kind="info">
   Sites that added a manual `taw_content_export_post_types` filter just to export a
-  `public => false` content CPT (for example FSSPX's `activity` Mass schedule) can **drop
+  `public => false` content CPT (for example an `event` schedule) can **drop
   that filter** once running `taw/core` v1.26.0 — any CPT with a `Metabox` attached is
   auto-included.
 </Callout>

@@ -33,8 +33,8 @@ Every request is a signed `GET` to the companion's `/wp-json/taw-hub/v1/` routes
 <Steps>
   <Step title="Add the production URL" icon="globe">
     ```toml title="config.toml"
-    [sites.ls-mxico]
-    production_url = "https://lsmexico.mx"
+    [sites.awesome-company]
+    production_url = "https://awesomecompany.com"
     ```
   </Step>
   <Step title="Create taw-fleet's signing key" icon="key-round">
@@ -54,14 +54,14 @@ Every request is a signed `GET` to the companion's `/wp-json/taw-hub/v1/` routes
   </Step>
   <Step title="Pin each site's key" icon="pin">
     ```bash
-    taw-fleet live trust ls-mxico
+    taw-fleet live trust awesome-company
     ```
 
     taw-fleet asks the site for the key it signs with, checks that the answer is signed by that key, shows it, and asks you to confirm (trust on first use). With a key you already have, pin it as given: `--key <base64> --key-id <id>`.
   </Step>
   <Step title="Check" icon="check">
     ```bash
-    taw-fleet live ls-mxico --logs 20
+    taw-fleet live awesome-company --logs 20
     ```
 
     <Callout kind="success" collapsed="false">
@@ -195,9 +195,9 @@ In the chat, Claude publishes through the `publish_content` tool: it describes t
 Site skills that change the live site, like `resolve-comments`, write through `taw-fleet wp-remote`. It calls the site's WordPress REST API as a bot user whose Application Password stays in your Keychain, so it never appears in a Claude transcript or a file. Setting up the bot is on [Site skills](/site-skills#production-writes).
 
 ```bash
-taw-fleet wp-remote ls-mxico GET '/wp/v2/pages?slug=nosotros&context=edit'
-taw-fleet wp-remote ls-mxico POST /wp/v2/pages/12 --data @meta.json
-taw-fleet wp-remote ls-mxico POST /wp/v2/media --file hero.webp
+taw-fleet wp-remote awesome-company GET '/wp/v2/pages?slug=nosotros&context=edit'
+taw-fleet wp-remote awesome-company POST /wp/v2/pages/12 --data @meta.json
+taw-fleet wp-remote awesome-company POST /wp/v2/media --file hero.webp
 ```
 
 - **Methods:** `GET`, `POST`, `PUT` and `PATCH`. There is no `DELETE`: taw-fleet never deletes on production.
@@ -228,7 +228,7 @@ The columns refresh every 5 minutes, every 15 seconds while a deploy runs, and r
 
 1. **Pick.** With several open, the dashboard asks which, by number. On the command line, use `--pr <number>`.
 2. **Refusals.** A draft, a conflict, CI that failed, and CI that still runs are refused, each with the reason.
-3. **Ask.** The question names what the merge does: “Merge #12 “Hero copy” into main? CI passed. This deploys https://lsmexico.mx (production).” When `taw.json` delivers to another remote, it adds: “Then origin (the copy) gets main too, when it can follow.”
+3. **Ask.** The question names what the merge does: “Merge #12 “Hero copy” into main? CI passed. This deploys https://awesomecompany.com (production).” When `taw.json` delivers to another remote, it adds: “Then origin (the copy) gets main too, when it can follow.”
 4. **Merge.** taw-fleet uses the repository's default merge method for you, and only if the branch is still at the commit taw-fleet read. If someone pushed since, it stops: refresh with `L` and look again.
 5. **Clean up.** It deletes the branch on GitHub, when the branch is in the same repository. If the local theme has no changes to tracked files and is on that branch or the default one, it switches to the default branch, pulls it (from the delivery remote, when `taw.json` names one), and deletes the local branch. Untracked files, such as the update's `.taw/` report, don't stop it. Otherwise it leaves the theme alone and says why.
 
@@ -261,8 +261,8 @@ Clients review their live site in [BugSmash](https://bugsmash.io) and pin commen
     Put the site's project id in the settings:
 
     ```toml title="config.toml"
-    [sites.ls-mxico]
-    bugsmash_project = "a2f16102-91d0-4968-a010-fca3146f4596"
+    [sites.awesome-company]
+    bugsmash_project = "00000000-0000-4000-8000-000000000000"
     ```
   </Step>
 </Steps>
@@ -296,7 +296,7 @@ A section taw-fleet couldn't measure says “Not available for this month” in 
     report_from = "Marco Lizardo"   # "Prepared by …"; leave it out for no name
     report_language = "en"          # or "es"
 
-    [sites.ls-mxico]
+    [sites.awesome-company]
     report_language = "es"          # this client's reports in Spanish
     ```
   </Step>
@@ -317,9 +317,9 @@ A section taw-fleet couldn't measure says “Not available for this month” in 
 On the 1st of each month (up to the 3rd, in case your Mac was asleep), `taw-fleet watch` makes last month's report for every production site it was watching, and a notification tells you it's ready.
 
 ```bash
-taw-fleet report ls-mxico --month 2026-09 --open
+taw-fleet report awesome-company --month 2026-09 --open
 taw-fleet report --all --month 2026-09   # every production site
-taw-fleet report ls-mxico --print        # the Markdown only, nothing saved
+taw-fleet report awesome-company --print        # the Markdown only, nothing saved
 ```
 
 ## Notifications
@@ -336,7 +336,7 @@ taw-fleet report ls-mxico --print        # the Markdown only, nothing saved
   </Step>
   <Step title="Check that notifications arrive" icon="mouse-pointer-click">
     ```bash
-    taw-fleet watch test ls-mxico
+    taw-fleet watch test awesome-company
     ```
 
     Clicking the notification opens the dashboard on that site, its details showing. The first time, macOS asks whether terminal-notifier may show notifications: allow it, with the Banners style.

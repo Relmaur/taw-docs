@@ -63,7 +63,7 @@ Skills that change the live site, like `resolve-comments`, write through `taw-fl
 
   <Step title="Store it on your Mac" icon="key-round" titleType="p">
     ```bash
-    printf 'claude-bot:xxxx xxxx xxxx xxxx xxxx xxxx' | taw-fleet wp-remote key import ls-mxico
+    printf 'claude-bot:xxxx xxxx xxxx xxxx xxxx xxxx' | taw-fleet wp-remote key import awesome-company
     ```
 
     Repeat on each Mac that works on the site.
@@ -71,7 +71,7 @@ Skills that change the live site, like `resolve-comments`, write through `taw-fl
 
   <Step title="Check it" icon="check" titleType="p">
     ```bash
-    taw-fleet wp-remote key show ls-mxico
+    taw-fleet wp-remote key show awesome-company
     ```
 
     <Callout kind="success" collapsed="false">
@@ -83,9 +83,9 @@ Skills that change the live site, like `resolve-comments`, write through `taw-fl
 You can also call it yourself:
 
 ```bash
-taw-fleet wp-remote ls-mxico GET '/wp/v2/pages?slug=nosotros&context=edit'
-taw-fleet wp-remote ls-mxico POST /wp/v2/pages/12 --data @meta.json
-taw-fleet wp-remote ls-mxico POST /wp/v2/media --file hero.webp
+taw-fleet wp-remote awesome-company GET '/wp/v2/pages?slug=nosotros&context=edit'
+taw-fleet wp-remote awesome-company POST /wp/v2/pages/12 --data @meta.json
+taw-fleet wp-remote awesome-company POST /wp/v2/media --file hero.webp
 ```
 
 <Callout kind="info">

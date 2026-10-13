@@ -140,9 +140,9 @@ Before an update (`u`, `U`), a merge (`M`) and a content import (`C`), taw-fleet
 - taw-fleet keeps the newest 5 per site. `restore_keep` in the settings changes that; `0` makes none.
 
 ```bash
-taw-fleet restore ls-mxico          # the points, newest first
-taw-fleet restore ls-mxico latest   # put the newest back (asks first)
-taw-fleet restore ls-mxico --save   # one now
+taw-fleet restore awesome-company          # the points, newest first
+taw-fleet restore awesome-company latest   # put the newest back (asks first)
+taw-fleet restore awesome-company --save   # one now
 ```
 
 ## Create a site
@@ -185,7 +185,7 @@ editor = "Cursor"
 terminal = "Ghostty"
 window = false
 icons = "nerd"
-github_owners = ["Relmaur", "EmeLambda"]
+github_owners = ["Relmaur", "awesome-agency"]
 
 [create]
 kind = "classic"
@@ -194,14 +194,14 @@ admin_email = "me@example.com"
 php = "8.2.30"
 web_server = "nginx"
 
-[sites.ls-mxico]
-production_url = "https://lsmexico.mx"
+[sites.awesome-company]
+production_url = "https://awesomecompany.com"
 notes = "Deploys from main."
-bugsmash_project = "a2f16102-91d0-4968-a010-fca3146f4596"
-tags = ["retainer", "es", "client:ls"]
+bugsmash_project = "00000000-0000-4000-8000-000000000000"
+tags = ["retainer", "es", "client:awesome"]
 
-[sites.parallelstaff]
-github_account = "parallelstaff"
+[sites.acme-studio]
+github_account = "acme-studio"
 ```
 
 | Key | What it does | Checked when the file loads |
@@ -223,7 +223,7 @@ github_account = "parallelstaff"
 | `[sites.<folder>] notes` | Free text added to the update prompt `h` and `A` build | No |
 | `[sites.<folder>] github_account` | The GitHub account the site's theme belongs to, when it isn't yours (for example before it has a remote) | No |
 | `[sites.<folder>] bugsmash_project` | The site's BugSmash project id. Turns on the FB column, `F` and `X`. `taw-fleet comments projects` lists the ids | Must be a UUID |
-| `[sites.<folder>] tags` | The site's [tags](/taw-fleet-dashboard#tags-and-groups), such as `["retainer", "client:ls"]`. `#` in the dashboard and `taw-fleet tag` set them | Lower case letters, digits, `:`, `_`, `-`; up to 32 characters, 12 per site |
+| `[sites.<folder>] tags` | The site's [tags](/taw-fleet-dashboard#tags-and-groups), such as `["retainer", "client:awesome"]`. `#` in the dashboard and `taw-fleet tag` set them | Lower case letters, digits, `:`, `_`, `-`; up to 32 characters, 12 per site |
 | `umbrella` | Unused since v1.12.0. It's still accepted so older files load | No |
 
 `<folder>` is the site's folder name in `~/Local Sites`. Any other key is an error that names it (`unknown keys: …`). With a broken file, the dashboard still opens, but its shortcuts are off until you fix it.
@@ -247,7 +247,7 @@ Updates push to the `origin` remote, or to the one the theme's `taw.json` names 
 
 A theme of another GitHub account shows `@account` in the GIT column and the detail pane, and `/other` filters to those themes. taw-fleet marks a theme when one of these is true:
 
-- Its remote uses an SSH host alias such as `github.com-parallel`, the usual way to use a second account.
+- Its remote uses an SSH host alias such as `github.com-acme`, the usual way to use a second account.
 - Its repository's owner isn't in `github_owners`. Without `github_owners`, this rule is off.
 - The site sets `github_account`, for example for a theme inside a larger repository.
 
