@@ -5,6 +5,14 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-13" description="taw/core v1.97.1: a custom post type's edit screen can follow its template's block order." tags={["taw/core"]}>
+
+## October 2026: box order for custom post types
+
+- **taw/core v1.97.1:** `MetaboxOrder::lockFromTemplate()` keeps a page's edit-screen boxes in the order its blocks render. It now also works for a custom post type rendered by `single-{type}.php`: add `MetaboxOrder::lockFromTemplate('<post type>');` to `inc/customizations.php`. Parallel Staff's role pages asked for it. The themes pick it up with their next taw/core lock.
+
+</Update>
+
 <Update label="2026-10-13" description="taw-fleet v1.28.0: the launch report, and a new site from a link all the way to production." tags={["taw-fleet"]}>
 
 ## October 2026: the launch report

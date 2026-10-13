@@ -685,8 +685,9 @@ Template resolution mirrors WordPress's own hierarchy, not just the Page Attribu
 | 2 | `front-page.php` | The page is the static front page (Settings → Reading). |
 | 3 | `home.php` | The page is the posts page (Settings → Reading). |
 | 4 | `page-{slug}.php` | A template file matches the page slug. |
+| 5 | `single-{type}-{slug}.php`, `single-{type}.php`, `single.php` | The post isn't a page (taw/core v1.97.1+). |
 
-Cases 2–4 write no post meta — WordPress applies them by convention. Pages matching none are left unordered. This resolution and the `screens` template matching in `Metabox` share one method, `Metabox::templateCandidatesForPost()`, so they cannot drift apart.
+Cases 2–5 write no post meta — WordPress applies them by convention. Posts matching none are left unordered. `functions.php`'s boot locks `page` only: to order a custom post type's edit screen by its single template, add `MetaboxOrder::lockFromTemplate('role-page');` (with your post type) to `inc/customizations.php`. Cases 1–4 are shared with the `screens` template matching in `Metabox` (`Metabox::templateCandidatesForPost()`), so they cannot drift apart.
 
 {/* MARK: Forms */}
 
