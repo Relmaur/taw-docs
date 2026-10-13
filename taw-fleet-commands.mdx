@@ -72,6 +72,7 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 | [`merge`](#merge) | Merge a pull request (deploys production) |
 | [`ready`](#ready) | What a site has and still needs (the SETUP checklist) |
 | [`repo`](#repo) | Put a new site's theme on GitHub |
+| [`deploy`](#deploy) | Set up a site's deploy to any host |
 | [`comments`](#comments) | Open BugSmash comments |
 | [`watch`](#watch) | A macOS notification when something needs you |
 | [`restore`](#restore) | A site's restore points, and putting one back |
@@ -443,6 +444,26 @@ taw-fleet repo <site> [--owner <account>] [--name <repo>] [--theme <folder>] [--
 ```
 
 For a theme with no GitHub repository: creates a private one (default name `<theme folder>--theme`; default owner the first of `github_owners`, else your `gh` account), adds it as `origin`, pushes the default branch and the current one, and requires the dump check (`ci / committed-files`) on the default branch. Asks first. Needs `gh` signed in.
+
+### deploy
+
+```bash
+taw-fleet deploy setup <site>                 # the form: host, details, key, test, apply
+taw-fleet deploy profiles [--json]            # the hosts taw-fleet knows, and where each value is
+taw-fleet deploy key <site>                   # the deploy key's public half (made the first time)
+taw-fleet deploy test <site> [target flags]   # connect as the deploy will; nothing changes
+taw-fleet deploy apply <site> [target flags] [--yes]
+```
+
+Sets up taw/core's shared deploy (taw/core 1.97+) for a theme on GitHub with no deploy yet: by SSH + rsync into the theme's folder on the server, or by git push to the host's remote. `apply` tests the connection again, pinning the server's host key, then (after asking) stores the settings as repository variables and the key as the secret `DEPLOY_SSH_KEY`, opens a pull request adding `.github/workflows/deploy.yml` (merging it deploys), and adds `production_url` to the settings. The deploy key stays in the Keychain only until then.
+
+| Target flag | Does |
+|---|---|
+| `--profile <id>` | Pre-fills the method, port and git defaults (`deploy profiles`) |
+| `--method rsync\|git` | How the theme reaches the host |
+| `--host`, `--port`, `--user`, `--path` | rsync: the SSH host, port (22), user, and the theme's folder (`…/wp-content/themes/<theme>`) |
+| `--git-remote`, `--git-branch`, `--git-path` | git: the remote, its branch (`master`), and the theme's place in it (`wp-content/themes/<theme>`) |
+| `--url` | The production site's URL |
 
 ### restore
 

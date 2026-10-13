@@ -5,6 +5,16 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-12" description="taw/core v1.97.0 and taw-fleet v1.27.0: set up a site's deploy to any host. taw-theme v1.12.73 and taw-gutenberg v0.3.75 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg", "taw-fleet"]}>
+
+## October 2026: deploy to any host
+
+- **taw/core v1.97.0:** a shared deploy, the way CI is shared: after CI passes, the built theme goes to its host by SSH + rsync (WPMU DEV, WP Engine, Kinsta, SiteGround, Cloudways, a VPS…) or by git push. The server's identity is pinned when the deploy is set up, and a deploy carrying a database dump, `.sync/`, `.env` files or a key is refused. Sites with their own deploy keep it.
+- **taw-fleet v1.27.0:** `I` on the SETUP checklist's Deploy step sets it up: pick the host (any SSH host or git remote works), fill in the details, add the deploy key taw-fleet shows you at the host, test, and taw-fleet stores everything in GitHub and opens the pull request whose merge is the first deploy. It also adds the production URL to your settings. In the chat, the `add-production` skill does the same. See [Set up a site](/taw-fleet-dashboard#set-up-a-site).
+- **taw-theme v1.12.73** and **taw-gutenberg v0.3.75** lock taw/core 1.97.0.
+
+</Update>
+
 <Update label="2026-10-12" description="taw-fleet v1.26.0: the SETUP checklist, and a new site on GitHub with one key." tags={["taw-fleet"]}>
 
 ## October 2026: what each site still needs
