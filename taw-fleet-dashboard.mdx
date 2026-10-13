@@ -73,6 +73,7 @@ At 120 columns or wider, the selected site's details sit beside the cards. The p
 | **LIVE** | The production site's companion | Versions, plugin updates, vulnerabilities, recent log lines |
 | **FEEDBACK** | BugSmash | Open comments, the oldest's age, and the three latest with their number, page, author and age |
 | **FINDINGS** | `doctor` | What needs attention, with the fix |
+| **SETUP** | All of the above, the settings and the Keychain | What the site has and still needs: repository, secrets check, deploy, production, companion, bot, BugSmash, skills, each with how to do it. `I` does the next step. See [Set up a site](#set-up-a-site) |
 
 MERGE and UPDATE appear only around a merge or an update. LIVE and FEEDBACK appear once the site has been checked.
 
@@ -124,6 +125,7 @@ These are grouped as the `:` palette groups them.
 | Theme · Git & GitHub | `g`, `G` | Open the theme's GitHub repository, its pull requests |
 | Theme · Git & GitHub | `M` | Merge a pull request, then follow the deploy. See [Pull requests and deploys](/taw-fleet-production#pull-requests-and-deploys) |
 | Theme · Git & GitHub | `D` | Back to the site's branch. See [Back to the site's branch](#back-to-the-sites-branch) |
+| Site · Local | `I` | Set up the next thing on the SETUP checklist. See [Set up a site](#set-up-a-site) |
 | App | `>` | Chat with Claude: about the whole fleet from the list, about this site from its details. See [Chat with Claude](#chat-with-claude) |
 | App | `r` | Read Local again now |
 | App | `ctrl+r` | Refresh everything, past the caches |
@@ -194,6 +196,27 @@ The newest versions of taw-core, taw-theme, taw-gutenberg and taw-fleet are cach
 | `esc` | Close |
 
 An action runs exactly as its key does. With no site selected, only the App actions and `n` are available.
+
+## Set up a site
+
+The details end with a **SETUP** checklist, in the order a site gets set up:
+
+| Step | Done when |
+|---|---|
+| Repository | The theme is on GitHub and pushed |
+| Secrets check | taw/core's pre-commit check is on (it refuses a database, `.sync/`, `.env` files or keys) |
+| Deploy | The repository has a deploy workflow |
+| Production | The site has a `production_url` in the settings |
+| Companion | Production answers and is verified |
+| Bot | The site's bot is in the Keychain, for writes to production |
+| BugSmash | The site has a BugSmash project |
+| Skills | taw/core's site skills are installed |
+
+A missing step says how to do it; the companion, the bot and BugSmash wait for production. `I` does the next step that has a key, or says how to do it by hand.
+
+**Put a new site on GitHub.** For a theme with no GitHub repository, `I` creates a private one named `<theme folder>--theme`, owned by the first of `github_owners` in the settings or your `gh` account. It pushes the main branch and the one you're on, and requires the dump check before anything merges into main, as the fleet's other repositories do. It asks first and needs the GitHub CLI signed in (`gh auth login`).
+
+`taw-fleet ready` prints the same checklist in a terminal, and `taw-fleet repo <site>` puts a theme on GitHub.
 
 ## Chat with Claude
 

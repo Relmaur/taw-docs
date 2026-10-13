@@ -70,6 +70,8 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 | [`wp-remote`](#wp-remote) | The production site's REST API, as its bot user |
 | [`prs`](#prs) | Open pull requests, CI and deploys |
 | [`merge`](#merge) | Merge a pull request (deploys production) |
+| [`ready`](#ready) | What a site has and still needs (the SETUP checklist) |
+| [`repo`](#repo) | Put a new site's theme on GitHub |
 | [`comments`](#comments) | Open BugSmash comments |
 | [`watch`](#watch) | A macOS notification when something needs you |
 | [`restore`](#restore) | A site's restore points, and putting one back |
@@ -425,6 +427,22 @@ Checks the fleet and tells you, once, with a macOS notification, what changed si
 | `watch test [site]` | | Send a notification now, to see it arrive and where a click goes |
 
 Event kinds in `--json` and `watch status --json`: `deploy.failed`, `ci.failed`, `production.down`, `production.up`, `production.unverified`, `comments.new`, `pr.ready`, `report.ready`.
+
+### ready
+
+```bash
+taw-fleet ready [site] [--json]
+```
+
+The SETUP checklist from the dashboard's details, for one site or every client site: repository, secrets check, deploy, production, companion, bot, BugSmash, skills. Each step says what's there, or how to do it. See [Set up a site](/taw-fleet-dashboard#set-up-a-site).
+
+### repo
+
+```bash
+taw-fleet repo <site> [--owner <account>] [--name <repo>] [--theme <folder>] [--yes]
+```
+
+For a theme with no GitHub repository: creates a private one (default name `<theme folder>--theme`; default owner the first of `github_owners`, else your `gh` account), adds it as `origin`, pushes the default branch and the current one, and requires the dump check (`ci / committed-files`) on the default branch. Asks first. Needs `gh` signed in.
 
 ### restore
 

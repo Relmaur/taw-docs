@@ -212,6 +212,7 @@ An agent doesn't have to trust its own read of a change — CI catches both stat
 | `pull_requests` | `taw-fleet prs --json` | Open pull requests with CI, and what production has deployed |
 | `comments` | `taw-fleet comments [site] --json` | Open client comments in BugSmash |
 | `production` | `taw-fleet live --json` | Each production site through its companion |
+| `site_setup` | `taw-fleet ready [site] --json` | What a site has and still needs: the SETUP checklist |
 | `taw` | `taw @<theme> <command…>` | A theme's own command, with its site's PHP. Read-only commands (`list`, `help`, `inspect`, `policy`, `sync` and `upgrade` without `--apply`, `content:diff`) run at once; any other asks first |
 
 ### Tools that change something ask first
@@ -231,6 +232,7 @@ taw-fleet 1.19.0+ also serves the dashboard's actions. Each one asks first, the 
 | `start_site`, `stop_site` | `taw-fleet start` or `stop <site>` | `s` |
 | `sync_apply` | `taw-fleet sync <site> --apply` | `S` |
 | `pull_content` | `taw-fleet pull <site>` (the first call shows the preview) | `C` |
+| `create_repo` | `taw-fleet repo <site>` | `I` (a new site's theme on GitHub) |
 | `create_site` | `taw-fleet create <name> --classic` or `--block` (the admin password isn't shown to the AI app) | `n` |
 
 A long action, such as an update, sends its progress lines while it runs.
