@@ -218,7 +218,9 @@ A missing step says how to do it; the companion, the bot and BugSmash wait for p
 
 **Set up the deploy, to any host.** On the Deploy step, `I` opens the deploy setup: pick where the site goes (WPMU DEV, WP Engine by SSH or git push, Kinsta, SiteGround, Cloudways, or any other SSH host or git remote), fill in the details (each field says where to find it in the host's panel) and the production URL. taw-fleet makes a deploy key and shows its public half, already copied, with where to add it at the host. Then it tests the connection, as the deploy will, and after asking: stores the settings and the key in the GitHub repository, opens a pull request adding the deploy workflow, and adds the production URL to your settings. Merging that pull request is the first deploy. A site that already deploys its own way keeps it.
 
-`taw-fleet ready` prints the same checklist in a terminal, `taw-fleet repo <site>` puts a theme on GitHub, and `taw-fleet deploy setup <site>` sets up its deploy.
+**The launch report.** Once the site is live and what's left is done by hand (the bot, BugSmash), `I` checks production and opens its launch report: HTTPS and the redirect to it, the certificate, search engines let in, the last deploy, the companion, plugins and security, PageSpeed with its picture of production beside the Local build, and what's left for you, each with how. It only reads production. It's saved in `~/TAW Fleet/sites/<site>/launch.html`.
+
+`taw-fleet ready` prints the same checklist in a terminal, `taw-fleet repo <site>` puts a theme on GitHub, `taw-fleet deploy setup <site>` sets up its deploy, `taw-fleet launch-report <site>` makes the launch report, and `taw-fleet comments link <site> <project>` links its BugSmash project.
 
 ## Chat with Claude
 
@@ -262,8 +264,8 @@ Under the site's skills, `a` lists the **fleet skills**: work on the whole fleet
 | `fleet-check` | The morning check. Reads doctor, production, client comments, pull requests and `watch`, then writes one summary, most urgent first, with the next action for each item. Changes nothing |
 | `update-fleet` | What `U` does, then the rest: the themes that stopped, and each update's merge and deploy, one site at a time, asking before each merge |
 | `onboard-mac` | A Mac ready for the fleet: the tools, the sites, the keys taw-fleet keeps in the Keychain, and `watch`. Asks before installing or storing anything |
-| `add-production` | The deploy to any host, in the chat: the host and its details, the deploy key to add there, the test, then the deploy setup and its pull request. It never asks for a password or a key |
-| `new-site` | A new site from a link or a brief: a Claude design or artifact, a Figma file, an existing website, or a description. It writes a brief for you to approve, creates the Local site, builds it with the theme's `build-site` skill, and opens the reference beside the build. See [A new site from a link](/taw-fleet#a-new-site-from-a-link) |
+| `add-production` | The deploy to any host, in the chat: the host and its details, the deploy key to add there, the test, then the deploy setup and its pull request; after the first deploy, the launch report. It never asks for a password or a key |
+| `new-site` | A new site from a link or a brief, all the way to production: a Claude design or artifact, a Figma file, an existing website, or a description. It writes a brief for you to approve, creates the Local site, builds it with the theme's `build-site` skill, shows the reference beside the build, puts it on GitHub, sets up the deploy to your host, and ends with the launch report. See [A new site from a link](/taw-fleet#a-new-site-from-a-link) |
 
 ## Update a theme
 

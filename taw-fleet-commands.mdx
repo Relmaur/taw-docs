@@ -73,6 +73,7 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 | [`ready`](#ready) | What a site has and still needs (the SETUP checklist) |
 | [`repo`](#repo) | Put a new site's theme on GitHub |
 | [`deploy`](#deploy) | Set up a site's deploy to any host |
+| [`launch-report`](#launch-report) | Check a live site and write its launch report |
 | [`comments`](#comments) | Open BugSmash comments |
 | [`watch`](#watch) | A macOS notification when something needs you |
 | [`restore`](#restore) | A site's restore points, and putting one back |
@@ -402,6 +403,7 @@ The open comments in each site's BugSmash project, newest first: the count and t
 | Subcommand | Flags | Does |
 |---|---|---|
 | `comments projects` | `--json` | Your BugSmash projects and their ids, for `bugsmash_project` |
+| `comments link <site> <project id>` | `-y`/`--yes` | Check the project with BugSmash, then set `bugsmash_project` for the site in the settings. Asks first |
 | `comments key import` | | Store the BugSmash API key from stdin in the Keychain. In a terminal, it asks without echo |
 | `comments key show` | | Say where the key comes from and whether BugSmash accepts it, never the key |
 
@@ -464,6 +466,20 @@ Sets up taw/core's shared deploy (taw/core 1.97+) for a theme on GitHub with no 
 | `--host`, `--port`, `--user`, `--path` | rsync: the SSH host, port (22), user, and the theme's folder (`…/wp-content/themes/<theme>`) |
 | `--git-remote`, `--git-branch`, `--git-path` | git: the remote, its branch (`master`), and the theme's place in it (`wp-content/themes/<theme>`) |
 | `--url` | The production site's URL |
+
+### launch-report
+
+```bash
+taw-fleet launch-report <site> [--theme <dir>] [--open] [--json] [--no-speed]
+```
+
+Checks a site in production as it is now, only reading it, and saves its launch report as `~/TAW Fleet/sites/<site>/launch.html` (and `launch.md`). The checks: production answers over HTTPS, `http://` moves to `https://` for good, the certificate; search engines are let in (no `noindex` in the page or its headers, which is what WordPress's "Discourage search engines" leaves behind, and a `robots.txt` that doesn't shut everyone out); the last deploy; the companion (verified, the same taw/core as the theme, plugin updates, known vulnerabilities); PageSpeed, mobile and desktop (up to a minute; `--no-speed` skips it); `taw-fleet watch`; BugSmash; and the rest of the SETUP checklist. The report starts with what's left for you, each with how. PageSpeed's picture of production's first screen is saved in `production/`, beside the Local build's from `build/` when there is one. `--json` adds `report`, the page's path.
+
+| Flag | Does |
+|---|---|
+| `--open` | Open the report in the browser |
+| `--json` | Print the report's data as JSON |
+| `--no-speed` | Skip PageSpeed |
 
 ### restore
 

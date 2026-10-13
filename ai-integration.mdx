@@ -214,6 +214,8 @@ An agent doesn't have to trust its own read of a change — CI catches both stat
 | `production` | `taw-fleet live --json` | Each production site through its companion |
 | `site_setup` | `taw-fleet ready [site] --json` | What a site has and still needs: the SETUP checklist |
 | `deploy_profiles` | `taw-fleet deploy profiles --json` | The hosts taw-fleet knows, and where each value is |
+| `launch_report` | `taw-fleet launch-report <site> --json` | A live site checked, and its launch report saved |
+| `bugsmash_projects` | `taw-fleet comments projects --json` | Your BugSmash projects and their ids |
 | `deploy_test` | `taw-fleet deploy test <site> …` | Connects as the deploy will; nothing changes |
 | `taw` | `taw @<theme> <command…>` | A theme's own command, with its site's PHP. Read-only commands (`list`, `help`, `inspect`, `policy`, `sync` and `upgrade` without `--apply`, `content:diff`) run at once; any other asks first |
 
@@ -236,6 +238,8 @@ taw-fleet 1.19.0+ also serves the dashboard's actions. Each one asks first, the 
 | `pull_content` | `taw-fleet pull <site>` (the first call shows the preview) | `C` |
 | `create_repo` | `taw-fleet repo <site>` | `I` (a new site's theme on GitHub) |
 | `deploy_key`, `deploy_apply` | `taw-fleet deploy key`, `deploy apply <site> …` | `I` on Deploy (the deploy to any host) |
+| `trust_production` | `taw-fleet live trust <site>` (the question shows the key) | the Companion step |
+| `link_bugsmash` | `taw-fleet comments link <site> <project>` | the BugSmash step |
 | `create_site` | `taw-fleet create <name> --classic` or `--block` (the admin password isn't shown to the AI app) | `n` |
 
 A long action, such as an update, sends its progress lines while it runs.

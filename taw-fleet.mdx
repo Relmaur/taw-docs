@@ -106,13 +106,17 @@ Your monthly reports are there too, in `reports/`.
 
 ## A new site from a link
 
-In the fleet chat (`>` from the list), ask for a site: “make me a site for a bakery”, or “make me this site:” followed by a link to a Claude design or artifact, a Figma file or an existing website. The `new-site` skill stops three times for you:
+In the fleet chat (`>` from the list), ask for a site: “make me a site for a bakery”, or “make me this site:” followed by a link to a Claude design or artifact, a Figma file or an existing website. The `new-site` skill takes it all the way to a reviewed production site, and stops six times for you:
 
 1. **The brief.** It reads the link into a brief: the pages and their sections, header and footer, colours and fonts, content and images, forms, classic or block theme, and its questions. You approve it or say what to change. It's saved in `~/TAW Fleet/sites/<slug>/`, with screenshots of the reference.
 2. **The build.** It creates the Local site (asking first), then the theme's [`build-site`](/site-skills) skill builds it on a branch, page by page, and runs the theme's checks.
 3. **Reference beside build.** It screenshots the Local site and opens a page with the reference and the build side by side, desktop and mobile. Your corrections go back into the build.
 
-It stops at the Local site. A GitHub repository, hosting and production come after, by hand for now. Images from someone else's website are replaced by placeholders unless you say they're the client's.
+4. **GitHub.** It puts the theme in a private repository (asking first) and waits for its CI.
+5. **Production.** You pick the host; it sets up the deploy with the `add-production` skill. You get the host ready: WordPress on the domain, the content moved (WordPress's export and import, or the host's migration tool) and DNS. taw-fleet never copies a database. Merging the deploy pull request, after asking again, is the first deploy.
+6. **Live.** It pins the site's companion key and links its BugSmash project (each asking first), screenshots production, and opens the [launch report](/taw-fleet-dashboard#set-up-a-site): what it did, the scores, and what's left for you.
+
+You can stop after any stage ("just build it in Local") and pick up later. Images from someone else's website are replaced by placeholders unless you say they're the client's.
 
 ## Update a theme
 
