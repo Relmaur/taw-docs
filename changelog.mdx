@@ -5,6 +5,16 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-13" description="taw/core v1.99.0: a json field, and fields that keep their saved value when a check fails. taw-theme v1.12.77 and taw-gutenberg v0.3.78 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
+
+## October 2026: a JSON field that can't break the page
+
+- **taw/core v1.99.0:** a new `json` field type. You edit JSON in a code box with a **Format** button, and a mistake shows its line and column as you type. Invalid JSON is never saved: the page keeps using the last good value, and the field shows what you typed with “Not saved: …” under it, so nothing is lost. Sites can add their own check (`validate`), such as a JSON Schema. Any field can work this way with `'on_invalid' => 'keep'`. EmeLambda's practice previews asked for it.
+- **Also fixed:** in the block editor, a field's validation error now shows when you reload the page. Before, the editor's save swallowed it.
+- **taw-theme v1.12.77** and **taw-gutenberg v0.3.78** lock taw/core 1.99.0.
+
+</Update>
+
 <Update label="2026-10-13" description="taw/core v1.98.1: a repeater inside a repeater row on an options page works. taw-theme v1.12.76 and taw-gutenberg v0.3.77 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
 
 ## October 2026: nested repeaters on options pages

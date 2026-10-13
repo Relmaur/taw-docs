@@ -43,6 +43,8 @@ All field types share a base set of options:
 | `width` | `string` | Column width as a percentage, e.g. `'50'`, `'33.33'`. Default `'100'` |
 | `conditions` | `array` | Conditional logic — show/hide based on other field values |
 | `readonly` | `bool` | Render as non-interactive text; never written on save (see [Readonly fields](#readonly-fields)) |
+| `validate` | `callable` | Your own check: return `true`, or `false` / an error message |
+| `on_invalid` | `string` | When validation fails: `'store'` (default) saves the input anyway and shows the error; `'keep'` leaves the saved value as it was and shows what you typed again on the next load (taw/core v1.99.0+; a `json` field keeps by default) |
 
 ## Field types
 
@@ -382,6 +384,19 @@ All field types share a base set of options:
     $cta = Taw::post($postId)->field('hero_cta')->link();     // ->url(), ->label(), ->newTab(), ->exists()
     echo $cta->html(['class' => 'btn']);
     ```
+  </Expandable>
+
+  <Expandable title="json" default-open="false">
+    JSON text in a code editor (`taw/core` v1.99.0+): a monospace box with a **Format** button, and the error with its line and column as you type. It's stored as compact JSON, and invalid JSON is never stored: when a save is rejected, the saved value stays live and the field shows what you typed with “Not saved: …” under it.
+
+    ```php
+    ['id' => 'request', 'label' => 'Request', 'type' => 'json', 'rows' => 16,
+     'validate' => static fn (mixed $data, string $text) => isset($data['hero']) ?: 'The request needs a hero.']
+    ```
+
+    - `validate` runs only once the JSON parses, with the decoded value (PHP arrays) and, if it takes a second parameter, the text you submitted. Decode that yourself (`json_decode($text)`) when `{}` and `[]` must differ, for example for a JSON Schema check.
+    - `getMeta()` returns the JSON text; `Taw::post($id)->field('request')->value()` returns arrays.
+    - Not in the block editor's data panel yet: a fieldset with a `json` field stays a metabox.
   </Expandable>
 </ExpandableGroup>
 
