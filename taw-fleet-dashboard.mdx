@@ -156,19 +156,34 @@ A question shows in the footer.
 
 ## Filter
 
-Press `/` and type. The cards that match stay. `enter`, `↑` or `↓` keeps the filter and leaves the input; `esc` clears it.
+Press `/` and type. The cards that match stay, and the footer counts them (“3 of 9”). `enter`, `↑` or `↓` keeps the filter and leaves the input; `esc` clears it.
 
-A term matches any part of the site's folder name, name or domain, the theme's folder, its kind (`classic`, or `block` or `gutenberg` for a block theme), the site's status (`running`, `halted`), the installed taw/core version and the branch. These words match more:
+- **Words.** A word matches any part of the site's folder name, name or domain, the theme's folder, its kind (`classic`, or `block` or `gutenberg`), the site's status (`running`, `halted`), the installed taw/core version and the branch.
+- **Several words** must all match: `mx behind` is the `.mx` sites that are behind.
+- **`-` leaves out:** `-bistro`, `-is:live`.
+- **Conditions** ask about the site's state: `is:`, `has:`, `kind:` and `core:`. You can type the start of one (`is:beh` is `is:behind`).
 
-| Term | Matches |
+| Condition | Matches |
 |---|---|
-| `behind` | taw/core is behind the newest release |
-| `dirty`, `uncommitted` | Uncommitted changes |
-| `unpushed` | The branch has no upstream, or commits to push |
-| `running` | The site runs |
-| `live` | The site has a `production_url` |
-| `vite` | The theme's Vite dev server runs |
-| `other`, `@account` | A theme of another GitHub account (`@parallelstaff`) |
+| `is:behind` | taw/core is behind the newest release |
+| `is:dirty` | Uncommitted changes |
+| `is:unpushed` | The branch has no upstream, or commits to push |
+| `is:running`, `is:stopped` | The Local site runs, or is stopped |
+| `is:live` | The site has a `production_url` |
+| `is:down` | Production didn't answer, or its answer wasn't signed by the pinned key |
+| `is:failing` | CI failed on the default branch, or the last deploy failed |
+| `is:deploying` | A deploy is running |
+| `is:undeployed` | The default branch has commits production doesn't have yet |
+| `is:vite` | The theme's Vite dev server runs |
+| `is:other` | A theme of another GitHub account (`@parallelstaff` matches the account) |
+| `has:comments` | Open BugSmash comments |
+| `has:prs` | Open pull requests |
+| `has:findings`, `has:errors` | `doctor` findings, or only its errors |
+| `kind:classic`, `kind:block` | The theme's kind |
+| `core:<1.95`, `core:>=1.90`, `core:=1.97.1` | The installed taw/core, compared |
+| `core:1.97` | Any 1.97.x |
+
+`is:down`, `is:failing`, `has:comments` and `has:prs` read the last production, GitHub and BugSmash checks, so they follow the LIVE, PR and FB columns. A term the filter doesn't understand is named in the footer and left out. The old single words (`behind`, `dirty`, `live`…) still work.
 
 ## Refresh
 

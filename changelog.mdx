@@ -5,6 +5,14 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-13" description="taw-fleet v1.30.0: a filter that combines words and conditions." tags={["taw-fleet", "feature"]}>
+
+## October 2026: find any site
+
+- **taw-fleet v1.30.0:** `/` now takes several words, which must all match, and `-` leaves out. Conditions ask about each site's state: `is:behind`, `is:dirty`, `is:down`, `is:failing`, `has:comments`, `has:prs`, `kind:block`, `core:<1.95` and more. `mx -is:live` or `core:<1.95 has:comments` narrow a big fleet in a few keys. The footer counts the matches and names anything it didn't understand. See [Filter](/taw-fleet-dashboard#filter).
+
+</Update>
+
 <Update label="2026-10-13" description="TAW Theme v1.12.75: block tests work on taw/core 1.98." tags={["taw-theme", "fix"]}>
 
 ## October 2026: block tests on taw/core 1.98
