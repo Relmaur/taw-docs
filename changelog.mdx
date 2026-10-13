@@ -5,6 +5,14 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-13" description="TAW Theme v1.12.75: block tests work on taw/core 1.98." tags={["taw-theme", "fix"]}>
+
+## October 2026: block tests on taw/core 1.98
+
+- **TAW Theme v1.12.75:** the theme's `tests/TestCase.php` stubs `get_post()` in `stubBlockConstructor()`, which taw/core 1.98 calls when a block reads its fields. Without it, a block test that reads a MetaBlock's fields stopped with a fatal error. A site whose `TestCase.php` is unedited gets it from `taw update`; a site that edited it can add the same stub.
+
+</Update>
+
 <Update label="2026-10-13" description="taw-fleet v1.29.1: follow-ups in the chat show while Claude works, pastes work, ctrl+n starts a new chat." tags={["taw-fleet", "fix"]}>
 
 ## October 2026: a chat you can follow up in
