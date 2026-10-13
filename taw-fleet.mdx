@@ -104,6 +104,16 @@ One two-line card per TAW theme, with columns for taw/core, the scaffold check, 
 
 Your monthly reports are there too, in `reports/`.
 
+## A new site from a link
+
+In the fleet chat (`>` from the list), ask for a site: “make me a site for a bakery”, or “make me this site:” followed by a link to a Claude design or artifact, a Figma file or an existing website. The `new-site` skill stops three times for you:
+
+1. **The brief.** It reads the link into a brief: the pages and their sections, header and footer, colours and fonts, content and images, forms, classic or block theme, and its questions. You approve it or say what to change. It's saved in `~/TAW Fleet/sites/<slug>/`, with screenshots of the reference.
+2. **The build.** It creates the Local site (asking first), then the theme's [`build-site`](/site-skills) skill builds it on a branch, page by page, and runs the theme's checks.
+3. **Reference beside build.** It screenshots the Local site and opens a page with the reference and the build side by side, desktop and mobile. Your corrections go back into the build.
+
+It stops at the Local site. A GitHub repository, hosting and production come after, by hand for now. Images from someone else's website are replaced by placeholders unless you say they're the client's.
+
 ## Update a theme
 
 `u` in the dashboard, or `taw-fleet update <site>`, updates a site in one step. It runs the theme's own `vendor/bin/taw update` with the site's PHP and Local's Composer, after one question in the words of the theme's `taw.json`. On a new branch it updates taw/core, applies the framework files, runs the migrations and the checks, commits, and opens a pull request for you to merge. If a step fails, nothing is pushed, and you choose: Fix with Claude, or Do it myself from the same report.
