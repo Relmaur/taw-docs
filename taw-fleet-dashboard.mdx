@@ -20,7 +20,7 @@ The dashboard shows one two-line card per TAW theme. The top line is the site an
 | **DEPLOY** | Whether production has the default branch's newest commit | Not with `--offline` |
 | **GIT** | Branch and local state. The second line shows how long ago the last commit was | Always |
 
-The theme line has the theme's folder, its kind (`classic` or `block`), and the production host when there's room. After the folder, `↗` means a symlink, `✓` marks the theme WordPress uses when a site has several TAW themes, and `vite` means its Vite dev server runs.
+The theme line has the theme's folder, its kind (`classic` or `block`), and the production host when there's room. After the folder, `↗` means a symlink, `✓` marks the theme WordPress uses when a site has several TAW themes, and `vite` means its Vite dev server runs. A site's [tags](#tags-and-groups) follow as `#tag`, cut with `…` when they don't fit.
 
 While a theme updates, and for 15 minutes after, its theme line carries one icon in the left margin, under the status dot: `◷` waiting its turn in an update of every theme, a spinner while it runs, `✓` updated (dimmed when there was nothing to update), `✗` stopped or didn't start. The detail pane's UPDATE section has the rest. A merge (`M`) marks its card the same way, and while it runs the theme line also says “merging #8…” or “deploying…”; the MERGE section has the steps.
 
@@ -129,6 +129,8 @@ These are grouped as the `:` palette groups them.
 | Theme · Git & GitHub | `M` | Merge a pull request, then follow the deploy. See [Pull requests and deploys](/taw-fleet-production#pull-requests-and-deploys) |
 | Theme · Git & GitHub | `D` | Back to the site's branch. See [Back to the site's branch](#back-to-the-sites-branch) |
 | Site · Local | `I` | Set up the next thing on the SETUP checklist. See [Set up a site](#set-up-a-site) |
+| Site · Local | `#` | The site's tags. See [Tags and groups](#tags-and-groups) |
+| App | `=` | Group the list: by tag, kind, production or a tag prefix, then none. `←` folds a group, `→` opens it |
 | App | `>` | Chat with Claude: about the whole fleet from the list, about this site from its details. See [Chat with Claude](#chat-with-claude) |
 | App | `r` | Read Local again now |
 | App | `ctrl+r` | Refresh everything, past the caches |
@@ -182,8 +184,26 @@ Press `/` and type. The cards that match stay, and the footer counts them (“3 
 | `kind:classic`, `kind:block` | The theme's kind |
 | `core:<1.95`, `core:>=1.90`, `core:=1.97.1` | The installed taw/core, compared |
 | `core:1.97` | Any 1.97.x |
+| `#retainer`, `tag:retainer` | Sites with that tag. Its start works too: `tag:client:` is every client tag |
 
 `is:down`, `is:failing`, `has:comments` and `has:prs` read the last production, GitHub and BugSmash checks, so they follow the LIVE, PR and FB columns. A term the filter doesn't understand is named in the footer and left out. The old single words (`behind`, `dirty`, `live`…) still work.
+
+## Tags and groups
+
+Tags organise a bigger fleet. A site can have up to 12: lower case letters, digits, `:`, `_` and `-`, such as `retainer`, `es` or `client:parallel`.
+
+- **`#`** edits the selected site's tags in a line at the bottom, filled with the current ones. Type them with spaces between, `enter` saves, `esc` cancels. Saved in the settings, under the site.
+- **On the cards**, a site's tags follow its theme line as `#tag`.
+- **The filter** finds them: `#retainer`, `tag:client:` for any client, or just the word.
+- **`=` groups the list.** Each press moves on: by tag, by kind (classic or block), by production (live or local only), by each tag prefix you use (`client:` groups by client), then not grouped. The rule under the column names says how it's grouped, and the dashboard remembers it (`group_by` in the settings).
+
+Grouped by tag, a site with several tags shows under each of them, untagged sites come last, and the TAW ecosystem is always its own last group. Each group has a header with its count:
+
+- `←` folds the group of the selected card or header, `→` opens it, and `enter` on a header does either.
+- On a header, a site's keys (`e`, `u`, `M`…) say to pick a site in the group instead.
+- Folded groups open again when you restart the dashboard.
+
+In a terminal, `taw-fleet tag <site>` shows or sets the tags and `taw-fleet list --tag retainer` lists those sites. Claude reads them in `list_sites` and sets them with `set_tags`, asking first.
 
 ## Refresh
 

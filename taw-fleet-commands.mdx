@@ -52,6 +52,7 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 | Command | Does |
 |---|---|
 | [`list`](#list) | Every Local site with a TAW theme |
+| [`tag`](#tag) | A site's tags: show, set, add, remove |
 | [`show`](#show) | One site in full |
 | [`doctor`](#doctor) | What needs attention, with finding codes |
 | [`refresh`](#refresh) | Everything again, past the caches |
@@ -92,15 +93,24 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 ### list
 
 ```bash
-taw-fleet list [--all] [--json]
+taw-fleet list [--all] [--json] [--tag <tag>]
 ```
 
-The Local sites that have a TAW theme, with their status, themes, kind, taw/core, git and domain.
+The Local sites that have a TAW theme, with their status, themes, kind, taw/core, git, domain and tags.
 
 | Flag | Does |
 |---|---|
 | `--all` | Also sites and themes that aren't TAW |
-| `--json` | Print JSON |
+| `--json` | Print JSON (each site with its `tags`) |
+| `--tag <tag>` | Only the sites with that tag. Repeat it for several, which must all match. A tag ending in `:` matches any tag that starts with it (`--tag client:`) |
+
+### tag
+
+```bash
+taw-fleet tag <site> [tag…] [--add <tag>] [--remove <tag>] [--clear] [--yes]
+```
+
+With only the site, prints its tags. With tags, sets them, replacing the old ones. `--add` and `--remove` change a few; `--clear` removes them all. A tag is lower case letters, digits, `:`, `_` or `-`, up to 12 per site. Asks first; `--yes` doesn't. The dashboard's `#`. See [Tags and groups](/taw-fleet-dashboard#tags-and-groups).
 
 ### show
 

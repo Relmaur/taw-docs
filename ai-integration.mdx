@@ -243,6 +243,7 @@ taw-fleet 1.19.0+ also serves the dashboard's actions. Each one asks first, the 
 | `deploy_key`, `deploy_apply` | `taw-fleet deploy key`, `deploy apply <site> …` | `I` on Deploy (the deploy to any host) |
 | `trust_production` | `taw-fleet live trust <site>` (the question shows the key) | the Companion step |
 | `link_bugsmash` | `taw-fleet comments link <site> <project>` | the BugSmash step |
+| `set_tags` | `taw-fleet tag <site> <tag…>` (replaces the site's tags; an empty list removes them) | `#` |
 | `create_site` | `taw-fleet create <name> --classic` or `--block` (the admin password isn't shown to the AI app) | `n` |
 
 A long action, such as an update, sends its progress lines while it runs.

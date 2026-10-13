@@ -198,6 +198,7 @@ web_server = "nginx"
 production_url = "https://lsmexico.mx"
 notes = "Deploys from main."
 bugsmash_project = "a2f16102-91d0-4968-a010-fca3146f4596"
+tags = ["retainer", "es", "client:ls"]
 
 [sites.parallelstaff]
 github_account = "parallelstaff"
@@ -212,6 +213,7 @@ github_account = "parallelstaff"
 | `report_from` | Who the [monthly reports](/taw-fleet-production#monthly-reports) say prepared them. Empty: no name | No |
 | `report_language` | The reports' language, `"en"` (default) or `"es"`. Also per site, under `[sites.<folder>]` | Must be `"en"` or `"es"` |
 | `restore_keep` | How many [restore points](#restore-points) to keep per site. Default `5`; `0` makes none | Must be 0 to 50 |
+| `group_by` | How the dashboard groups the list: `"tag"`, `"kind"`, `"production"`, `"prefix:<name>"` (by the tags that start `<name>:`) or `"none"`. `=` changes it and saves it here | Must be one of those |
 | `github_owners` | Your GitHub accounts and organizations. A theme whose repository belongs to another owner is marked `@account` | Must be a list of strings |
 | `[create] kind` | `"classic"` or `"block"`: the default theme for new sites | Anything else is an error |
 | `[create] admin_user`, `admin_email` | The default WordPress admin for new sites | No; checked when you create a site |
@@ -221,6 +223,7 @@ github_account = "parallelstaff"
 | `[sites.<folder>] notes` | Free text added to the update prompt `h` and `A` build | No |
 | `[sites.<folder>] github_account` | The GitHub account the site's theme belongs to, when it isn't yours (for example before it has a remote) | No |
 | `[sites.<folder>] bugsmash_project` | The site's BugSmash project id. Turns on the FB column, `F` and `X`. `taw-fleet comments projects` lists the ids | Must be a UUID |
+| `[sites.<folder>] tags` | The site's [tags](/taw-fleet-dashboard#tags-and-groups), such as `["retainer", "client:ls"]`. `#` in the dashboard and `taw-fleet tag` set them | Lower case letters, digits, `:`, `_`, `-`; up to 32 characters, 12 per site |
 | `umbrella` | Unused since v1.12.0. It's still accepted so older files load | No |
 
 `<folder>` is the site's folder name in `~/Local Sites`. Any other key is an error that names it (`unknown keys: …`). With a broken file, the dashboard still opens, but its shortcuts are off until you fix it.

@@ -5,6 +5,14 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-13" description="taw-fleet v1.31.0: tags, and a list grouped by tag, kind, production or client." tags={["taw-fleet", "feature"]}>
+
+## October 2026: tags and groups
+
+- **taw-fleet v1.31.0:** give each site tags (`retainer`, `es`, `client:parallel`) with `#` in the dashboard or `taw-fleet tag`. They show on the site's card, the filter finds them (`#retainer`, `tag:client:`), and `taw-fleet list --tag` lists those sites. `=` groups the list by tag (a site with several shows under each), kind, production or client, with a header per group that `←` folds and `→` opens; the dashboard remembers the grouping. Claude reads the tags and sets them with `set_tags`. See [Tags and groups](/taw-fleet-dashboard#tags-and-groups).
+
+</Update>
+
 <Update label="2026-10-13" description="taw/core v1.99.0: a json field, and fields that keep their saved value when a check fails. taw-theme v1.12.77 and taw-gutenberg v0.3.78 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg"]}>
 
 ## October 2026: a JSON field that can't break the page
