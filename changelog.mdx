@@ -5,6 +5,15 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-13" description="taw/core v1.98.1: a repeater inside a repeater row on an options page works. taw-theme v1.12.76 and taw-gutenberg v0.3.77 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
+
+## October 2026: nested repeaters on options pages
+
+- **taw/core v1.98.1:** an options page whose repeater has a repeater inside each row (a list of widgets, each with its own links) showed “critical error”. It now shows and saves the nested rows. What's stored doesn't change. `taw update` also brings taw-theme 1.12.75's `tests/TestCase.php` to sites with the scaffold's earlier copy. Parallel Staff reported it.
+- **taw-theme v1.12.76** and **taw-gutenberg v0.3.77** lock taw/core 1.98.1.
+
+</Update>
+
 <Update label="2026-10-13" description="taw-fleet v1.30.0: a filter that combines words and conditions." tags={["taw-fleet", "feature"]}>
 
 ## October 2026: find any site
