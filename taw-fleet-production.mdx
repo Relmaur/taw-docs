@@ -117,7 +117,7 @@ Publishing is off until the site's theme asks for it, through a reviewed commit 
 
 <Steps>
   <Step title="Update the theme" icon="refresh-cw">
-    Production needs taw/core 1.98 or newer (`u`, then deploy) and the TAW Companion 0.5 or newer: `"taw/hub-companion": "^0.5"` in the theme's `composer.json`.
+    Production needs taw/core 1.98 or newer (`u`, then deploy), and 1.99.1 or newer when pictures change and the TAW Companion 0.5 or newer: `"taw/hub-companion": "^0.5"` in the theme's `composer.json`.
   </Step>
   <Step title="Switch publishing on" icon="toggle-right">
     Add `publish` next to the fleet key in the theme's `composer.json`, commit, and deploy:
@@ -147,13 +147,15 @@ The details' **PUBLISHED** section says what's still missing. Once publishing is
 
     - every record by its title, with a tick to publish it or leave it out;
     - every change by its field (*Fieldset › Label*), production's value beside Local's, with the words that changed marked; long content such as block markup, line by line;
-    - images side by side, and the files that will be uploaded;
+    - images side by side;
+    - **pictures' details** (alt text, title, caption, description) as records of their own, under **Pictures and files**. They're unticked: production keeps its own unless you tick one;
+    - **new files**, each with the records that use it. A file goes up only with a ticked record that uses it, and the file count follows what you tick;
     - **values changed on both sides** first. Production changed them too since the base, so you pick a side for each: keep production's, or use Local's. A value only production changed keeps production's for you.
 
     **To decide** shows only the values waiting for you. **Publish** stays off until each has a side. **Cancel**, or `x` in the dashboard (“stop waiting”), closes the review with nothing published.
   </Step>
   <Step title="Publish" icon="upload">
-    The files go up one by one, each checked against the plan. Production plans the approved records again and refuses the whole publish if any changed there since your review: review again. Before writing, it saves a rollback copy and a journal. The page shows the progress, then the result with how to undo it.
+    The files that go are uploaded one by one, each checked against the plan. If production still needs a file taw-fleet didn't tie to a ticked record, taw-fleet sends it and tries once more, and says so in the result. Production plans the approved records again and refuses the whole publish if any changed there since your review: review again. Before writing, it saves a rollback copy and a journal. The page shows the progress, then the result with how to undo it.
   </Step>
   <Step title="After" icon="archive">
     taw-fleet refreshes the base from production and keeps the review as the record of what went out, in `~/TAW Fleet/sites/<site>/publish/<time>/`: `review.html` (open it any time; it shows the sides you picked), `plan.json`, `decisions.json` and `report.json`.
@@ -178,6 +180,12 @@ taw-fleet publish acme --decisions choices.json --yes
 ```json
 {"include": ["post:page:about"], "sides": {"post:page:about": {"fields.hero_heading": "take"}}}
 ```
+
+A picture's details go only when named, by their key: `"include": ["media:2026/09/team.webp"]`.
+
+<Callout kind="alert" collapsed="false">
+  Before taw/core 1.99.1, production wrote every picture's details and every new file in a publish, whatever you ticked. taw-fleet 1.31.1 refuses to publish pictures to an older taw/core: update it first (`u`, then merge and deploy).
+</Callout>
 
 In the chat, Claude publishes through the `publish_content` tool: it describes the changes, asks you about each value changed on both sides, then asks before publishing.
 

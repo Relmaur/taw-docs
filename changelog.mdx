@@ -5,6 +5,15 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-13" description="taw-fleet v1.31.1: the publish review lists pictures' details and uploads only the files that go." tags={["taw-fleet", "fix"]}>
+
+## October 2026: pictures in the publish review
+
+- **taw-fleet v1.31.1:** the publish review now lists each picture's details (alt text, title, caption, description) under **Pictures and files**, unticked, so production keeps its own unless you tick one. Each new file says which records use it and goes up only with one of them ticked; the file count follows what you tick. `taw-fleet publish --decisions` and Claude's `publish_content` take a picture by its key (`media:2026/09/team.webp`). taw-fleet refuses to publish pictures to a taw/core older than 1.99.1, which wrote them all whatever was ticked. If production still needs a file taw-fleet didn't tie to a ticked record, taw-fleet sends it, tries once more and says so.
+- **taw-fleet v1.31.1:** an MCP server started before a taw-fleet upgrade now says to reconnect it, instead of failing on settings the new version wrote (“unknown keys: group_by”).
+
+</Update>
+
 <Update label="2026-10-13" description="taw/core v1.99.1: a publish writes only the media it was asked for. taw-theme v1.12.78 and taw-gutenberg v0.3.79 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
 
 ## October 2026: publishing one page changes only that page
