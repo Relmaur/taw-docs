@@ -297,6 +297,10 @@ over signed routes, and taw-fleet drives it with a review page in your browser: 
 [Publish content to production](/taw-fleet-production#publish-content-to-production). Users,
 comments and site settings are never published.
 
+Media go only where the approval says (`taw/core` v1.99.1+): an approved record brings the files it
+uses, but an image's alt text, title, caption or description changes only when its own `media:`
+record is approved, and a file only unapproved records use is never uploaded.
+
 ## Workflow recipes
 
 <Steps>
