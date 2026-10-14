@@ -129,8 +129,8 @@ These are grouped as the `:` palette groups them.
 | Theme · Git & GitHub | `M` | Merge a pull request, then follow the deploy. See [Pull requests and deploys](/taw-fleet-production#pull-requests-and-deploys) |
 | Theme · Git & GitHub | `D` | Back to the site's branch. See [Back to the site's branch](#back-to-the-sites-branch) |
 | Site · Local | `I` | Set up the next thing on the SETUP checklist. See [Set up a site](#set-up-a-site) |
-| Site · Local | `#` | The site's tags. See [Tags and groups](#tags-and-groups) |
-| App | `=` | Group the list: by tag, kind, production or a tag prefix, then none. `←` folds a group, `→` opens it |
+| Site · Local | `T` | The site's tags, in a popup (`#` opens it too). See [Tags and groups](#tags-and-groups) |
+| App | `=` | Group the list, picked in a popup: none, by tag, kind, production or a tag prefix. `←` folds a group, `→` opens it |
 | App | `>` | Chat with Claude: about the whole fleet from the list, about this site from its details. See [Chat with Claude](#chat-with-claude) |
 | App | `r` | Read Local again now |
 | App | `ctrl+r` | Refresh everything, past the caches |
@@ -192,10 +192,10 @@ Press `/` and type. The cards that match stay, and the footer counts them (“3 
 
 Tags organise a bigger fleet. A site can have up to 12: lower case letters, digits, `:`, `_` and `-`, such as `retainer`, `es` or `client:acme`.
 
-- **`#`** edits the selected site's tags in a line at the bottom, filled with the current ones. Type them with spaces between, `enter` saves, `esc` cancels. Saved in the settings, under the site.
+- **`T`** opens the selected site's tags in a popup: every tag the fleet uses, with how many sites have it, and the site's own ticked. `space` ticks or unticks the one under the cursor. To add new ones, type them at the bottom (spaces between) and press `enter`: they join the list, ticked. `enter` with nothing typed saves, `esc` cancels. Saved in the settings, under the site. `#` opens it too, including on keyboards where `#` is `Option`+3.
 - **On the cards**, a site's tags follow its theme line as `#tag`.
 - **The filter** finds them: `#retainer`, `tag:client:` for any client, or just the word.
-- **`=` groups the list.** Each press moves on: by tag, by kind (classic or block), by production (live or local only), by each tag prefix you use (`client:` groups by client), then not grouped. The rule under the column names says how it's grouped, and the dashboard remembers it (`group_by` in the settings).
+- **`=` groups the list.** A popup lists the ways: none, by tag, by kind (classic or block), by production (live or local only), and by each tag prefix you use (`client:` groups by client). Pick with `↑` `↓` and `enter`, or a number; `esc` closes it. The rule under the column names says how it's grouped, and the dashboard remembers it (`group_by` in the settings).
 
 Grouped by tag, a site with several tags shows under each of them, untagged sites come last, and the TAW ecosystem is always its own last group. Each group has a header with its count:
 
