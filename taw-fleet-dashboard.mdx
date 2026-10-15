@@ -73,6 +73,7 @@ At 120 columns or wider, the selected site's details sit beside the cards. The p
 | **LIVE** | The production site's companion | Versions, plugin updates, vulnerabilities, recent log lines |
 | **FEEDBACK** | BugSmash | Open comments, the oldest's age, and the three latest with their number, page, author and age |
 | **FINDINGS** | `doctor` | What needs attention, with the fix |
+| **NOTES** | The site's notes | The three newest notes, with when and who (you, Claude or taw-fleet). `N` adds one. See [Site notes](#site-notes) |
 | **PUBLISHED** | The publishes taw-fleet made | On a site with production: the last three publishes (published, cancelled in the review, stopped), the newest with the path of its review, or what production still needs before it can take one. `p` publishes, `x` undoes the last. See [Publish content to production](/taw-fleet-production#publish-content-to-production) |
 | **SETUP** | All of the above, the settings and the Keychain | What the site has and still needs: repository, secrets check, deploy, production, companion, bot, BugSmash, skills, each with how to do it. `I` does the next step. See [Set up a site](#set-up-a-site) |
 
@@ -130,6 +131,7 @@ These are grouped as the `:` palette groups them.
 | Theme · Git & GitHub | `D` | Back to the site's branch. See [Back to the site's branch](#back-to-the-sites-branch) |
 | Site · Local | `I` | Set up the next thing on the SETUP checklist. See [Set up a site](#set-up-a-site) |
 | Site · Local | `T` | The site's tags, in a popup (`#` opens it too). See [Tags and groups](#tags-and-groups) |
+| Site · Local | `N` | Add a note to the site. See [Site notes](#site-notes) |
 | App | `=` | Group the list, picked in a popup: none, by tag, kind, production or a tag prefix. `←` folds a group, `→` opens it |
 | App | `>` | Chat with Claude: about the whole fleet from the list, about this site from its details. See [Chat with Claude](#chat-with-claude) |
 | App | `r` | Read Local again now |
@@ -204,6 +206,16 @@ Grouped by tag, a site with several tags shows under each of them, untagged site
 - Folded groups open again when you restart the dashboard.
 
 In a terminal, `taw-fleet tag <site>` shows or sets the tags and `taw-fleet list --tag retainer` lists those sites. Claude reads them in `list_sites` and sets them with `set_tags`, asking first.
+
+## Site notes
+
+Each site keeps notes on what happened to it, so you, or Claude in a later session, can catch up before working on it: what the client asked for, what was decided, a problem left open, why something is the way it is.
+
+- **You** write them with `N`: a popup shows the newest notes and a line to type a new one; `enter` saves, `esc` cancels. Or in a terminal: `taw-fleet notes <site> "…"`.
+- **Claude** reads them before working on a site and adds its own when it finishes something or finds something worth knowing. This works in the chat (`>`), in a skill's session (`a`, `X`) and in any AI app with taw-fleet's tools (`site_notes`, `add_note`). Adding a note doesn't ask, because it only writes the notes file.
+- **taw-fleet** adds a line itself after it changes a site: an update (and where it stopped, if it did), a merge and its deploy, a publish, an undo, a content pull, a restore, a scaffold apply, a deploy setup, a new repository, a new site. Checks and previews that change nothing aren't noted.
+
+The **NOTES** section in the details shows the three newest. All of them are in `~/TAW Fleet/sites/<site>/notes.md`, newest first. They stay on your Mac, never in the theme or its repository. It's plain Markdown you can edit by hand: each note starts with a `## <date> <time> · <who>` line.
 
 ## Refresh
 

@@ -217,6 +217,7 @@ An agent doesn't have to trust its own read of a change — CI catches both stat
 | `launch_report` | `taw-fleet launch-report <site> --json` | A live site checked, and its launch report saved |
 | `publish_history` | `taw-fleet publish history <site> --json` | A site's publishes, newest first, each with its kept review |
 | `bugsmash_projects` | `taw-fleet comments projects --json` | Your BugSmash projects and their ids |
+| `site_notes` | `taw-fleet notes <site> --json` | The site's notes, newest first: yours, Claude's and taw-fleet's own |
 | `deploy_test` | `taw-fleet deploy test <site> …` | Connects as the deploy will; nothing changes |
 | `taw` | `taw @<theme> <command…>` | A theme's own command, with its site's PHP. Read-only commands (`list`, `help`, `inspect`, `policy`, `sync` and `upgrade` without `--apply`, `content:diff`) run at once; any other asks first |
 
@@ -247,6 +248,8 @@ taw-fleet 1.19.0+ also serves the dashboard's actions. Each one asks first, the 
 | `create_site` | `taw-fleet create <name> --classic` or `--block` (the admin password isn't shown to the AI app) | `n` |
 
 A long action, such as an update, sends its progress lines while it runs.
+
+One tool writes without asking: **`add_note`** (`taw-fleet notes <site> --by claude <text>`, the dashboard's `N`). It only adds a note to the site's notes file, never to the theme, its repository or production, so the AI app can leave what it did or found for the next session. See [Site notes](/taw-fleet-dashboard#site-notes).
 
 **Prompts:** `update_theme` is the update prompt taw-fleet hands Claude Code (`taw-fleet handoff <site>`). `resolve_comments` is the one `X` hands it for a site's open client comments (`taw-fleet comments <site> --prompt`).
 

@@ -5,6 +5,17 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-15" description="taw-fleet v1.34.0: site notes, written by you, Claude and taw-fleet." tags={["taw-fleet", "feature"]}>
+
+## October 2026: site notes
+
+- **taw-fleet v1.34.0:** each site keeps notes on what happened to it, so you, or Claude in a later session, can catch up before working on it. `N` in the dashboard adds one, and the details' new **NOTES** section shows the newest three. In a terminal, `taw-fleet notes <site>` shows them and `taw-fleet notes <site> "…"` adds one.
+- **taw-fleet v1.34.0:** Claude reads a site's notes before working on it (`site_notes`, `show_site`, a skill's first message) and adds its own with `add_note` when it finishes something or finds something worth knowing. Adding a note doesn't ask: it only writes the notes file.
+- **taw-fleet v1.34.0:** taw-fleet notes what it does to a site itself: updates (and where one stopped), merges and their deploys, publishes, undos, content pulls, restores, scaffold applies, deploy setups and new repositories.
+- Notes live in `~/TAW Fleet/sites/<site>/notes.md`, newest first, as plain Markdown you can edit, never in the theme or its repository. See [Site notes](/taw-fleet-dashboard#site-notes).
+
+</Update>
+
 <Update label="2026-10-15" description="taw-fleet v1.33.0: the dashboard can open when you log in to your Mac." tags={["taw-fleet", "feature"]}>
 
 ## October 2026: open at login

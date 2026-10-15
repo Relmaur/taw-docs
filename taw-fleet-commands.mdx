@@ -53,6 +53,7 @@ A **Finding** is `{ "severity": "error" | "warn" | "info", "code", "site_id", "s
 |---|---|
 | [`list`](#list) | Every Local site with a TAW theme |
 | [`tag`](#tag) | A site's tags: show, set, add, remove |
+| [`notes`](#notes) | A site's notes: show them, or add one |
 | [`show`](#show) | One site in full |
 | [`doctor`](#doctor) | What needs attention, with finding codes |
 | [`refresh`](#refresh) | Everything again, past the caches |
@@ -112,13 +113,30 @@ taw-fleet tag <site> [tag…] [--add <tag>] [--remove <tag>] [--clear] [--yes]
 
 With only the site, prints its tags. With tags, sets them, replacing the old ones. `--add` and `--remove` change a few; `--clear` removes them all. A tag is lower case letters, digits, `:`, `_` or `-`, up to 12 per site. Asks first; `--yes` doesn't. The dashboard's `#`. See [Tags and groups](/taw-fleet-dashboard#tags-and-groups).
 
+### notes
+
+```bash
+taw-fleet notes <site> [text…] [--by you|claude] [--last N] [--json] [--path]
+```
+
+With only the site, prints its notes, newest first. With text, adds a note (`-` reads it from stdin). Adding doesn't ask: a note only goes into `~/TAW Fleet/sites/<site>/notes.md`. `note` works too. The dashboard's `N`. See [Site notes](/taw-fleet-dashboard#site-notes).
+
+| Flag | Does |
+|---|---|
+| `--by` | Who writes it: `you` (the default) or `claude` |
+| `--last`, `-n` | Only the newest N |
+| `--json` | Print JSON: `{site, file, notes: [{at, by, text}]}`, or `{site, file, note}` after adding one |
+| `--path` | Print the notes file's path |
+
+Put `--` before a note that starts with `-`: `taw-fleet notes acme-shop -- "-50% sale page is live"`.
+
 ### show
 
 ```bash
 taw-fleet show <site> [--json]
 ```
 
-One site in full: Local, its themes, production, BugSmash and its findings.
+One site in full: Local, its themes, production, BugSmash, its findings and its five newest notes (`notes` in the JSON).
 
 | Flag | Does |
 |---|---|
@@ -698,6 +716,8 @@ Each Mac needs its own copy.
 | `~/Library/Caches/taw-fleet/handoff/` | Prompts and launchers for Claude Code windows; `fleet-<time>/` for an update of every theme |
 | `~/Library/Caches/taw-fleet/window/`, `work/` | Launchers for the dashboard's own window and for Vite windows |
 | `~/TAW Fleet/reports/<site>/` | Monthly reports, `<month>.md` and `<month>.html` |
+| `~/TAW Fleet/sites/<site>/notes.md` | The site's notes, newest first (see [Site notes](/taw-fleet-dashboard#site-notes)) |
+| `~/Library/LaunchAgents/com.relmaur.taw-fleet.login.plist` | The login agent, while `open_at_login` is on |
 | `~/Library/Application Support/taw-fleet/restore/` | Restore points: per site, the database copy (`database.sql.gz`, 0600) and `point.json`. Never inside a site or a repository |
 | `~/Library/Application Support/taw-fleet/watch/` | `watch`'s state (what it told, each production site's uptime per day) and the background agent's log |
 | `~/Library/LaunchAgents/com.relmaur.taw-fleet.watch.plist` | The background agent, while `watch install` is on |
