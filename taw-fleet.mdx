@@ -178,6 +178,7 @@ taw-fleet config init   # write a commented starter file (never overwrites)
 taw-fleet config show   # the settings in effect and the apps found
 taw-fleet config path   # where the file is
 taw-fleet config icons nerd   # Nerd Font icons; symbols switches back
+taw-fleet config open-at-login on   # the dashboard opens when you log in; off stops it
 ```
 
 ```toml title="config.toml"
@@ -209,6 +210,7 @@ github_account = "acme-studio"
 | `editor` | The editor for `e`, `w` and `open --editor`. Empty: the first installed of Cursor, Visual Studio Code, PhpStorm, Zed, Sublime Text, Nova. Names are case-insensitive; `code`, `vscode` and `sublime` work too | No. An editor that isn't installed is an error when you open something |
 | `terminal` | The terminal for `t`, the dashboard's window, Claude Code and Vite windows. Empty: the first installed of Ghostty, iTerm2, Warp, kitty, Terminal. `iterm` works too. Warp can't run a script, so windows that run something open in Terminal instead | No, same as `editor` |
 | `window` | `false` keeps the dashboard in the current terminal. Default `true`. `--window` on the command line wins | Must be a boolean |
+| `open_at_login` | `true` opens the dashboard in its own window each time you log in to the Mac. Default `false`. `taw-fleet config open-at-login on` (or `off`) sets it and adds (or removes) the login agent; see [Open at login](#open-at-login) | Must be a boolean |
 | `icons` | `"symbols"` (the default): plain Unicode icons that work with any font. `"nerd"`: Nerd Font icons, for a terminal set to a Nerd Font. `taw-fleet config icons <set>` changes this line and keeps the rest of the file | Must be `"symbols"` or `"nerd"` |
 | `report_from` | Who the [monthly reports](/taw-fleet-production#monthly-reports) say prepared them. Empty: no name | No |
 | `report_language` | The reports' language, `"en"` (default) or `"es"`. Also per site, under `[sites.<folder>]` | Must be `"en"` or `"es"` |
@@ -227,6 +229,26 @@ github_account = "acme-studio"
 | `umbrella` | Unused since v1.12.0. It's still accepted so older files load | No |
 
 `<folder>` is the site's folder name in `~/Local Sites`. Any other key is an error that names it (`unknown keys: …`). With a broken file, the dashboard still opens, but its shortcuts are off until you fix it.
+
+### Open at login
+
+To have the dashboard waiting for you when you log in to the Mac, turn on `open_at_login`:
+
+```bash
+taw-fleet config open-at-login on
+```
+
+This sets `open_at_login = true` in the settings and adds a login agent, `~/Library/LaunchAgents/com.relmaur.taw-fleet.login.plist`. From your next login on, the dashboard opens in a new window of your terminal (`terminal` in the settings), even with `window = false`. Nothing opens right away. macOS may show a “Background Items Added” notice the first time, and lists the agent under **System Settings → General → Login Items & Extensions**.
+
+In the dashboard, open the `:` menu and type `login`: the **Open at login** entry under Settings shows whether it's on, and `enter` toggles it.
+
+`taw-fleet config open-at-login` with no value says whether it's on, and so does `taw-fleet config show`. To stop it:
+
+```bash
+taw-fleet config open-at-login off
+```
+
+If you change `open_at_login` in the file by hand, the dashboard's next start adds or removes the agent to match. After a Homebrew upgrade the agent keeps working, because it runs Homebrew's `taw-fleet` link.
 
 ### Nerd Font icons
 
