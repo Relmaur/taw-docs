@@ -5,6 +5,15 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-27" description="taw/core v1.99.2: no more random critical errors on sites where a plugin bundles Composer. taw-theme v1.12.79 and taw-gutenberg v0.3.80 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
+
+## October 2026: no random critical errors with Wordfence
+
+- **taw/core v1.99.2:** on a site running Wordfence (or another plugin that bundles its own Composer), about one page load in 150 ended on WordPress's "There has been a critical error" page, fine on reload. taw/core asked Composer for its own version, and on those requests the plugin's copy of Composer answered that taw/core isn't installed. taw/core now reads its version from its own `vendor/` folder and never fails over it. `taw --version`, `taw sync`, `taw inspect` and content snapshots also report the right version on such sites.
+- **taw-theme v1.12.79** and **taw-gutenberg v0.3.80** lock taw/core 1.99.2.
+
+</Update>
+
 <Update label="2026-10-15" description="taw-fleet v1.34.0: site notes, written by you, Claude and taw-fleet." tags={["taw-fleet", "feature"]}>
 
 ## October 2026: site notes
