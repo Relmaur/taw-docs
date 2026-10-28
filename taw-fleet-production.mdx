@@ -117,7 +117,7 @@ Publishing is off until the site's theme asks for it, through a reviewed commit 
 
 <Steps>
   <Step title="Update the theme" icon="refresh-cw">
-    Production needs taw/core 1.98 or newer (`u`, then deploy), and 1.99.1 or newer when pictures change and the TAW Companion 0.5 or newer: `"taw/hub-companion": "^0.5"` in the theme's `composer.json`.
+    Production needs taw/core 1.98 or newer (`u`, then deploy), 1.99.1 or newer when pictures change, 1.100.0 or newer when featured images change, and the TAW Companion 0.5 or newer: `"taw/hub-companion": "^0.5"` in the theme's `composer.json`.
   </Step>
   <Step title="Switch publishing on" icon="toggle-right">
     Add `publish` next to the fleet key in the theme's `composer.json`, commit, and deploy:
@@ -185,6 +185,8 @@ A picture's details go only when named, by their key: `"include": ["media:2026/0
 
 <Callout kind="alert" collapsed="false">
   Before taw/core 1.99.1, production wrote every picture's details and every new file in a publish, whatever you ticked. taw-fleet 1.31.1 refuses to publish pictures to an older taw/core: update it first (`u`, then merge and deploy).
+
+  Before taw/core 1.100.0, production looked a featured image up by its file name and could pick another picture of the same name. taw-fleet 1.34.1 refuses to publish featured images to an older taw/core.
 </Callout>
 
 In the chat, Claude publishes through the `publish_content` tool: it describes the changes, asks you about each value changed on both sides, then asks before publishing.

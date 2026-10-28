@@ -5,6 +5,18 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-10-27" description="taw/core v1.100.0: a pull then a publish changes nothing. taw-fleet v1.34.1, taw-theme v1.12.80 and taw-gutenberg v0.3.81." tags={["taw/core", "taw-fleet", "taw-theme", "taw-gutenberg", "fix"]}>
+
+## October 2026: a pull then a publish changes nothing
+
+- **taw/core v1.100.0:** content snapshots name a post's featured image by its path in uploads (`2026/06/hero.webp`), not just its file name (schema 1.9). With two pictures of one name in different months, a pull could give a post the other one, and the publish review then listed the same picture as a change. An older snapshot's name still works when only one file has it; when several do, the post keeps its featured image and the import says so. Setting a featured image also cleans up the duplicate rows an old migration can leave.
+- **taw/core v1.100.0:** links to the site keep their `http` or `https`. An `http://` link to the site's own domain used to come back as `https://`, so a publish listed it as changed.
+- **taw/core v1.100.0:** when the site you import into doesn't have a post's author, a post already there keeps its author. It used to go to whoever ran the import, which a publish then offered to write to production. New posts still get the importing user.
+- **taw-fleet v1.34.1:** the publish review ties a featured image to its own file, and taw-fleet refuses to publish featured images to a production taw/core older than 1.100.0, which looks them up by name. Update production with the same release (`u`, then merge and deploy).
+- **taw-theme v1.12.80** and **taw-gutenberg v0.3.81** lock taw/core 1.100.0.
+
+</Update>
+
 <Update label="2026-10-27" description="taw/core v1.99.2: no more random critical errors on sites where a plugin bundles Composer. taw-theme v1.12.79 and taw-gutenberg v0.3.80 lock it." tags={["taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
 
 ## October 2026: no random critical errors with Wordfence

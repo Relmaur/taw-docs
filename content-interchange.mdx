@@ -50,9 +50,14 @@ exist and already run the TAW stack.
 ## What's in a snapshot
 
 `TAW\Core\Content\Exporter::snapshot($scope)` produces a plain array, `json_encode`-ready.
-`schema` is `"1.8"` (`taw/core` v1.98.0+); the importer also accepts `"1.0"`–`"1.7"`, and warns
+`schema` is `"1.9"` (`taw/core` v1.100.0+); the importer also accepts `"1.0"`–`"1.8"`, and warns
 when a file's minor version is newer than its own. Full JSON Schema:
-`resources/schema/content-interchange-1.8.json` in the `taw/core` package.
+`resources/schema/content-interchange-1.9.json` in the `taw/core` package.
+
+- **1.9** names a post's featured image by its path under uploads (`2026/06/hero.webp`), not its
+  file name, so two files with one name in different month folders stay apart. An older
+  snapshot's bare name still works when it names one file; when it names several, the post keeps
+  its featured image and the import warns, instead of picking one.
 
 - **1.8** is for publishing: with `--media-hashes`, each media entry says what its file holds
   (`file`, `sha256`, `bytes`), and a change-set made with `--with-base` carries each changed record
@@ -210,19 +215,25 @@ users → terms → media (sideload + build old→new ID map) → posts → comm
      and is written in the same run (v1.88.0; before, the link came with the next import);
    - each media file's URL (with its sizes) becomes its local URL, then links to the source site
      become links to this one, in content, excerpts, every text field and TAW options. A file in
-     the source's uploads that this site doesn't have keeps its source URL, so it still loads;
+     the source's uploads that this site doesn't have keeps its source URL, so it still loads.
+     The scheme maps both ways (v1.100.0): a link in the source's own scheme takes this site's,
+     one in the other scheme takes the other. When both sites use the same scheme, an `http://`
+     link to an https site stays `http://`, and a pull then a publish gives back what it started
+     from;
    - so importing a snapshot from another site twice reports nothing to change the second time.
 4. **Portable transforms are reversed.** `page_on_front` / `page_for_posts` / `sticky_posts`
    (slugs; a front page neither on the site nor in the import keeps its current value, never 0;
-   one the import brings is set, even on a site that had none), `post.parent` (path or slug), `featured_media` (filename) and `author` (`{login,email}`)
-   all resolve back to a local ID before the diff and the write.
+   one the import brings is set, even on a site that had none), `post.parent` (path or slug), `featured_media` (path under uploads) and `author` (`{login,email}`)
+   all resolve back to a local ID before the diff and the write. Setting a featured image leaves
+   one `_thumbnail_id` row, even where an old migration left several.
 5. **Posts** via `wp_insert_post` / `wp_update_post`, written as an admin's save would be:
    kses is lifted for the run (embeds, SVG and forms survive; `&` stays `&`), and
    `content:import` runs as a user (`--user`, default the first administrator). **Field meta
    goes through `Metabox::writeMeta()`**, the same sanitize + `wp_slash` path an admin metabox
    save uses; a field nothing registers on the target is written as it came. Password, date
-   (both columns) and terms per taxonomy travel. Author resolves login → email → the importing
-   user (with a warning). A failed write is reported and nothing else is written for that post.
+   (both columns) and terms per taxonomy travel. Author resolves login → email; when this site
+   lacks it, a post already here keeps its author and a new post gets the importing user (both
+   with a warning; before v1.100.0 existing posts went to the importing user too). A failed write is reported and nothing else is written for that post.
 6. **Users** via `wp_insert_user` / `wp_update_user`. Roles are **sanitised against the roles
    the target site actually defines** — a role the target doesn't have is never granted, and a
    user whose source roles don't exist here keeps the role they have. New accounts get a random
