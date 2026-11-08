@@ -258,6 +258,28 @@ Shows the newest entries of TAW's structured log from `wp-content/taw-logs`. See
 | `--since <timestamp>` | Only entries at or after this ISO-8601 time |
 | `--json` | The raw JSON entries |
 
+## TAW Lens
+
+### `lens`
+
+Starts TAW Lens's chat for this theme: a local bridge (127.0.0.1) between the Lens panel on your dev site and your own Claude Code, run in the theme folder. Leave it running; Ctrl-C stops it. Classic themes only; it doesn't load WordPress. Needs Node 20+ and Claude Code 2.1.319+. See [TAW Lens](/lens).
+
+```bash
+taw lens
+taw lens --resume
+taw lens --permission-mode=default
+```
+
+| Option | Does |
+|---|---|
+| `--resume[=<id>]` | Continues the last conversation, or the one with that session id |
+| `--permission-mode <mode>` | Claude Code's permission mode for this session (default: your own settings); `default` makes every change ask in the panel |
+| `--model <model>` | The model Claude Code uses |
+| `--origin <url>` | The site's address, when Local's site list doesn't have it (repeatable) |
+| `--port <n>` | The port to listen on (default 47615; another free one when it's taken) |
+| `--check` | Shows what it would use (Node, Claude Code, the site's address) and exits |
+| `--prompt` | Prints Claude's instructions inside Lens, which are also the guide to doing the same by hand |
+
 ## SEO and static export
 
 ### `seo:extract`

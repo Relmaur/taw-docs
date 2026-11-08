@@ -5,6 +5,18 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-11-08" description="taw/core v1.101.0: TAW Lens, point at your dev site and tell Claude what to change. taw-theme v1.13.0 and taw-gutenberg v0.3.82." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature"]}>
+
+## November 2026: TAW Lens
+
+- **taw/core v1.101.0:** [TAW Lens](/lens), a dev-only panel on your local site's frontend. Pick anything on the page to see what TAW knows about it: the field and where it's stored, the template file and line, or the block and its files, with the way to change it by hand. The structure tree shows the whole page as TAW rendered it.
+- **taw/core v1.101.0:** talk to Claude from the panel. `taw lens` in the theme folder runs your own Claude Code there; your message goes with what you picked, replies stream in, and changes your settings ask about show their diff to **Apply** or **Skip**. While another Claude session works in the theme, Lens warns you and changes no files.
+- **taw/core v1.101.0:** edit text in place. Text fields save straight away with **Undo**; rich-text fields get a toolbar with only the formats the field allows and save in the wp-admin editor's format; template text goes to Claude as a change you apply.
+- **taw/core v1.101.0:** Lens loads only with the Vite dev server running, the new **Enable Lens** toggle on (TAW Settings → Developer Tools; `taw upgrade --apply` adds it), and a user who can edit the theme. Otherwise nothing on the page changes.
+- **taw-theme v1.13.0** adds the Enable Lens toggle and locks taw/core 1.101.0. **taw-gutenberg v0.3.82** locks taw/core 1.101.0.
+
+</Update>
+
 <Update label="2026-10-27" description="taw/core v1.100.0: a pull then a publish changes nothing. taw-fleet v1.34.1, taw-theme v1.12.80 and taw-gutenberg v0.3.81." tags={["taw/core", "taw-fleet", "taw-theme", "taw-gutenberg", "fix"]}>
 
 ## October 2026: a pull then a publish changes nothing

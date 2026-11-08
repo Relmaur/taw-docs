@@ -113,6 +113,11 @@
                 "icon": "paint-roller"
               },
               {
+                "title": "TAW Lens",
+                "path": "lens",
+                "icon": "scan-search"
+              },
+              {
                 "title": "TAW Gutenberg",
                 "path": "taw-gutenberg",
                 "icon": "blocks"

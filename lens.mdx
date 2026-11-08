@@ -1,0 +1,151 @@
+---
+title: TAW Lens — point at your site and tell Claude what to change
+description: >-
+  A dev-only panel on your local TAW site: pick anything on the page to see the field, template text or
+  block behind it, talk to Claude Code about it, and edit text in place.
+---
+
+## What TAW Lens does
+
+TAW Lens is a panel on your local site's frontend, for developers. You point at an element on the page and
+Lens tells you what TAW knows about it: which field holds the text and where it's stored, which template file
+and line wrote it, or which block rendered it. Then you can:
+
+- **Talk to Claude about it.** Your message goes with what you picked, so Claude changes the right field or
+  file the first time.
+- **Edit its text in place.** Type over a heading or a paragraph on the page and save it.
+- **Change it by hand.** Every selection says where to change it yourself: the field's wp-admin screen, or the
+  file and line in your editor.
+
+<Callout kind="info">
+  TAW Lens ships with taw/core **v1.101.0 and later**, for [TAW Theme](/taw-theme) sites (classic themes). It
+  only ever runs on your own machine: it loads only while the theme's Vite dev server runs, and never in
+  production.
+</Callout>
+
+## Turn it on
+
+<Steps>
+  <Step title="Update taw/core" icon="refresh-cw">
+    Run `taw update` (or `composer update taw/core` and `taw upgrade --apply`). The update adds an **Enable
+    Lens** checkbox to TAW Settings → Developer Tools.
+  </Step>
+  <Step title="Start the dev server" icon="play">
+    In the theme folder, run `npm run dev`.
+  </Step>
+  <Step title="Tick Enable Lens" icon="toggle-right">
+    In wp-admin, go to **TAW Settings → Developer Tools** and tick **Enable Lens**. You need to be logged in
+    as a user who can edit the theme (`edit_theme_options`).
+  </Step>
+</Steps>
+
+Open any page of the site. The Lens panel appears, docked on the right edge.
+
+## Pick and inspect
+
+Press the **Pick** button (or the arrow icon) and click an element on the page. Shift-click adds more. While
+you pick, links and buttons don't fire. Press Esc to stop.
+
+The **inspect card** shows what you picked:
+
+- **A field:** its name, type, value, and where it's stored (a post, a term, a user or an options page), with
+  **Open in wp-admin**.
+- **Template text:** the file and line, with the lines around it and **Open in editor**.
+- **A block:** its files and fields.
+- **Ambiguous:** the same text comes from more than one place. Lens lists every candidate and never guesses.
+
+The **structure tree** (the tree icon) shows the page as TAW rendered it: template parts and blocks, and the
+fields and template text each one put on the page.
+
+## Talk to Claude
+
+The chat runs your own Claude Code in the theme folder. It needs **Node 20+** and **Claude Code 2.1.319+**
+(`claude update`).
+
+<Steps>
+  <Step title="Start Lens in the theme folder" icon="terminal">
+    ```bash
+    taw lens
+    ```
+
+    Leave it running. The panel connects on its own.
+  </Step>
+  <Step title="Pick, then type" icon="message-square">
+    Pick what you mean on the page, then tell Claude what to change. Replies stream into the panel, and
+    Claude's work shows as one quiet line, with **Details** for every step.
+  </Step>
+  <Step title="Apply or skip changes" icon="check">
+    A change your Claude settings ask about shows as a card with its diff: **Apply** or **Skip**. **Stop**
+    ends a turn.
+  </Step>
+</Steps>
+
+Claude uses your login, your settings and your permission mode. To make every change ask first for one
+session, run `taw lens --permission-mode=default`. Your MCP servers are never loaded.
+
+| Command | Does |
+|---|---|
+| `taw lens` | Starts a conversation |
+| `taw lens --resume` | Continues the last conversation |
+| `taw lens --check` | Shows what it would use: Node, Claude Code, the site's address |
+| `taw lens --prompt` | Prints Claude's instructions, which are also the guide to doing it by hand |
+
+If another Claude session is already working in the theme, Lens warns you and makes no file changes. **Take
+over** lets Lens write again; both sessions may then overwrite each other's work.
+
+## Edit text in place
+
+Pick an element, then press **Edit here** on the inspect card, or double-click the element. Type on the page.
+The panel shows the change, with **Save** (Enter) and **Cancel** (Esc). What happens on Save depends on what
+you're editing:
+
+<Tabs>
+  <Tab title="Text field">
+    The field saves straight away, as plain text: pasted formatting is stripped. The panel says **Saved to**
+    the field, with **Undo**. You don't need `taw lens` running for this.
+  </Tab>
+  <Tab title="Rich-text field">
+    A toolbar shows only the formats the field allows: bold, italic, link, and lists unless the field leaves
+    them out. ⌘B, ⌘I and ⌘K work on the page, and ⌘Enter saves. A link gets a row for its address, with this
+    site's pages suggested as you type. The field saves in the same format the wp-admin editor writes.
+  </Tab>
+  <Tab title="Template text">
+    Lens never changes theme files itself. **Save** sends your edit to Claude, who shows the change to the
+    file for you to **Apply** or **Skip**. If you skip it, the page shows the old text again.
+  </Tab>
+</Tabs>
+
+Lens only edits text the page shows exactly as it's stored. When it can't, **Edit here** says why and where to
+change it instead: for example, a rich-text field with images or headings, a long text with line breaks, or
+text that shares its element with other markup.
+
+If someone changed the field after the page loaded, Lens doesn't save over it: reload the page to edit what's
+stored now.
+
+## What stays on your machine
+
+- Lens loads only while the Vite dev server runs, the toggle is on, and you're logged in with
+  `edit_theme_options`. Otherwise the page is exactly as it would be without Lens.
+- The chat goes to `taw lens` on your own machine (127.0.0.1), with a token only your logged-in browser gets.
+  What you pick and type goes to Claude on your account, and nowhere else.
+- Field saves go to your local WordPress, through the same rules as an admin save, and are logged
+  (`lens.field_saved`, see `taw log:tail --code lens`).
+
+## Troubleshooting
+
+<ExpandableGroup>
+  <Expandable default-open="false" title="The panel doesn't appear">
+    Check that `npm run dev` is running in the theme folder, that **Enable Lens** is ticked, and that you're
+    logged in as an administrator. Lens is for classic themes on taw/core 1.101.0 or later.
+  </Expandable>
+  <Expandable title="The panel says “Not connected”" default-open="false">
+    Run `taw lens` in the theme folder and leave it running. `taw lens --check` shows what it found.
+  </Expandable>
+  <Expandable title="The panel says “Restart needed”" default-open="false">
+    The page and `taw lens` come from different taw/core versions. Stop `taw lens` (Ctrl-C) and start it
+    again.
+  </Expandable>
+  <Expandable default-open="false" title="Edit here does nothing">
+    Press it: the card says why Lens can't edit this text on the page, and where to change it instead.
+  </Expandable>
+</ExpandableGroup>
