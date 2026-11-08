@@ -5,6 +5,17 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-11-08" description="taw/core v1.102.0: TAW Lens remembers your conversations. taw-theme v1.13.1 and taw-gutenberg v0.3.83." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature"]}>
+
+## November 2026: TAW Lens conversations
+
+- **taw/core v1.102.0:** the [Lens](/lens#new-chat-and-earlier-conversations) panel's header names the conversation. Its menu starts a **New chat** or reopens one of your 8 most recent conversations in the theme, each with when it was last active and how many changes it made.
+- **taw/core v1.102.0:** a reopened conversation, or `taw lens --resume`, brings its messages back into the panel, including the changes you applied or skipped and the fields you saved. Before, `--resume` opened an empty panel even though Claude remembered.
+- **taw/core v1.102.0:** conversations are kept in the theme's `.taw/lens/conversations/` folder, which git ignores. After updating, restart `taw lens`: an open page shows “Restart needed” until you do.
+- **taw-theme v1.13.1** and **taw-gutenberg v0.3.83** lock taw/core 1.102.0.
+
+</Update>
+
 <Update label="2026-11-08" description="taw/core v1.101.0: TAW Lens, point at your dev site and tell Claude what to change. taw-theme v1.13.0 and taw-gutenberg v0.3.82." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature"]}>
 
 ## November 2026: TAW Lens

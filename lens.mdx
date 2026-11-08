@@ -86,12 +86,27 @@ session, run `taw lens --permission-mode=default`. Your MCP servers are never lo
 | Command | Does |
 |---|---|
 | `taw lens` | Starts a conversation |
-| `taw lens --resume` | Continues the last conversation |
+| `taw lens --resume` | Continues the last conversation, with its messages back in the panel |
 | `taw lens --check` | Shows what it would use: Node, Claude Code, the site's address |
 | `taw lens --prompt` | Prints Claude's instructions, which are also the guide to doing it by hand |
 
 If another Claude session is already working in the theme, Lens warns you and makes no file changes. **Take
 over** lets Lens write again; both sessions may then overwrite each other's work.
+
+### New chat and earlier conversations
+
+The panel's header shows the conversation's name: its first message. Press it for the conversation menu:
+
+- **New chat** starts an empty conversation. Claude starts fresh too.
+- Below it are your recent conversations in this theme, up to 8, each with when it was last active and how many
+  changes it made. Pick one to reopen it: its messages come back in the panel, and Claude remembers it.
+
+A reopened conversation shows **Earlier** above its old messages and **Resumed** where you pick up. Fields you
+saved earlier show without **Undo**. A dashed selection chip means that message was sent from another page.
+
+You can't switch while Claude is working or a change waits for **Apply** or **Skip**: the menu says why.
+Conversations from before taw/core 1.102.0, or started in a terminal, reopen with Claude's memory but without
+their earlier messages in the panel.
 
 ## Edit text in place
 
@@ -128,6 +143,8 @@ stored now.
   `edit_theme_options`. Otherwise the page is exactly as it would be without Lens.
 - The chat goes to `taw lens` on your own machine (127.0.0.1), with a token only your logged-in browser gets.
   What you pick and type goes to Claude on your account, and nowhere else.
+- Each conversation is kept in the theme's `.taw/lens/conversations/` folder, which git ignores, readable only
+  by you. Lens keeps the newest 50.
 - Field saves go to your local WordPress, through the same rules as an admin save, and are logged
   (`lens.field_saved`, see `taw log:tail --code lens`).
 
