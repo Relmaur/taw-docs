@@ -30,6 +30,8 @@ taw-fleet runs on macOS, Apple silicon or Intel.
     ```
 
     Update with `brew upgrade taw-fleet`. It installs two commands: `taw-fleet`, and `taw`, which runs a theme's own `vendor/bin/taw` with its site's PHP (taw-fleet 1.17.0+).
+
+    Since taw-fleet 1.35.0, `taw-fleet` lives inside `/Applications/TAW Fleet.app`, and every release is signed with the same identity. macOS asks once for access to your Documents folder (where TAW themes often live) and keeps that answer through every update. Opening the app from Finder or Spotlight opens the dashboard in a terminal window.
   </Tab>
   <Tab title="Download" icon="download">
     Download `taw-fleet_<version>_darwin_<arm64|amd64>.tar.gz` from the [releases](https://github.com/Relmaur/taw-fleet/releases) and put `taw-fleet` and `taw` on your `PATH`, for example in `~/.local/bin`. `self-update` keeps both current.

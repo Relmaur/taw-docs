@@ -5,6 +5,13 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-11-08" description="taw-fleet v1.35.0: one app and one signature, so macOS asks for your Documents folder once." tags={["taw-fleet", "fix"]}>
+
+- **taw-fleet v1.35.0:** Homebrew now installs taw-fleet as `/Applications/TAW Fleet.app`, and every release is signed with the same identity. Before, each update was a new program to macOS: System Settings → Privacy & Security → Files & Folders gained a `taw-fleet` row per release, and the background check could fail with “Operation not permitted” until you allowed it again. Now there's one **TAW Fleet** row, and its answer carries over to every update. After upgrading, you can remove the old `taw-fleet` rows: select each one and click −.
+- Opening **TAW Fleet** from Finder or Spotlight opens the dashboard in a terminal window.
+
+</Update>
+
 <Update label="2026-11-08" description="taw/core v1.102.1: the Lens Send button shows its arrow again. taw-theme v1.13.2 and taw-gutenberg v0.3.84." tags={["taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
 
 ## November 2026: Lens Send button fix
