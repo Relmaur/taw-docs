@@ -5,6 +5,16 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-11-09" description="taw/core v1.103.0: reorder tabbed repeaters; text typed in a repeater's Visual editor saves again. taw-theme v1.13.3 and taw-gutenberg v0.3.85." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature", "fix"]}>
+
+## November 2026: reorder tabbed repeaters
+
+- **taw/core v1.103.0:** repeaters with a [tabbed layout](/taw-core-metabox) can be reordered. Drag a tab to a new spot, or click it and press Alt (Option on a Mac) + an arrow key. Rows save in the order the tabs show.
+- **taw/core v1.103.0:** fixed: in the block editor, text typed in the **Visual** tab of a WYSIWYG field inside a repeater was lost when you saved the page. The **Code** tab and the classic editor weren't affected.
+- **taw-theme v1.13.3** and **taw-gutenberg v0.3.85** lock taw/core 1.103.0.
+
+</Update>
+
 <Update label="2026-11-08" description="taw-fleet v1.35.0: one app and one signature, so macOS asks for your Documents folder once." tags={["taw-fleet", "fix"]}>
 
 - **taw-fleet v1.35.0:** Homebrew now installs taw-fleet as `/Applications/TAW Fleet.app`, and every release is signed with the same identity. Before, each update was a new program to macOS: System Settings → Privacy & Security → Files & Folders gained a `taw-fleet` row per release, and the background check could fail with “Operation not permitted” until you allowed it again. Now there's one **TAW Fleet** row, and its answer carries over to every update. After upgrading, you can remove the old `taw-fleet` rows: select each one and click −.
