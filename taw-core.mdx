@@ -1196,6 +1196,8 @@ composer require emailit/emailit-php
 
 `EMAILIT_API_KEY` (and optionally `EMAILIT_FROM_EMAIL` / `EMAILIT_FROM_NAME`) are site-specific secrets that belong in that site's `wp-config.php` — never commit them into the theme repo. If the SDK isn't installed, the API key is empty, or the Emailit API call throws, `EmailConfig` falls back to normal `wp_mail()` transparently rather than silently dropping the email.
 
+Emailit accepts only a few messages a second per account. When it answers that the limit is reached (HTTP 429), `EmailConfig` waits and tries again, up to twice, before it falls back: it waits as long as Emailit's `Retry-After` header says, up to 3 seconds, or else 1 second and then 2 seconds (since v1.105.2; before that, the second email in one request, such as a client's copy, went straight to `wp_mail()`). Any other error still falls back at once.
+
 The recipients, subject and body carry over, and so do the `Reply-To`, `Cc` and `Bcc` headers and every attachment (since v1.104.1; before that they were dropped). A string key in the attachments array is the file name the recipient sees. If an attachment can't be read, that email goes through `wp_mail()` instead, so it's never sent without it. A `From` header is ignored: Emailit sends from the address you pass to `useEmailit()`, which must be on the domain you verified in Emailit.
 
 {/* MARK: OptionsPage */}

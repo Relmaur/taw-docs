@@ -5,6 +5,15 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-11-10" description="taw/core v1.105.2: with Emailit on, a second email in the same request waits out Emailit’s rate limit instead of going through the host’s mail. taw-theme v1.13.8 and taw-gutenberg v0.3.90." tags={["taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
+
+## November 2026: Emailit waits out its rate limit
+
+- **taw/core v1.105.2:** [Emailit](/taw-core#sending-through-emailit) accepts only a few messages a second per account. A second email in the same request, such as a client’s copy right after the studio’s, got “too many requests” and went through `wp_mail()`, the host’s own mail, which your domain’s SPF and DKIM may not cover. Now `EmailConfig` waits (as long as Emailit asks, up to 3 seconds) and tries again, up to twice, before it falls back. Other errors still fall back at once.
+- **taw-theme v1.13.8** and **taw-gutenberg v0.3.90** lock taw/core 1.105.2.
+
+</Update>
+
 <Update label="2026-11-10" description="taw-fleet v1.35.1 and taw/core v1.105.1: a publish that deletes a page or an option reads again. taw-theme v1.13.7 and taw-gutenberg v0.3.89." tags={["taw-fleet", "taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
 
 ## November 2026: publishing a delete works again
