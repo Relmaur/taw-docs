@@ -729,6 +729,8 @@ Form::display('contact');
 
 When both `email.to_self.template` and `email.to_client.template` are set, delivery uses `Mailer` + `MailTemplate`. Otherwise `Form` falls back to plain-text `wp_mail()`.
 
+`'email' => false` (since v1.104.0) sends no email at all. Use it when the form's [`on_submit`](#on-submit-callback) callback sends its own email with `Mailer` and computed variables, so the site doesn't get a second, plain-text one.
+
 ### Input field types
 
 | Type | Description |
@@ -1124,6 +1126,31 @@ Like `Form`'s Turnstile secret key, the password itself should live in that site
 {/* MARK: Email */}
 
 ## Email
+
+### Templates
+
+`Mailer::template('name')` reads `mails/html/name.html` and replaces each `{{variable}}` with its value:
+
+```php
+(new Mailer())
+    ->to('studio@example.com')
+    ->subject('New request')
+    ->template('studio-request')
+    ->setVariables(['name' => esc_html($name), 'date' => esc_html($date)])
+    ->send();
+```
+
+Values go in as typed: a `$1` or `\0` in a value stays as it is (since v1.104.0; before that it was dropped). They aren't escaped, so escape each value before `setVariables()`.
+
+**Optional blocks** (since v1.104.0): put a part of the template that only makes sense with a value between markers. It's removed when that variable is unset or empty:
+
+```html
+<!--if:date--><p>Your date: {{date}}</p><!--/if:date-->
+```
+
+When the variable has a value, the block stays. Its markers are HTML comments, which mail clients don't show. Blocks with different names can nest.
+
+### Sending through Emailit
 
 `TAW\Support\EmailConfig::useEmailit()` routes **all** `wp_mail()` calls — form submissions, password resets, WooCommerce order emails, anything else that goes through `wp_mail()` — through [Emailit](https://emailit.com)'s API instead of the site's default mail transport.
 

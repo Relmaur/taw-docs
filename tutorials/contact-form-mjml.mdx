@@ -230,6 +230,7 @@ By the end of this tutorial you will have a `ContactBlock` that registers a cont
 
     <Callout kind="tip" collapsed="false">
       Use `{{variable_name}}` placeholders anywhere in your MJML. TAW replaces them with the submitted field values at send time — the placeholder names match your form `field id` values.
+      Wrap a row that only makes sense with a value in `<!--if:subject-->…<!--/if:subject-->`: it's removed when that field is empty (taw/core v1.104.0+).
     </Callout>
   </Step>
 

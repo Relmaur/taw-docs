@@ -5,6 +5,17 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-11-10" description="taw/core v1.104.0: forms can send no email of their own; optional blocks in mail templates; $1 in a value reaches the email. taw-theme v1.13.4 and taw-gutenberg v0.3.86." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature", "fix"]}>
+
+## November 2026: designed emails from forms
+
+- **taw/core v1.104.0:** `'email' => false` turns off a [form](/taw-core#forms)'s own email. Use it when the form's `on_submit` sends a designed email with `Mailer` instead, so nobody gets a second, plain-text one.
+- **taw/core v1.104.0:** [mail templates](/taw-core#templates) can have optional blocks: `<!--if:date-->…<!--/if:date-->` is removed when `date` is empty.
+- **taw/core v1.104.0:** fixed: a `$1` or `\0` in a form value (a price, a typed message) was dropped from template emails. It now arrives as typed.
+- **taw-theme v1.13.4** and **taw-gutenberg v0.3.86** lock taw/core 1.104.0.
+
+</Update>
+
 <Update label="2026-11-09" description="taw/core v1.103.0: reorder tabbed repeaters; text typed in a repeater's Visual editor saves again. taw-theme v1.13.3 and taw-gutenberg v0.3.85." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature", "fix"]}>
 
 ## November 2026: reorder tabbed repeaters
