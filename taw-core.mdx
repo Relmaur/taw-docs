@@ -1150,6 +1150,23 @@ Values go in as typed: a `$1` or `\0` in a value stays as it is (since v1.104.0;
 
 When the variable has a value, the block stays. Its markers are HTML comments, which mail clients don't show. Blocks with different names can nest.
 
+**Repeated blocks** (since v1.105.0): put a row that repeats between repeat markers, and pass its variable as a list of rows, each with its own values:
+
+```html
+<!--repeat:guest--><tr><td>{{name}}<!--if:note--> · {{note}}<!--/if:note--></td></tr><!--/repeat:guest-->
+```
+
+```php
+->setVariables([
+    'guest' => [
+        ['name' => esc_html('Jane Doe'), 'note' => ''],
+        ['name' => esc_html('John Seed'), 'note' => esc_html('+2')],
+    ],
+])
+```
+
+The block is written once per row, filled with that row's values. The template's other variables still apply inside it, and each row's optional blocks are resolved. An empty list removes the block. Escape row values too.
+
 ### Sending through Emailit
 
 `TAW\Support\EmailConfig::useEmailit()` routes **all** `wp_mail()` calls — form submissions, password resets, WooCommerce order emails, anything else that goes through `wp_mail()` — through [Emailit](https://emailit.com)'s API instead of the site's default mail transport.
