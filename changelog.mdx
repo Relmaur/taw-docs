@@ -5,6 +5,16 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-11-10" description="taw-fleet v1.35.1 and taw/core v1.105.1: a publish that deletes a page or an option reads again. taw-theme v1.13.7 and taw-gutenberg v0.3.89." tags={["taw-fleet", "taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
+
+## November 2026: publishing a delete works again
+
+- **taw-fleet v1.35.1:** a [publish](/taw-fleet-production#publish-content-to-production) where Local deleted a page or an option stopped before the review with “the plan isn't readable: json: cannot unmarshal array…”, and nothing could be published to that site. taw-fleet now reads the plan, and the review lists each delete, unticked. Production needs no update for this.
+- **taw/core v1.105.1:** the publish plan, and `content:import --dry-run --json`, always write a record's `changes` as an object, `{}` when a record has none (a delete).
+- **taw-theme v1.13.7** and **taw-gutenberg v0.3.89** lock taw/core 1.105.1.
+
+</Update>
+
 <Update label="2026-11-10" description="taw/core v1.105.0: repeat a block once per row in mail templates. taw-theme v1.13.6 and taw-gutenberg v0.3.88." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature"]}>
 
 ## November 2026: repeated rows in mail templates
