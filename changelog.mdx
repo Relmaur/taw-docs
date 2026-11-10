@@ -5,6 +5,15 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-11-10" description="taw/core v1.104.1: with Emailit on, emails keep their Reply-To, Cc, Bcc and attachments. taw-theme v1.13.5 and taw-gutenberg v0.3.87." tags={["taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
+
+## November 2026: Emailit keeps attachments
+
+- **taw/core v1.104.1:** fixed: with [Emailit](/taw-core#sending-through-emailit) on, emails lost their attachments and their `Reply-To`, `Cc` and `Bcc` headers. They now arrive with them. If an attachment can't be read, that email goes through the server's own mail instead, so it's never sent without it.
+- **taw-theme v1.13.5** and **taw-gutenberg v0.3.87** lock taw/core 1.104.1.
+
+</Update>
+
 <Update label="2026-11-10" description="taw/core v1.104.0: forms can send no email of their own; optional blocks in mail templates; $1 in a value reaches the email. taw-theme v1.13.4 and taw-gutenberg v0.3.86." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature", "fix"]}>
 
 ## November 2026: designed emails from forms
