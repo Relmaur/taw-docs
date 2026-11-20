@@ -83,6 +83,26 @@ Every request is a signed `GET` to the companion's `/wp-json/taw-hub/v1/` routes
 | this Mac's clock is more than 60 s off (401) | Fix the Mac's clock |
 | needs a newer companion | One route (inventory, vulnerabilities, logs) is missing. Update the companion |
 
+### A site that left WordPress
+
+When you rebuild a client site on another stack (Laravel on Forge, for example) and move its domain there, the domain stops answering from WordPress. taw-fleet then reports the production as broken (`live.signature`). Mark the site moved instead:
+
+```bash
+taw-fleet moved awesome-company "Laravel on Forge"
+```
+
+This adds `moved_to` to the site's settings. `production_url` stays as the address where the site now answers. After this:
+
+- The Local site and its theme stay in the dashboard, sorted after the WordPress sites. The card shows `moved → Laravel on Forge`, and the details show a MOVED section in place of LIVE. The filter `is:moved` finds these sites.
+- taw-fleet stops checking production, sending watch notifications and writing monthly reports for the site. It also stops publishing, content pulls, deploys, `wp-remote` and the SETUP checklist. Update-all lists the site as skipped.
+- `doctor` shows one note, `site.moved`, in place of the theme's findings.
+
+When you no longer need the WordPress copy, delete the site in Local. To put it back in the fleet, run `taw-fleet moved awesome-company --clear`.
+
+<Callout kind="info">
+  Versions of taw-fleet before 1.36.0 refuse a settings file that has `moved_to`. Upgrade taw-fleet before you set it.
+</Callout>
+
 ## Pull production content
 
 `C` in the dashboard, or `taw-fleet pull <site>`, copies a production site's published content into its Local copy: posts and custom post type entries, TAW fields and options, terms, and the media they use. Drafts, users, comments and settings never come over.

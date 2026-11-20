@@ -5,6 +5,14 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-11-20" description="taw-fleet v1.36.0: mark a site that left WordPress, so taw-fleet stops checking and updating it." tags={["taw-fleet", "feature"]}>
+
+## November 2026: sites that left WordPress
+
+- **taw-fleet v1.36.0:** when a client site is rebuilt on another stack, its domain stops answering from WordPress, and taw-fleet showed its production as broken. Now [mark it moved](/taw-fleet-production#a-site-that-left-wordpress) with `taw-fleet moved <site> "Laravel on Forge"`. The Local site and its theme stay in the list with `moved` on the card. taw-fleet stops checking production, sending notifications, writing monthly reports, publishing, deploying and updating for that site. `doctor` shows one note, `site.moved`, and the filter takes `is:moved`. `--clear` undoes it.
+
+</Update>
+
 <Update label="2026-11-10" description="taw/core v1.105.2: with Emailit on, a second email in the same request waits out Emailit’s rate limit instead of going through the host’s mail. taw-theme v1.13.8 and taw-gutenberg v0.3.90." tags={["taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
 
 ## November 2026: Emailit waits out its rate limit

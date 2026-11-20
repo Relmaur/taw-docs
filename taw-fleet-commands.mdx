@@ -113,6 +113,14 @@ taw-fleet tag <site> [tag…] [--add <tag>] [--remove <tag>] [--clear] [--yes]
 
 With only the site, prints its tags. With tags, sets them, replacing the old ones. `--add` and `--remove` change a few; `--clear` removes them all. A tag is lower case letters, digits, `:`, `_` or `-`, up to 12 per site. Asks first; `--yes` doesn't. The dashboard's `#`. See [Tags and groups](/taw-fleet-dashboard#tags-and-groups).
 
+### moved
+
+```bash
+taw-fleet moved <site> ["what it is now"] [--clear] [--yes]
+```
+
+Marks a site that left WordPress, such as `taw-fleet moved awesome-company "Laravel on Forge"`. This sets `moved_to` in the settings. taw-fleet keeps listing the Local site but stops checking, reporting on, publishing to, deploying and updating it. With only the site, it says whether the site is marked. `--clear` puts the site back in the fleet. Asks first (`--yes` doesn't) and adds a site note. See [A site that left WordPress](/taw-fleet-production#a-site-that-left-wordpress).
+
 ### notes
 
 ```bash
