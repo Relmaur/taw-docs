@@ -5,6 +5,21 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-11-26" description="taw/core v1.106.0: a form can take the visitor to a thank-you page after it’s sent, and three SEO filters let a theme add post types, description fallbacks and JSON-LD details. taw-theme v1.13.9 and taw-gutenberg v0.3.91." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature"]}>
+
+## November 2026: redirect after a form, and SEO filters
+
+- **taw/core v1.106.0:**
+  - A form can [send the visitor to another page](/taw-core#redirect-after-submit) after a successful submission, such as a thank-you page or a download. Add `'redirect' => '/thank-you/'` to `Form::register()`. The success message shows first, then the page changes. Only pages on your site (or hosts you allow) are used; anything else is ignored.
+  - Three SEO filters for themes, all off until you add them:
+    - `taw_seo_meta_screens` shows the SEO & Social box on more post types than pages and posts.
+    - `taw_seo_meta_context` changes the description and social tags before they print, for example to fall back to a summary field when a page has no meta description. The `<title>` tag stays as it is.
+    - `taw_seo_schema_graph` adds details to the JSON-LD, such as an Organization description, `areaServed` or `sameAs`.
+  - A fix: `content:import --staged=<folder>` without `--yes` listed every staged file as missing, although the import itself brought them in. The dry run now says it would add them.
+- **taw-theme v1.13.9** and **taw-gutenberg v0.3.91** lock taw/core 1.106.0.
+
+</Update>
+
 <Update label="2026-11-20" description="taw-fleet v1.36.0: mark a site that left WordPress, so taw-fleet stops checking and updating it." tags={["taw-fleet", "feature"]}>
 
 ## November 2026: sites that left WordPress

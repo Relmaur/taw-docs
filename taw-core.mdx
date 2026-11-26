@@ -768,6 +768,27 @@ Form::register([
   The icon renders inside its own `<span class="taw-btn-icon" aria-hidden="true">` — decorative, since the button's accessible name already comes from the label. Nothing renders when `submit_icon` is unset, empty, or an icon name `Lucide::render()` doesn't recognize.
 </Callout>
 
+### Redirect after submit
+
+By default, a successful submission shows the `messages.success` text under the form. To send the visitor to another page instead, such as a thank-you page or a download, add `redirect` (taw/core 1.106.0 and later):
+
+```php
+Form::register([
+    'id'       => 'guide',
+    'redirect' => '/thank-you/',
+    'messages' => ['success' => 'Thanks! Taking you to your guide…'],
+    'fields'   => [...],
+]);
+```
+
+- **What you can use:** a path on your site (`/thank-you/`) or a full URL. A full URL must be on your site, or on a host you allow with WordPress's `allowed_redirect_hosts` filter.
+- **What the visitor sees:** the success message first, read out by screen readers, then the new page. Multi-step forms work the same way.
+- **When it doesn't redirect:** when a field has an error, when your `on_submit` callback rejects the submission, or when something fails. The form shows its error as usual.
+
+<Callout kind="info">
+  The URL is checked when the form is submitted. If it points to another site, or isn't a URL at all, the form ignores it: it shows the success message as if `redirect` weren't set, and logs one `form.redirect_rejected` warning with the form's id. Submitted data never goes into the log.
+</Callout>
+
 ### Styling hooks
 
 Per-form styling without an ancestor wrapper or `!important` (taw/core ≥ v1.40.0):
