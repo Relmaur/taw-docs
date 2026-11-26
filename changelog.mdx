@@ -5,6 +5,15 @@ description: >-
   taw-fleet and the TAW Companion.
 ---
 
+<Update label="2026-11-26" description="taw/core v1.106.1: a content:import dry run with staged files lists a file that isn’t in the folder as missing, as the import does. taw-theme v1.13.10 and taw-gutenberg v0.3.92." tags={["taw/core", "taw-theme", "taw-gutenberg", "fix"]}>
+
+## November 2026: staged dry runs match the import
+
+- **taw/core v1.106.1:** with `content:import --staged=<folder>`, the import downloads nothing, so a media file that isn’t in the folder is missing. The dry run still listed it as a file it would download when it had a URL. It now lists it as missing, as the import does. Publishing from taw-fleet isn’t affected.
+- **taw-theme v1.13.10** and **taw-gutenberg v0.3.92** lock taw/core 1.106.1.
+
+</Update>
+
 <Update label="2026-11-26" description="taw/core v1.106.0: a form can take the visitor to a thank-you page after it’s sent, and three SEO filters let a theme add post types, description fallbacks and JSON-LD details. taw-theme v1.13.9 and taw-gutenberg v0.3.91." tags={["taw/core", "taw-theme", "taw-gutenberg", "feature"]}>
 
 ## November 2026: redirect after a form, and SEO filters
